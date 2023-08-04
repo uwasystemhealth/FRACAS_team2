@@ -1,6 +1,4 @@
-# FRACAS_team2 - Peter Tanner, and other names
-
-
+# FRACAS_team2 - Peter Tanner, Haoyuan Wang, Harsha Mane, Igor Pavkov, Insan Basrewan, Nicolas Baxter
 
 FRACAS for UWA Motorsport
 
