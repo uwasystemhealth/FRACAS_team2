@@ -12,31 +12,38 @@ A requirements documents has been developed as part of a BPhil 2nd year project.
 
 ## How to Run
 Download a copy of the repository, onto your local machine.
+### Flask (API):
 You must have Python installed on your system.
-1. 'cd' into the directory of this repository, in your local machine
-2. Initialise a Python virtual environment (venv), if you haven't
+1. 'cd' into the api folder in this repository, in your local machine
+2. Setup a Python virtual environment (venv)
 ```
 python3 -m venv venv
-```
-3. Activate the venv
-```
-# Mac/Linux
+# For Mac/Linux
 source venv/bin/activate
-# Windows
+# For Windows
 .\venv\Scripts\activate
 ```
-4. Install dependencies
+3. Install dependencies
 ```
 pip install -r requirements.txt
 ```
-5. If app.db is not present, you'll have to initialise a database
+4. If app.db is not present, you'll have to initialise a database
 ```
 flask db init
 flask db migrate
 flask db upgrade
 ```
-6. Launch the web app
+5. Launch the api
 ```
 flask run
 ```
-7. Access via http://127.0.0.1:5000
+6. Access via http://127.0.0.1:5000
+
+### React
+You must have nodejs and yarn installed.
+1. 'cd' into this repository, in your local machine
+2. Launch react app, locally
+```
+yarn start
+```
+3. Access via http://127.0.0.1:3000
