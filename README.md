@@ -1,6 +1,17 @@
 # FRACAS_team2 - Peter Tanner, Haoyuan Wang, Harsha Mane, Igor Pavkov, Insan Basrewan, Nicolas Baxter
 
-## How to Run
+## Docker instructions
+
+1. Make sure your current working directory is the project root.
+2. Run `docker-compose build` once after downloading the repository, or whenever you modify the `Dockerfile`s.
+3. Run `docker-compose up` every time you want to start the frontend and backend in development mode.
+4. Access the frontend at `localhost:3000` and backend at `localhost:5000`.
+5. Frontend and backend should automatically reload whenever you make a change to the files locally, or inside the docker container.
+6. `Ctrl+C` terminates the frontend and backend.
+
+Alternatively, you may wish to run the application locally (without docker).
+
+## How to Run locally
 
 Download a copy of the repository, onto your local machine.
 
@@ -43,26 +54,19 @@ flask run
 
 ### React
 
-You must have nodejs and yarn installed.
+1. Install dependencies from `yarn.lock` lockfile.
 
-1. 'cd' into this repository, in your local machine
-2. Launch react app, locally
+```bash
+yarn install --frozen-lockfile
+```
+
+2. Start the frontend server.
 
 ```bash
 yarn start
 ```
 
 3. Access via http://127.0.0.1:3000
-
-## From scratch
-
-Create frontend
-
-```bash
-npx create-react-app@latest frontend
-cd frontend
-npm install --save-dev webpack webpack-cli webpack-dev-server typescript @types/react @types/react-dom file-loader @types/file-loader
-```
 
 ## Description
 
