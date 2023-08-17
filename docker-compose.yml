@@ -1,0 +1,22 @@
+services:
+  backend:
+    build:
+      context: backend
+    stop_signal: SIGINT
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+
+  frontend:
+    build:
+      context: frontend
+    stop_signal: SIGINT
+    ports:
+      - "3000:3000"
+    # depends_on:
+    # - backend
+    volumes:
+      - ./frontend:/app
+      - ./frontend/node_modules:/app/node_modules
+      - ./frontend/.next:/app/.next # cache build artifacts

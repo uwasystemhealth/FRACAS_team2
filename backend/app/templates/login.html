@@ -1,0 +1,19 @@
+{% extends "base.html" %} {% block content %}
+<div>
+  <!--The forms to login with an already made account, username and password and remeber me checkbox-->
+  <form method="post">
+    {{ form.hidden_tag() }}
+    <p>
+      {{ form.username.label }}<br />
+      {{ form.username(size=18) }}
+    </p>
+    <p>
+      {{ form.password.label }}<br />
+      {{ form.password(size=18) }}
+    </p>
+    <p>{{ form.remember_me }} {{ form.remember_me.label }}</p>
+    <p>{{ form.submit(class_='login-btn') }}</p>
+  </form>
+  <p><a href="{{url_for('signup')}}">Sign up here!</a></p>
+</div>
+{% endblock %}
