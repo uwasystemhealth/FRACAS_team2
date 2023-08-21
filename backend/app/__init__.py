@@ -1,11 +1,16 @@
+import os
 from flask import Flask
 from config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 app.config.from_object(Config)
+app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 login = LoginManager(app)

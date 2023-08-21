@@ -20,7 +20,7 @@ def index():
         return redirect(url_for("login"))
 
 
-@app.route("/login", methods=["GET", "POST"])
+@app.route("/api/v1/authentication/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
         return redirect(url_for("index"))
@@ -38,13 +38,13 @@ def login():
     return render_template("login.html", title="Sign In", form=form)
 
 
-@app.route("/logout")
+@app.route("/api/v1/authentication/logout")
 def logout():
     logout_user()
     return redirect(url_for("login"))
 
 
-@app.route("/signup", methods=["GET", "POST"])
+@app.route("/api/v1/authentication/login/signup", methods=["GET", "POST"])
 def signup():
     if current_user.is_authenticated:
         return redirect(url_for("index"))

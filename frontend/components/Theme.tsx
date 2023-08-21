@@ -2,10 +2,10 @@
 
 import { createTheme } from "@mui/material";
 
-const theme = createTheme({
+const defaultTheme = createTheme({
   typography: {
     fontFamily: "Arial, sans-serif", // Set the desired font family
   },
 });
 
-export default theme;
+export default defaultTheme;

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { Fragment, useState } from "react";
 import {
   Box,
   Paper,
@@ -25,7 +25,7 @@ const LoginPage: React.FC = () => {
     >
       <Paper elevation={3} style={{ padding: 20, minWidth: 300 }}>
         <Image
-          src="/UWAM Logo 2023 (colour).svg"
+          src={LogoSVG}
           alt="Logo"
           width={446}
           height={91.6833}
@@ -50,7 +50,7 @@ const LoginPage: React.FC = () => {
           <FormControlLabel
             tabIndex={3}
             control={<Checkbox color="primary" />}
-            label="Remember me"
+            label={"Remember me"}
           />
 
           <Link href="#" color="primary" tabIndex={5}>
