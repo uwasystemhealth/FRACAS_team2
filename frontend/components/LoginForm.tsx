@@ -14,40 +14,69 @@ import {
 } from "@mui/material";
 import LogoSVG from "../public/UWAM Logo 2023 (colour).svg";
 import Image from "next/image";
-import axios from "axios";
-import { BACKEND_URL } from "@/components/Constants";
+import axios, { AxiosError, AxiosResponse } from "axios";
+import { API_CLIENT, API_ENDPOINT } from "@/helpers/api";
+import { useRouter } from "next/navigation";
+
+interface AuthenticationLoginSend {
+  email: string;
+  password: string;
+}
+
+interface AuthenticationLoginResponse {
+  access_token: string;
+  refresh_token: string;
+}
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const router = useRouter();
+
+  const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(event.target.value);
+  };
+
+  const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(event.target.value);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios
-        .post(`${BACKEND_URL}/api/v1/authentication/login`, {
-          email,
-          password,
+      const response = await API_CLIENT.post<
+        AuthenticationLoginSend,
+        AuthenticationLoginResponse
+      >(API_ENDPOINT.AUTHENTICATION.LOGIN, {
+        email: email,
+        password: password,
+      })
+        .then((response) => {
+          if (response) {
+            const { access_token: accessToken, refresh_token: refreshToken } =
+              response;
+            localStorage.setItem("access-token", accessToken);
+            localStorage.setItem("refresh-token", refreshToken);
+            console.log("LOGIN SUCCESSFUL!");
+
+            router.push("/");
+          } else {
+            setErrorMessage("An error occurred");
+          }
         })
-        .catch((error) => {
-          console.log("LOGIN ERROR :(");
-          console.log(error);
+        .catch((error: AxiosError) => {
+          console.log({ email: email, password: password });
           if (error.response) {
-            if (error.response.status === 401)
-              setErrorMessage("Bad username or password");
+            if (error.status === 401) setErrorMessage("Bad email or password");
             else
               setErrorMessage(
-                `An error occurred. Error code ${error.response.status}`
+                `An error occurred. Error code ${error.code} ${error.message}`
               );
           } else {
             setErrorMessage("An error occurred");
           }
         });
-
-      // Assuming the response contains a token
-      const token = response.data.token;
-      console.log("LOGIN SUCCESSFUL!");
 
       // Do something with the token (e.g., store it)
     } catch (error: any) {}
@@ -74,6 +103,8 @@ const LoginPage: React.FC = () => {
         />
         <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
           <TextField
+            value={email}
+            onChange={handleEmailChange}
             margin="normal"
             required
             fullWidth
@@ -84,6 +115,8 @@ const LoginPage: React.FC = () => {
             autoFocus
           />
           <TextField
+            value={password}
+            onChange={handlePasswordChange}
             margin="normal"
             required
             fullWidth
@@ -93,10 +126,10 @@ const LoginPage: React.FC = () => {
             id="password"
             autoComplete="current-password"
           />
-          <FormControlLabel
+          {/* <FormControlLabel
             control={<Checkbox value="remember" color="primary" />}
             label="Remember me"
-          />
+          /> */}
           <Button
             type="submit"
             fullWidth

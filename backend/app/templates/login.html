@@ -1,11 +1,11 @@
 {% extends "base.html" %} {% block content %}
 <div>
-  <!--The forms to login with an already made account, username and password and remeber me checkbox-->
+  <!--The forms to login with an already made account, email and password and remeber me checkbox-->
   <form method="post">
     {{ form.hidden_tag() }}
     <p>
-      {{ form.username.label }}<br />
-      {{ form.username(size=18) }}
+      {{ form.email.label }}<br />
+      {{ form.email(size=18) }}
     </p>
     <p>
       {{ form.password.label }}<br />
