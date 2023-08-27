@@ -1,15 +1,9 @@
 import datetime
 import time
-from typing import Callable
+from typing import Literal
 from flask import (
-    Config,
     jsonify,
-    render_template,
-    flash,
     request,
-    redirect,
-    url_for,
-    session,
 )
 from flask_jwt_extended import (
     create_access_token,
@@ -18,13 +12,11 @@ from flask_jwt_extended import (
     get_jwt_identity,
     jwt_required,
 )
-from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer
 
 from app import app, db, mail
 from app.models import TokenBlacklist, User
 
-from werkzeug.urls import url_parse
 from app.messages import MESSAGES
 from app.utils import superuser_jwt_required, user_jwt_required
 
@@ -59,14 +51,6 @@ def login():
     return jsonify(access_token=access_token, refresh_token=refresh_token), 200
 
 
-# @app.route("/api/v1/authentication/logout", methods=["DELETE"])
-# @user_jwt_required
-# def logout():
-#     pass
-#     # logout_user()
-#     # return redirect(url_for("login"))
-
-
 # Revoke token for added security
 @app.route("/api/v1/authentication/logout", methods=["DELETE"])
 @jwt_required(verify_type=False)
@@ -81,49 +65,50 @@ def logout():
     return jsonify(msg=f"Revoked token type={ttype.capitalize()}"), 200
 
 
-def send_signup_request_email(email: str) -> bool:
+def send_signup_request_email(
+    email: str,
+    pwd_recovery: Literal["REGISTRATION_MAIL", "RECOVERY_MAIL"] = "REGISTRATION_MAIL",
+) -> bool:
     start_time = time.time()
     serializer = URLSafeTimedSerializer(app.config["SECRET_KEY"])
     token = serializer.dumps(email, salt=app.config["SECURITY_PASSWORD_SALT"])
     registration_link = f"{app.config['FRONTEND_URI']}/signup?token={token}"
     mail.send_message(
-        MESSAGES["REGISTRATION_MAIL"]["SUBJECT"],
+        MESSAGES[pwd_recovery]["SUBJECT"],
         sender=app.config["MAIL_USERNAME"],
         recipients=[email],
-        body=MESSAGES["REGISTRATION_MAIL"]["BODY"].format(registration_link),
+        body=MESSAGES[pwd_recovery]["BODY"].format(registration_link),
     )
     app.logger.info(f"Sent email to {email} in {time.time() - start_time} seconds.")
     return True
 
 
+# TODO:UNTESTED
+@app.route("/api/v1/authentication/reset_password", methods=["POST"])
+@superuser_jwt_required
+def reset_password():
+    email = request.json.get("email", None)
+    if email is None:
+        return jsonify({"err": "bad_request", "msg": "email is required"}), 400
+    user: User = User.query.filter_by(email=email).first()
+    if user is None:
+        return (
+            jsonify(
+                {
+                    "err": "user_does_not_exist",
+                    "msg": "user is not yet requested to join",
+                }
+            ),
+            404,
+        )
+    user.unregister()
+    send_signup_request_email(email)
+    return jsonify({"msg": "recovery email sent"}), 200
+
+
 @app.route("/api/v1/authentication/resend_signup_request", methods=["POST"])
 @superuser_jwt_required
 def resend_signup_request():
-    # requestor_email = get_jwt_identity()
-    # if requestor_email is None:
-    #     return jsonify({"err": "bad_request", "msg": "email is required"}), 400
-    # requestor: User = User.query.filter_by(email=requestor_email).first()
-    # if requestor is None:
-    #     return (
-    #         jsonify(
-    #             {
-    #                 "err": "invalid_credentials",
-    #                 "msg": "Bad email or password, or user does not exist",
-    #             }
-    #         ),
-    #         401,
-    #     )
-    # if not requestor.is_superuser():
-    #     return (
-    #         jsonify(
-    #             {
-    #                 "err": "invalid_permissions",
-    #                 "msg": "endpoint requires superuser status",
-    #             }
-    #         ),
-    #         401,
-    #     )
-
     email = request.json.get("email", None)
     if email is None:
         return jsonify({"err": "bad_request", "msg": "email is required"}), 400

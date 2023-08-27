@@ -16,14 +16,18 @@ const Home = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await API_CLIENT.get(
-          "/api/v1/authentication/test_logged_in"
-        )
+        await API_CLIENT.get(API_ENDPOINT.AUTHENTICATION.TEST_LOGGED_IN)
           .then((response) => {
             setMessage(response.data.msg);
           })
           .catch((error) => {
-            setMessage("Error: " + error.response.data.msg);
+            setMessage(
+              "Redirecting to login in 3 seconds... Error: " +
+                error.response.data.msg
+            );
+            setTimeout(() => {
+              router.push("/login");
+            }, 5000);
           });
       } catch (error) {
         setMessage("Unknown error.");

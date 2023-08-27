@@ -11,6 +11,8 @@ import {
   Typography,
   FormControlLabel,
   Grid,
+  Alert,
+  AlertTitle,
 } from "@mui/material";
 import LogoSVG from "../public/UWAM Logo 2023 (colour).svg";
 import Image from "next/image";
@@ -32,7 +34,10 @@ const SignInForm: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [emailError, setEmailError] = useState(false);
+  const [passwordError, setPasswordError] = useState(false);
   const router = useRouter();
+  const new_user = new URLSearchParams(window.location.search).get("new_user");
 
   const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(event.target.value);
@@ -44,49 +49,58 @@ const SignInForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const response = await API_CLIENT.post<
-        AuthenticationLoginSend,
-        AxiosResponse<AuthenticationLoginResponse>
-      >(API_ENDPOINT.AUTHENTICATION.LOGIN, {
-        email: email,
-        password: password,
-      })
-        .then((response) => {
-          if (response) {
-            const { access_token: accessToken, refresh_token: refreshToken } =
-              response.data;
-            console.log("login tokens", accessToken, refreshToken);
-            localStorage.setItem(TOKEN.ACCESS, accessToken);
-            localStorage.setItem(TOKEN.REFRESH, refreshToken);
-
-            // TODO: does this wokr?
-            API_CLIENT.defaults.headers[
-              "Authorization"
-            ] = `Bearer ${accessToken}`;
-            API_CLIENT.defaults.headers["X-Refresh-Token"] = refreshToken;
-
-            console.log("LOGIN SUCCESSFUL!");
-
-            router.push("/access");
-          } else {
-            setErrorMessage("An error occurred");
-          }
+    setPasswordError(false);
+    setEmailError(false);
+    setErrorMessage("");
+    if (email && password) {
+      try {
+        const response = await API_CLIENT.post<
+          AuthenticationLoginSend,
+          AxiosResponse<AuthenticationLoginResponse>
+        >(API_ENDPOINT.AUTHENTICATION.LOGIN, {
+          email: email,
+          password: password,
         })
-        .catch((error: AxiosError) => {
-          if (error.response) {
-            if (error.status === 401) setErrorMessage("Bad email or password");
-            else
-              setErrorMessage(
-                `An error occurred. Error code ${error.code} ${error.message}`
-              );
-          } else {
-            setErrorMessage("An error occurred");
-          }
-        });
+          .then((response) => {
+            if (response) {
+              const { access_token: accessToken, refresh_token: refreshToken } =
+                response.data;
+              console.log("login tokens", accessToken, refreshToken);
+              localStorage.setItem(TOKEN.ACCESS, accessToken);
+              localStorage.setItem(TOKEN.REFRESH, refreshToken);
 
-      // Do something with the token (e.g., store it)
-    } catch (error: any) {}
+              // TODO: does this wokr?
+              API_CLIENT.defaults.headers[
+                "Authorization"
+              ] = `Bearer ${accessToken}`;
+              API_CLIENT.defaults.headers["X-Refresh-Token"] = refreshToken;
+
+              console.log("LOGIN SUCCESSFUL!");
+
+              router.push("/access");
+            } else {
+              setErrorMessage("An error occurred");
+            }
+          })
+          .catch((error: AxiosError) => {
+            if (error.response) {
+              if (error.response.status === 401)
+                setErrorMessage("Bad email or password");
+              else
+                setErrorMessage(
+                  `An error occurred. Error code ${error.code} ${error.message}`
+                );
+            } else {
+              setErrorMessage("An error occurred");
+            }
+          });
+
+        // Do something with the token (e.g., store it)
+      } catch (error: any) {}
+    } else {
+      email && setPasswordError(true);
+      password && setEmailError(true);
+    }
   };
 
   return (
@@ -110,6 +124,8 @@ const SignInForm: React.FC = () => {
           name="email"
           autoComplete="email"
           autoFocus
+          error={emailError}
+          helperText={emailError && "Email is required."}
         />
         <TextField
           value={password}
@@ -122,6 +138,8 @@ const SignInForm: React.FC = () => {
           type="password"
           id="password"
           autoComplete="current-password"
+          error={passwordError}
+          helperText={passwordError && "Password is required."}
         />
         {/* <FormControlLabel
             control={<Checkbox value="remember" color="primary" />}
@@ -136,12 +154,18 @@ const SignInForm: React.FC = () => {
           Sign In
         </Button>
         {errorMessage && <Typography color="error">{errorMessage}</Typography>}
-        <Grid container justifyContent="flex-end">
-          <Grid item xs>
+        <Grid container>
+          {new_user && (
+            <Alert style={{ width: "100%" }} severity="success">
+              <AlertTitle>Registration successful!</AlertTitle>
+              Please login with your credentials.
+            </Alert>
+          )}
+          {/* <Grid item xs>
             <Link href="#" variant="body2">
               Forgot password?
             </Link>
-          </Grid>
+          </Grid> */}
           {/* <Grid item xs>
             <Link href="#" variant="body2">
               <Typography textAlign={"right"}>

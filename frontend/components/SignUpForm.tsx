@@ -50,7 +50,6 @@ const SignUpForm: React.FC = () => {
     setError(password !== confirmPassword);
     if (password === confirmPassword) {
       const token = new URLSearchParams(window.location.search).get("token");
-      console.log(password, token);
       try {
         const response = await API_CLIENT.post<
           AuthenticationSignupSend,
@@ -63,9 +62,9 @@ const SignUpForm: React.FC = () => {
             if (response) {
               const { err: err, msg: msg } = response.data;
               console.log(err, msg);
-              console.log("LOGIN SUCCESSFUL!");
+              console.log("User registered.");
 
-              // router.push("/");
+              router.push("/login?new_user=1");
             } else {
               setErrorMessage("An error occurred");
             }

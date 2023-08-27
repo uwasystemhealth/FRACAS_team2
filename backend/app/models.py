@@ -31,6 +31,9 @@ class User(db.Model):
             self.password_hash, password
         )
 
+    def unregister(self):
+        self.registered = False
+
     def is_registered(self) -> bool:
         return self.registered
 

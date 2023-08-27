@@ -1,6 +1,7 @@
 from pwinput import pwinput
 from app import app, db
 from app.models import User
+from app.routes import send_signup_request_email
 
 
 def create_db_():
@@ -53,3 +54,21 @@ def make_superuser():
             db.session.commit()
             print("Set superuser status.")
         return
+
+
+# TODO: temporary, remove
+@app.cli.command("invite-user")
+def invite_user():
+    email = ""
+    while email.strip() == "":
+        email = input("Enter email of user to invite: ")
+        if email is None:
+            return print({"err": "bad_request", "msg": "email is required"})
+        if len(email) > User.MAX_EMAIL_LENGTH:
+            return print({"err": "long_email", "msg": "email is too long"})
+        user = User(email=email, registered=False)
+        db.session.add(user)
+        db.session.commit()
+
+        send_signup_request_email(email)
+        return print({"msg": "signup email sent"})
