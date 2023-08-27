@@ -17,7 +17,7 @@ const Home = () => {
         elevation={3}
         style={{ margin: 20, padding: 20, maxWidth: "75vw" }}
       >
-        <Typography>Successful login!</Typography>
+        <Typography>BetterFRACAS entrypoint. Please login at /login</Typography>
       </Paper>
     </Box>
   );

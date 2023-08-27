@@ -1,4 +1,16 @@
 {
   "typescript.tsdk": "./frontend/node_modules/typescript/lib",
-  "python.analysis.extraPaths": ["./backend/app"]
+  "python.analysis.extraPaths": ["./backend/app", "./backend"],
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    "**/node_modules": true
+  },
+  "[python]": {
+    "editor.semanticHighlighting.enabled": true
+  }
 }
