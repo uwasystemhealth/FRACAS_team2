@@ -15,7 +15,7 @@ from flask_jwt_extended import (
 from itsdangerous import URLSafeTimedSerializer
 
 from app import app, db, mail
-from app.models import TokenBlacklist, User
+from app.models import Team, TokenBlacklist, User
 
 from app.messages import MESSAGES
 from app.utils import superuser_jwt_required, user_jwt_required
@@ -129,18 +129,20 @@ def resend_signup_request():
 @app.route("/api/v1/authentication/signup_request", methods=["POST"])
 @superuser_jwt_required
 def signup_request():
-    email = request.json.get("email", None)
-    if email is None:
-        return jsonify({"err": "bad_request", "msg": "email is required"}), 400
-    if len(email) > User.MAX_EMAIL_LENGTH:
-        return jsonify({"err": "long_email", "msg": "email is too long"}), 400
-    user = User(email=email, registered=False)
-    db.session.add(user)
-    db.session.commit()
+    try:
+        email = request.json.get("email", None)
+        if email is None:
+            return jsonify({"err": "bad_request", "msg": "email is required"}), 400
+        if len(email) > User.MAX_EMAIL_LENGTH:
+            return jsonify({"err": "long_email", "msg": "email is too long"}), 400
+        user = User(email=email, registered=False)
+        db.session.add(user)
+        db.session.commit()
 
-    send_signup_request_email(email)
-    return jsonify({"msg": "signup email sent"}), 200
-
+        send_signup_request_email(email)
+        return jsonify({"msg": "signup email sent"}), 200
+    except Exception as e: 
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/api/v1/authentication/signup", methods=["POST"])
 def signup():
@@ -204,3 +206,19 @@ def refresh():
 @user_jwt_required
 def test_logged_in():
     return jsonify({"msg": "Logged in!"}), 200
+
+
+@app.route("/api/v1/team/create_team", methods=["PUT"])
+@superuser_jwt_required  # I need to log in and be an admin to use this
+def create_team():
+    team_name = request.json.get("team_name", None)
+    if team_name is None:
+        return jsonify({"err": "bad_request", "msg": "team_name is required"}), 400
+
+    team = Team(team_name=team_name)
+    db.session.add(team)
+    db.session.commit()
+
+    return jsonify({"msg": "created team"}), 200
+
+@api.route("/api/v1/comment/")
