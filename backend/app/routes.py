@@ -203,4 +203,6 @@ def refresh():
 @app.route("/api/v1/authentication/test_logged_in", methods=["GET"])
 @user_jwt_required
 def test_logged_in():
-    return jsonify({"msg": "Logged in!"}), 200
+    identity = get_jwt_identity()
+    user: User = User.query.filter_by(email=identity).first()
+    return jsonify({"msg": "Logged in!", "email": user.email}), 200

@@ -2,9 +2,9 @@
 
 import { Box, Button, Paper, Typography } from "@mui/material";
 import react, { useState, useEffect } from "react";
-import axios, { AxiosError } from "axios"; // Import Axios
+import axios, { AxiosError, AxiosResponse } from "axios"; // Import Axios
 import withAuth from "@/helpers/authWrapper";
-import { API_CLIENT, API_ENDPOINT, TOKEN } from "@/helpers/api";
+import { API_CLIENT, API_ENDPOINT, API_TYPES, TOKEN } from "@/helpers/api";
 import { useRouter } from "next/navigation";
 import { BACKEND_URL } from "@/helpers/constants";
 
@@ -12,29 +12,37 @@ const Home = () => {
   const [message, setMessage] = useState("");
   const router = useRouter();
 
-  // test connection
+  // redirect to access page if user is already logged in.
   useEffect(() => {
-    const fetchData = async () => {
+    (async () => {
       try {
-        await API_CLIENT.get(API_ENDPOINT.AUTHENTICATION.TEST_LOGGED_IN)
+        await API_CLIENT.get<API_TYPES.AUTHENTICATION.TEST_LOGGED_IN.RESPONSE>(
+          API_ENDPOINT.AUTHENTICATION.TEST_LOGGED_IN
+        )
           .then((response) => {
-            setMessage(response.data.msg);
+            setMessage(`${response.data.msg}, identity=${response.data.email}`);
           })
-          .catch((error) => {
-            setMessage(
-              "Redirecting to login in 3 seconds... Error: " +
-                error.response.data.msg
-            );
-            setTimeout(() => {
-              router.push("/login");
-            }, 5000);
-          });
+          .catch(
+            (
+              error: AxiosError<API_TYPES.AUTHENTICATION.TEST_LOGGED_IN.RESPONSE>
+            ) => {
+              if (error.response) {
+                setMessage(
+                  "Redirecting to login in 3 seconds... Error: " +
+                    error.response.data.msg
+                );
+              } else {
+                setMessage("Redirecting to login in 3 seconds... Error: ?");
+              }
+              setTimeout(() => {
+                router.push("/login");
+              }, 5000);
+            }
+          );
       } catch (error) {
         setMessage("Unknown error.");
       }
-    };
-
-    fetchData();
+    })();
   }, []);
 
   const logout = async () => {
@@ -103,5 +111,7 @@ const Home = () => {
     </Box>
   );
 };
+
+Home.getInitialProps = async () => {};
 
 export default Home;

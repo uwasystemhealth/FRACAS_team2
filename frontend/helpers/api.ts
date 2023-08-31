@@ -1,4 +1,4 @@
-import axios, { AxiosRequestConfig } from "axios";
+import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { BACKEND_URL } from "./constants";
 
 export const API_ENDPOINT = {
@@ -8,8 +8,40 @@ export const API_ENDPOINT = {
     SIGNUP: "/api/v1/authentication/signup",
     REFRESH: "/api/v1/authentication/refresh",
     LOGOUT: "/api/v1/authentication/logout",
+    TEST_LOGGED_IN: "/api/v1/authentication/test_logged_in",
   },
 };
+
+export namespace API_TYPES {
+  export namespace AUTHENTICATION {
+    export namespace LOGIN {
+      export interface REQUEST {
+        email: string;
+        password: string;
+      }
+      export interface RESPONSE {
+        access_token: string;
+        refresh_token: string;
+      }
+    }
+    export namespace SIGNUP {
+      export interface REQUEST {
+        token: string;
+        password: string;
+      }
+      export interface RESPONSE {
+        err: string;
+        msg: string;
+      }
+    }
+    export namespace TEST_LOGGED_IN {
+      export interface RESPONSE {
+        msg: string;
+        email: string;
+      }
+    }
+  }
+}
 
 export const TOKEN = {
   ACCESS: "access-token",

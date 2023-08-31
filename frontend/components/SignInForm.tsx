@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import {
   Box,
   Paper,
@@ -17,18 +17,8 @@ import {
 import LogoSVG from "../public/UWAM Logo 2023 (colour).svg";
 import Image from "next/image";
 import axios, { AxiosError, AxiosResponse } from "axios";
-import { API_CLIENT, API_ENDPOINT, TOKEN } from "@/helpers/api";
+import { API_CLIENT, API_ENDPOINT, TOKEN, API_TYPES } from "@/helpers/api";
 import { useRouter } from "next/navigation";
-
-interface AuthenticationLoginSend {
-  email: string;
-  password: string;
-}
-
-interface AuthenticationLoginResponse {
-  access_token: string;
-  refresh_token: string;
-}
 
 const SignInForm: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -36,8 +26,16 @@ const SignInForm: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [emailError, setEmailError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
+  const [newUser, setNewUser] = useState(false);
   const router = useRouter();
-  const new_user = new URLSearchParams(window.location.search).get("new_user");
+
+  useEffect(() => {
+    // redirect user if they are already signed in. if the token is invalid,
+    // they will be redirected back here by the access page.
+    if (localStorage.getItem(TOKEN.ACCESS)) router.push("/access");
+    const param = new URLSearchParams(window.location.search).get("new_user");
+    setNewUser(param !== null && param?.trim() !== "0" && param?.trim() !== "");
+  }, []);
 
   const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(event.target.value);
@@ -55,8 +53,8 @@ const SignInForm: React.FC = () => {
     if (email && password) {
       try {
         const response = await API_CLIENT.post<
-          AuthenticationLoginSend,
-          AxiosResponse<AuthenticationLoginResponse>
+          API_TYPES.AUTHENTICATION.LOGIN.REQUEST,
+          AxiosResponse<API_TYPES.AUTHENTICATION.LOGIN.RESPONSE>
         >(API_ENDPOINT.AUTHENTICATION.LOGIN, {
           email: email,
           password: password,
@@ -65,7 +63,6 @@ const SignInForm: React.FC = () => {
             if (response) {
               const { access_token: accessToken, refresh_token: refreshToken } =
                 response.data;
-              console.log("login tokens", accessToken, refreshToken);
               localStorage.setItem(TOKEN.ACCESS, accessToken);
               localStorage.setItem(TOKEN.REFRESH, refreshToken);
 
@@ -74,8 +71,6 @@ const SignInForm: React.FC = () => {
                 "Authorization"
               ] = `Bearer ${accessToken}`;
               API_CLIENT.defaults.headers["X-Refresh-Token"] = refreshToken;
-
-              console.log("LOGIN SUCCESSFUL!");
 
               router.push("/access");
             } else {
@@ -112,6 +107,9 @@ const SignInForm: React.FC = () => {
         height={91.6833}
         layout="responsive"
       />
+      <Typography variant="h1" textAlign="center">
+        Sign in
+      </Typography>
       <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
         <TextField
           value={email}
@@ -155,7 +153,7 @@ const SignInForm: React.FC = () => {
         </Button>
         {errorMessage && <Typography color="error">{errorMessage}</Typography>}
         <Grid container>
-          {new_user && (
+          {newUser && (
             <Alert style={{ width: "100%" }} severity="success">
               <AlertTitle>Registration successful!</AlertTitle>
               Please login with your credentials.

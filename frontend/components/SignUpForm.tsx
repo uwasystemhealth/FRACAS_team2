@@ -15,18 +15,8 @@ import {
 import LogoSVG from "../public/UWAM Logo 2023 (colour).svg";
 import Image from "next/image";
 import axios, { AxiosError, AxiosResponse } from "axios";
-import { API_CLIENT, API_ENDPOINT } from "@/helpers/api";
+import { API_CLIENT, API_ENDPOINT, API_TYPES } from "@/helpers/api";
 import { useRouter } from "next/navigation";
-
-interface AuthenticationSignupSend {
-  token: string;
-  password: string;
-}
-
-interface AuthenticationSignupResponse {
-  err: string;
-  msg: string;
-}
 
 const SignUpForm: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -51,9 +41,9 @@ const SignUpForm: React.FC = () => {
     if (password === confirmPassword) {
       const token = new URLSearchParams(window.location.search).get("token");
       try {
-        const response = await API_CLIENT.post<
-          AuthenticationSignupSend,
-          AxiosResponse<AuthenticationSignupResponse>
+        await API_CLIENT.post<
+          API_TYPES.AUTHENTICATION.SIGNUP.REQUEST,
+          AxiosResponse<API_TYPES.AUTHENTICATION.SIGNUP.RESPONSE>
         >(API_ENDPOINT.AUTHENTICATION.SIGNUP, {
           token: token,
           password: password,
@@ -61,7 +51,6 @@ const SignUpForm: React.FC = () => {
           .then((response) => {
             if (response) {
               const { err: err, msg: msg } = response.data;
-              console.log(err, msg);
               console.log("User registered.");
 
               router.push("/login?new_user=1");
@@ -69,14 +58,16 @@ const SignUpForm: React.FC = () => {
               setErrorMessage("An error occurred");
             }
           })
-          .catch((error: AxiosError<AuthenticationSignupResponse>) => {
-            if (error.response) {
-              const { err: err, msg: msg } = error.response.data;
-              setErrorMessage(`An error occurred. Error code ${err} ${msg}`);
-            } else {
-              setErrorMessage("An error occurred");
+          .catch(
+            (error: AxiosError<API_TYPES.AUTHENTICATION.SIGNUP.RESPONSE>) => {
+              if (error.response) {
+                const { err: err, msg: msg } = error.response.data;
+                setErrorMessage(`An error occurred. Error code ${err} ${msg}`);
+              } else {
+                setErrorMessage("An error occurred");
+              }
             }
-          });
+          );
 
         // Do something with the token (e.g., store it)
       } catch (error: any) {}
