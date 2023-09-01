@@ -91,7 +91,7 @@ const SignUpForm: React.FC = () => {
         height={91.6833}
         layout="responsive"
       />
-      <Typography variant="h1" textAlign="center">
+      <Typography variant="h4" textAlign="center">
         Sign up
       </Typography>
       <Typography maxWidth={700}>

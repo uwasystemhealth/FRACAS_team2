@@ -81,11 +81,18 @@ export default function ViewReport() {
           </Grid>
         </CardContent>
         <CardActions>
-          <Button size="small">Edit Report</Button>
+          <Button size="small" href="/editreport">Edit Report</Button>
         </CardActions>
       </Card>
       <Typography variant="h4" gutterBottom>
       Description
+      </Typography>
+      <Typography variant="body1" gutterBottom>
+      The LV PDM buck converter on '22 (Flo) failed whilst driving.
+      </Typography>
+      <Divider sx={{mx: 2, my:3}}/>
+      <Typography variant="h4" gutterBottom>
+      Impact
       </Typography>
       <Typography variant="body1" gutterBottom>
       The pump for cooling the motor lost power, cannot test drive the car until fixed. Delaying vehicle tesing and driver training. Lengthy troubleshooting / repair is diverting time from designing and manufacturing the 2023 car.
@@ -117,37 +124,37 @@ export default function ViewReport() {
           <Grid container spacing={2}>
             <Grid xs={6}>
                 <Typography variant="subtitle2" gutterBottom>
-                  <b>Date Created:</b> 25/07/15
+                  <b>Creator Contact:</b> 22964301@student.uwa.edu.au
                 </Typography>
             </Grid>
             <Grid xs={6}>
                 <Typography variant="subtitle2" gutterBottom>
-                  <b>Created By:</b> Erwin Bauernschmitt
+                  <b>Owner Contact:</b> 22964301@student.uwa.edu.au
                 </Typography>
             </Grid>
             <Grid xs={6}>
                 <Typography variant="subtitle2" gutterBottom>
-                  <b>Owned By:</b> Erwin Bauernschmitt
+                  <b>Report Team Lead:</b> Nathan Mayhew
                 </Typography>
             </Grid>
             <Grid xs={6}>
                 <Typography variant="subtitle2" gutterBottom>
-                  <b>Team:</b> Electrical
+                  <b>Report Team Lead Contact:</b> 23065159@student.uwa.edu.au
                 </Typography>
             </Grid>
             <Grid xs={6}>
                 <Typography variant="subtitle2" gutterBottom>
-                  <b>Subsystem:</b> PDM
+                  <b>Validation Status:</b> e.g. [Record, Analysis Validated | Fully Validated]
                 </Typography>
             </Grid>
             <Grid xs={6}>
                 <Typography variant="subtitle2" gutterBottom>
-                  <b>Car Year:</b> 2022
+                  <b>Report Status:</b> e.g. [Draft | In Progress | Pending Review | Resolved]
                 </Typography>
             </Grid>
             <Grid xs={6}>
                 <Typography variant="subtitle2" gutterBottom>
-                  <b>Time of Failure:</b> 14:30 08/09/2023
+                  <b>Time Resolved:</b> e.g. [Pending | 14:30 08/09/2023]
                 </Typography>
             </Grid>
           </Grid>

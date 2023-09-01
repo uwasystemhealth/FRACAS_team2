@@ -32,7 +32,7 @@ const SignInForm: React.FC = () => {
   useEffect(() => {
     // redirect user if they are already signed in. if the token is invalid,
     // they will be redirected back here by the access page.
-    if (localStorage.getItem(TOKEN.ACCESS)) router.push("/access");
+    if (localStorage.getItem(TOKEN.ACCESS)) router.push("/");
     const param = new URLSearchParams(window.location.search).get("new_user");
     setNewUser(param !== null && param?.trim() !== "0" && param?.trim() !== "");
   }, []);
@@ -72,7 +72,7 @@ const SignInForm: React.FC = () => {
               ] = `Bearer ${accessToken}`;
               API_CLIENT.defaults.headers["X-Refresh-Token"] = refreshToken;
 
-              router.push("/access");
+              router.push("/");
             } else {
               setErrorMessage("An error occurred");
             }
@@ -107,7 +107,7 @@ const SignInForm: React.FC = () => {
         height={91.6833}
         layout="responsive"
       />
-      <Typography variant="h1" textAlign="center">
+      <Typography variant="h4" textAlign="center">
         Sign in
       </Typography>
       <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
