@@ -1,12 +1,12 @@
 services:
   #backend:
-    #build:
-      #context: backend
-    #stop_signal: SIGINT
-    #ports:
-      #- "5000:5000"
-    #volumes:
-      #- ./backend:/app
+  #build:
+  #context: backend
+  #stop_signal: SIGINT
+  #ports:
+  #- "5000:5000"
+  #volumes:
+  #- ./backend:/app
 
   frontend:
     build:
@@ -15,8 +15,8 @@ services:
     ports:
       - "3000:3000"
     #depends_on:
-      #- backend
+    #- backend
     #volumes:
-      #- ./frontend:/app
-      #- /app/node_modules
-      #- /app/.next # cache build artifacts
+    #- ./frontend:/app
+    #- /app/node_modules
+    #- /app/.next # cache build artifacts
