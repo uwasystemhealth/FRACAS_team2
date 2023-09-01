@@ -18,7 +18,7 @@ import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
 import Divider from '@mui/material/Divider';
 
-const steps = ['Basic Info', 'Additional Info', 'Review'];
+const steps = ['Record', 'Analysis', 'Correction'];
 
 interface IFormInputs {
   failure_title: string;
@@ -46,7 +46,7 @@ const schema = yup.object().shape({
   failure_time: yup.string().required()
 });
 
-export default function CreateReport() {
+export default function EditReport() {
   const [team, setTeam] = React.useState('');
   const [subsystem, setSubsystem] = React.useState('');
 
@@ -110,7 +110,7 @@ export default function CreateReport() {
       ) : (
         <React.Fragment>
           <form onSubmit={handleSubmit(onSubmit)}>
-          {(activeStep === 0 || activeStep === 2) && (
+          {(activeStep === 0) && (
             <Box sx={{ flexGrow: 1, py: 2 }}>
               <Grid container spacing={2}>
                 <Grid xs={10}>
@@ -123,6 +123,7 @@ export default function CreateReport() {
                       sx={{ py: 4 }}
                       label="Title"
                       variant="standard"
+                      defaultValue={"LV PDM Buck Converter Failure"}
                       error={!!errors.failure_title}
                       helperText={errors.failure_title ? errors.failure_title?.message : ''}
                       fullWidth
@@ -184,6 +185,7 @@ export default function CreateReport() {
                       {...field}
                       label="Car Year"
                       variant="outlined"
+                      defaultValue={"2022"}
                       error={!!errors.failure_title}
                       helperText={errors.failure_title ? errors.failure_title?.message : ''}
                       fullWidth
@@ -199,6 +201,7 @@ export default function CreateReport() {
                     <TextField
                       {...field}
                       label="Time of Failure"
+                      defaultValue={"14:30 08/09/2023"}
                       variant="outlined"
                       error={!!errors.failure_title}
                       helperText={errors.failure_title ? errors.failure_title?.message : ''}
@@ -216,6 +219,7 @@ export default function CreateReport() {
                       {...field}
                       label="Description"
                       variant="outlined"
+                      defaultValue={"The LV PDM buck converter on '22 (Flo) failed whilst driving."}
                       error={!!errors.description}
                       helperText={errors.description ? errors.description?.message : ''}
                       fullWidth
@@ -228,7 +232,7 @@ export default function CreateReport() {
               </Grid>
             </Box>
             )}
-            {(activeStep === 1 || activeStep === 2) && (
+            {(activeStep === 1) && (
               <Box sx={{ flexGrow: 1, py: 4 }}>
               <Grid container spacing={2}>
               <Grid xs={12}>
@@ -240,6 +244,7 @@ export default function CreateReport() {
                       {...field}
                       label="Impact"
                       variant="outlined"
+                      defaultValue={"The pump for cooling the motor lost power, cannot test drive the car until fixed. Delaying vehicle tesing and driver training. Lengthy troubleshooting / repair is diverting time from designing and manufacturing the 2023 car."}
                       error={!!errors.impact}
                       helperText={errors.impact ? errors.impact?.message : ''}
                       fullWidth
@@ -258,6 +263,7 @@ export default function CreateReport() {
                       {...field}
                       label="Cause"
                       variant="outlined"
+                      defaultValue={"Overheating of the inductor due to high current."}
                       error={!!errors.cause}
                       helperText={errors.cause ? errors.cause?.message : ''}
                       fullWidth
@@ -276,6 +282,7 @@ export default function CreateReport() {
                       {...field}
                       label="Mechanism"
                       variant="outlined"
+                      defaultValue={"Dielectric Breakdown."}
                       error={!!errors.mechanism}
                       helperText={errors.mechanism ? errors.mechanism?.message : ''}
                       fullWidth
@@ -285,7 +292,13 @@ export default function CreateReport() {
                   )}
                 />
                 </Grid>
-                <Grid xs={12}>
+              </Grid>
+            </Box>
+            )}
+            {(activeStep === 2) && (
+              <Box sx={{ flexGrow: 1, py: 4 }}>
+              <Grid container spacing={2}>
+              <Grid xs={12}>
                   <Controller
                   name="corrective_action"
                   control={control}
@@ -294,6 +307,7 @@ export default function CreateReport() {
                       {...field}
                       label="Corrective Action Plan"
                       variant="outlined"
+                      defaultValue={"Replace broken inductor with a new lower-resistance inductor and validate reduced operating temperature with bench testing under expected load."}
                       error={!!errors.corrective_action}
                       helperText={errors.corrective_action ? errors.corrective_action?.message : ''}
                       fullWidth
