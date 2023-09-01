@@ -18,7 +18,7 @@ import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
 import Divider from '@mui/material/Divider';
 
-const steps = ['Basic Info', 'Additional Info', 'Review'];
+const steps = ['Record Entry', 'Analysis', 'Review'];
 
 interface IFormInputs {
   failure_title: string;
@@ -43,7 +43,7 @@ const schema = yup.object().shape({
   subsystem: yup.string().required(),
   car_year: yup.number(),
   team_id: yup.number().required(),
-  failure_time: yup.string().required()
+  failure_time: yup.string().required(),
 });
 
 export default function CreateReport() {
@@ -80,8 +80,8 @@ export default function CreateReport() {
 
   const onSubmit: SubmitHandler<IFormInputs> = (data) => console.log('data submitted: ', data);
 
-  console.log(watch('email'));
-  console.log('errors are', errors);
+  //console.log(watch('email'));
+  //console.log('errors are', errors);
 
   return (
     <Box sx={{ width: '100%' }}>

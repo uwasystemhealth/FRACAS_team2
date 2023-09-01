@@ -16,10 +16,13 @@
     "@hookform/resolvers": "^3.3.0",
     "@mui/icons-material": "latest",
     "@mui/material": "latest",
+    "@mui/x-data-grid": "^6.12.1",
+    "axios": "^1.5.0",
     "next": "13.x",
     "react": "18.x",
     "react-dom": "18.x",
     "react-hook-form": "^7.45.4",
+    "recharts": "^2.8.0",
     "yup": "^1.2.0"
   },
   "devDependencies": {
