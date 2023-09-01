@@ -1,6 +1,6 @@
 'use client'
 import React, { FC } from 'react';
-import { TextField } from '@mui/material/';
+import { FormControlLabel, TextField } from '@mui/material/';
 import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
@@ -17,6 +17,8 @@ import Select, { SelectChangeEvent } from '@mui/material/Select';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
 import Divider from '@mui/material/Divider';
+import FormGroup from '@mui/material/FormGroup';
+import Checkbox from '@mui/material/Checkbox';
 
 const steps = ['Record', 'Analysis', 'Correction'];
 
@@ -228,6 +230,13 @@ export default function EditReport() {
                     />
                   )}
                 />
+                <Divider sx={{my:3}}/>
+                <Typography variant="h6" gutterBottom>
+                  Validation
+                </Typography>
+                <FormGroup>
+                  <FormControlLabel control={<Checkbox defaultChecked />} label="Record Valid?" />
+                </FormGroup>
                 </Grid>
               </Grid>
             </Box>
@@ -291,6 +300,13 @@ export default function EditReport() {
                     />
                   )}
                 />
+                <Divider sx={{my:3}}/>
+                <Typography variant="h6" gutterBottom>
+                  Validation
+                </Typography>
+                <FormGroup>
+                  <FormControlLabel control={<Checkbox defaultChecked />} label="Analysis Valid?" />
+                </FormGroup>
                 </Grid>
               </Grid>
             </Box>
@@ -316,6 +332,13 @@ export default function EditReport() {
                     />
                   )}
                 />
+                <Divider sx={{my:3}}/>
+                <Typography variant="h6" gutterBottom>
+                  Validation
+                </Typography>
+                <FormGroup>
+                  <FormControlLabel control={<Checkbox/>} label="Correction Valid?" />
+                </FormGroup>
                 </Grid>
               </Grid>
             </Box>
