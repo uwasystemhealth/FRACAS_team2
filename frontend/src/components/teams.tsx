@@ -1,25 +1,23 @@
-import * as React from 'react';
-import Link from '@mui/material/Link';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Title from '../Title';
+import * as React from "react";
+import Link from "@mui/material/Link";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import Typography from "@mui/material/Typography";
 
 // Generate Order Data
 function createData(
   id: number,
   team_name: string,
   number_of_members: number,
-  options: string,
+  options: string
 ) {
   return { id, team_name, number_of_members, options };
 }
 
-const rows = [
-  createData(0, "NIL", 0, "NIL")
-];
+const rows = [createData(0, "NIL", 0, "NIL")];
 
 function preventDefault(event: React.MouseEvent) {
   event.preventDefault();
@@ -28,7 +26,7 @@ function preventDefault(event: React.MouseEvent) {
 export default function Teams() {
   return (
     <React.Fragment>
-      <Title>Teams List</Title>
+      <Typography>Teams List</Typography>
       <Table size="small">
         <TableHead>
           <TableRow>

@@ -1,11 +1,11 @@
-import * as React from 'react';
-import Link from '@mui/material/Link';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Title from '../Title';
+import * as React from "react";
+import Link from "@mui/material/Link";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import Typography from "@mui/material/Typography";
 
 // Generate Order Data
 function createData(
@@ -13,14 +13,12 @@ function createData(
   name: string,
   email: string,
   team: string,
-  options: string,
+  options: string
 ) {
   return { id, name, email, team, options };
 }
 
-const rows = [
-  createData(0, "NIL", "NIL", "NIL", "NIL")
-];
+const rows = [createData(0, "NIL", "NIL", "NIL", "NIL")];
 
 function preventDefault(event: React.MouseEvent) {
   event.preventDefault();
@@ -29,7 +27,7 @@ function preventDefault(event: React.MouseEvent) {
 export default function Members() {
   return (
     <React.Fragment>
-      <Title>Members List</Title>
+      <Typography>Members List</Typography>
       <Table size="small">
         <TableHead>
           <TableRow>
