@@ -23,6 +23,7 @@ import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import { Box } from "@mui/material";
 
 const drawerWidth = 240;
 
@@ -94,11 +95,6 @@ const Drawer = styled(MuiDrawer, {
     "& .MuiDrawer-paper": closedMixin(theme),
   }),
 }));
-
-export const metadata = {
-  title: "UWAM FRACAS",
-  description: "FRACAS for UWA Motorsports",
-};
 
 const DRAWER_WIDTH = 240;
 
