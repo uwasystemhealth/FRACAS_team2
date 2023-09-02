@@ -24,24 +24,49 @@ import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
+import { AxiosError } from "axios";
+import { API_CLIENT, API_TYPES, API_ENDPOINT } from "@/helpers/api";
 
 // Generate Order Data
 function createData(
   id: number,
-  team_name: string,
+  name: string,
   number_of_members: number,
   options: string
 ) {
-  return { id, team_name, number_of_members, options };
+  return { id, name, number_of_members, options };
 }
-
-const rows = [createData(0, "NIL", 0, "NIL")];
 
 function preventDefault(event: React.MouseEvent) {
   event.preventDefault();
 }
 
+interface row {
+  id: number;
+  name: string;
+  number_of_members: number;
+  options: string;
+}
+
 export default function Teams() {
+  const [rows, setRows] = React.useState<row[]>([]);
+
+  React.useEffect(() => {
+    (async () => {
+      try {
+        await API_CLIENT.get<API_TYPES.TEAM.GET.RESPONSE[]>(API_ENDPOINT.TEAM)
+          .then((response) => {
+            setRows(
+              response.data.map((team) =>
+                createData(team.id, team.name, team.members.length, "?")
+              )
+            );
+          })
+          .catch((error: AxiosError<API_TYPES.TEAM.GET.RESPONSE>) => {});
+      } catch (error) {}
+    })();
+  }, []);
+
   return (
     <React.Fragment>
       <Typography>Teams List</Typography>
@@ -56,7 +81,7 @@ export default function Teams() {
         <TableBody>
           {rows.map((row) => (
             <TableRow key={row.id}>
-              <TableCell>{row.team_name}</TableCell>
+              <TableCell>{row.name}</TableCell>
               <TableCell>{row.number_of_members}</TableCell>
               <TableCell align="right">{row.options}</TableCell>
             </TableRow>

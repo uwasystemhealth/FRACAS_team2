@@ -221,4 +221,13 @@ def refresh():
 def test_logged_in():
     identity = get_jwt_identity()
     user: User = User.query.filter_by(email=identity).first()
-    return jsonify({"msg": "Logged in!", "email": user.email}), 200
+    return (
+        jsonify(
+            {
+                "msg": "Logged in!",
+                "email": user.email,
+                "superuser": user.is_superuser(),
+            }
+        ),
+        200,
+    )

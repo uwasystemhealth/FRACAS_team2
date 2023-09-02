@@ -1,6 +1,6 @@
 /*
  * Better FRACAS
- * Copyright (C) 2023  ??? Better Fracas team
+ * Copyright (C) 2023  Peter Tanner, ??? Better Fracas team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,25 +24,70 @@ import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
-
-// Generate Order Data
-function createData(
-  id: number,
-  name: string,
-  email: string,
-  team: string,
-  options: string
-) {
-  return { id, name, email, team, options };
-}
-
-const rows = [createData(0, "NIL", "NIL", "NIL", "NIL")];
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import DoNotDisturbIcon from "@mui/icons-material/DoNotDisturb";
+import { useEffect, useState } from "react";
+import { API_CLIENT, API_ENDPOINT, API_TYPES } from "@/helpers/api";
+import { AxiosError } from "axios";
+import { Switch } from "@mui/material";
 
 function preventDefault(event: React.MouseEvent) {
   event.preventDefault();
 }
 
-export default function Members() {
+interface row {
+  id: number;
+  name: string;
+  email: string;
+  team: string;
+  options: string;
+  registered: boolean;
+  superuser: boolean;
+}
+
+const Members = () => {
+  const [rows, setRows] = useState<row[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        await API_CLIENT.get<API_TYPES.USER.RESPONSE[]>(API_ENDPOINT.USER)
+          .then((response) => {
+            console.log(
+              response.data.map((user) => {
+                const row_: row = {
+                  id: user.id,
+                  name: user.name,
+                  email: user.email,
+                  team: user.team?.name || "",
+                  superuser: user.superuser,
+                  registered: user.registered,
+                  options: "?",
+                };
+                return row_;
+              })
+            );
+
+            setRows(
+              response.data.map((user) => {
+                const row_: row = {
+                  id: user.id,
+                  name: user.name,
+                  email: user.email,
+                  team: user.team?.name || "",
+                  superuser: user.superuser,
+                  registered: user.registered,
+                  options: "?",
+                };
+                return row_;
+              })
+            );
+          })
+          .catch((error: AxiosError<API_TYPES.USER.RESPONSE>) => {});
+      } catch (error) {}
+    })();
+  }, []);
+
   return (
     <React.Fragment>
       <Typography>Members List</Typography>
@@ -52,6 +97,8 @@ export default function Members() {
             <TableCell>Name</TableCell>
             <TableCell>Email</TableCell>
             <TableCell>Team</TableCell>
+            <TableCell align="center">Registered</TableCell>
+            <TableCell align="center">Superuser</TableCell>
             <TableCell align="right">Options</TableCell>
           </TableRow>
         </TableHead>
@@ -61,6 +108,16 @@ export default function Members() {
               <TableCell>{row.name}</TableCell>
               <TableCell>{row.email}</TableCell>
               <TableCell>{row.team}</TableCell>
+              <TableCell align="center">
+                {row.registered ? (
+                  <CheckCircleOutlineIcon color="success" />
+                ) : (
+                  <DoNotDisturbIcon color="error" />
+                )}
+              </TableCell>
+              <TableCell align="center">
+                <Switch checked={row.superuser} onChange={() => {}} />
+              </TableCell>
               <TableCell align="right">{row.options}</TableCell>
             </TableRow>
           ))}
@@ -71,4 +128,5 @@ export default function Members() {
       </Link>
     </React.Fragment>
   );
-}
+};
+export default Members;

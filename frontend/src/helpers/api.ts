@@ -1,5 +1,6 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { BACKEND_URL } from "./constants";
+import { string } from "prop-types";
 
 export const API_ENDPOINT = {
   AUTHENTICATION: {
@@ -10,6 +11,8 @@ export const API_ENDPOINT = {
     LOGOUT: "/api/v1/authentication/logout",
     TEST_LOGGED_IN: "/api/v1/authentication/test_logged_in",
   },
+  USER: "/api/v1/user",
+  TEAM: "/api/v1/team", // TODO: add /leader
 };
 
 export namespace API_TYPES {
@@ -38,6 +41,36 @@ export namespace API_TYPES {
       export interface RESPONSE {
         msg: string;
         email: string;
+        superuser: boolean;
+      }
+    }
+  }
+
+  export namespace USER {
+    export interface RESPONSE {
+      id: number;
+      email: string;
+      registered: boolean;
+      superuser: boolean;
+      name: string;
+      created_at: string;
+      // teams: number[];
+      team_id?: number;
+      team?: TEAM.GET.RESPONSE;
+      leading_team?: TEAM.GET.RESPONSE;
+    }
+  }
+
+  export namespace TEAM {
+    export namespace GET {
+      export interface RESPONSE {
+        created_at: string;
+        id: number;
+        inactive: boolean;
+        leader?: USER.RESPONSE;
+        leader_id?: number;
+        members: USER.RESPONSE[];
+        name: string;
       }
     }
   }
