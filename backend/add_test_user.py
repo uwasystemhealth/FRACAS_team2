@@ -1,5 +1,5 @@
 from app import app, db
-from app.models import User  # noqa
+from app.models.authentication import User  # noqa
 
 email = "Test@dev.com"
 password = "Test"

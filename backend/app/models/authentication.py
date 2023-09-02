@@ -7,6 +7,10 @@ from datetime import datetime
 
 from werkzeug.security import generate_password_hash, check_password_hash
 
+# delete a user for testing
+# db.session.delete(User.query.filter_by(email='').first())
+# db.session.commit()
+
 
 class User(db.Model):
     MAX_EMAIL_LENGTH = 64

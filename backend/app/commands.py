@@ -1,7 +1,7 @@
 from pwinput import pwinput
 from app import app, db
-from app.models import User
-from app.routes import send_signup_request_email
+from app.models.authentication import User
+from app.routes.authentication import send_signup_request_email
 
 
 def create_db_():

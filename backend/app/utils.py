@@ -4,7 +4,7 @@ from flask import jsonify
 
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
-from app.models import User
+from app.models.authentication import User
 
 
 def u_jwt_required__(type: Literal["superuser", "user"]) -> Callable:

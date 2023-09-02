@@ -19,6 +19,7 @@ import Image from "next/image";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import { API_CLIENT, API_ENDPOINT, TOKEN, API_TYPES } from "@/helpers/api";
 import { useRouter } from "next/navigation";
+import CheckLogin, { PAGE_TYPE } from "./CheckLogin";
 
 const SignInForm: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -30,9 +31,6 @@ const SignInForm: React.FC = () => {
   const router = useRouter();
 
   useEffect(() => {
-    // redirect user if they are already signed in. if the token is invalid,
-    // they will be redirected back here by the access page.
-    if (localStorage.getItem(TOKEN.ACCESS)) router.push("/");
     const param = new URLSearchParams(window.location.search).get("new_user");
     setNewUser(param !== null && param?.trim() !== "0" && param?.trim() !== "");
   }, []);
@@ -66,7 +64,6 @@ const SignInForm: React.FC = () => {
               localStorage.setItem(TOKEN.ACCESS, accessToken);
               localStorage.setItem(TOKEN.REFRESH, refreshToken);
 
-              // TODO: does this wokr?
               API_CLIENT.defaults.headers[
                 "Authorization"
               ] = `Bearer ${accessToken}`;
@@ -100,6 +97,7 @@ const SignInForm: React.FC = () => {
 
   return (
     <Paper elevation={3} style={{ margin: 20, padding: 20, maxWidth: "75vw" }}>
+      <CheckLogin pageType={PAGE_TYPE.EXTERNAL} />
       <Image
         src={LogoSVG}
         alt="Logo"

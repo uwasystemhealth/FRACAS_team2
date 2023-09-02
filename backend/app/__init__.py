@@ -20,4 +20,18 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 mail = Mail(app)
 
-from app import routes, models, commands  # noqa
+from app import commands  # noqa
+
+# Import models
+model_dir = os.path.join(os.path.dirname(__file__), "models")
+for filename in os.listdir(model_dir):
+    if filename.endswith(".py") and filename != "__init__.py":
+        module_name = filename[:-3]  # Remove the '.py' extension
+        module = __import__(f"app.models.{module_name}", fromlist=["*"])
+
+# Import routes
+route_dir = os.path.join(os.path.dirname(__file__), "routes")
+for filename in os.listdir(route_dir):
+    if filename.endswith(".py") and filename != "__init__.py":
+        module_name = filename[:-3]  # Remove the '.py' extension
+        module = __import__(f"app.routes.{module_name}", fromlist=["*"])

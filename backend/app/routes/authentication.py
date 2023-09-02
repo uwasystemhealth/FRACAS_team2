@@ -15,7 +15,7 @@ from flask_jwt_extended import (
 from itsdangerous import URLSafeTimedSerializer
 
 from app import app, db, mail
-from app.models import TokenBlacklist, User
+from app.models.authentication import TokenBlacklist, User
 
 from app.messages import MESSAGES
 from app.utils import superuser_jwt_required, user_jwt_required

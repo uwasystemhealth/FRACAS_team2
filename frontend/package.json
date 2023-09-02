@@ -10,12 +10,13 @@
     "post-update": "echo \"codesandbox preview only, need an update\" && yarn upgrade --latest"
   },
   "dependencies": {
+    "@fontsource/roboto": "^5.0.8",
     "@emotion/cache": "latest",
-    "@emotion/react": "latest",
-    "@emotion/styled": "latest",
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
     "@hookform/resolvers": "^3.3.0",
     "@mui/icons-material": "latest",
-    "@mui/material": "latest",
+    "@mui/material": "^5.14.5",
     "@mui/system": "^5.14.7",
     "@mui/x-data-grid": "^6.12.1",
     "axios": "^1.5.0",
