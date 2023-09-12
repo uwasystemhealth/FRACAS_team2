@@ -64,6 +64,107 @@ class User(db.Model):
         self.superuser = superuser
 
 
+class Team(db.Model):
+    __tablename__ = "teams"
+
+    team_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    team_name = db.Column(db.String, nullable=False, unique=True)
+    created_at = db.Column(db.DateTime, default=func.now())
+
+
+class UserTeam(db.Model):
+    __tablename__ = "user_teams"
+
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("users.user_id", ondelete="CASCADE"), primary_key=True
+    )
+    team_id = db.Column(
+        db.Integer, db.ForeignKey("teams.team_id", ondelete="CASCADE"), primary_key=True
+    )
+    is_leader = db.Column(db.Integer, default=0)
+
+
+class FailureReport(db.Model):
+    __tablename__ = "failures"
+
+    failure_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    creator_id = db.Column(
+        db.Integer, db.ForeignKey("users.user_id", ondelete="CASCADE")
+    )
+    owner_id = db.Column(db.Integer, db.ForeignKey("users.user_id", ondelete="CASCADE"))
+    teamleader_id = db.Column(
+        db.Integer, db.ForeignKey("users.user_id", ondelete="CASCADE")
+    )
+    team_id = db.Column(db.Integer, db.ForeignKey("teams.team_id", ondelete="CASCADE"))
+    failure_title = db.Column(db.Text)
+    description = db.Column(db.Text)
+    impact = db.Column(db.Text)
+    cause = db.Column(db.Text)
+    mechanism = db.Column(db.Text)
+    corrective_action = db.Column(db.Text)
+    subsystem = db.Column(db.Text)
+    car_year = db.Column(db.Integer)
+    due_date = db.Column(db.Date)
+    created_at = db.Column(db.DateTime, default=func.now())
+    failure_time = db.Column(db.DateTime)
+    time_resolved = db.Column(db.DateTime)
+    record_valid = db.Column(db.Integer)
+    analysis_valid = db.Column(db.Integer)
+    correction_valid = db.Column(db.Integer)
+    is_reviewed = db.Column(db.Integer)
+
+
+class Comment(db.Model):
+    __tablename__ = "comments"
+
+    comment_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.user_id", ondelete="CASCADE"))
+    failure_id = db.Column(
+        db.Integer, db.ForeignKey("failures.failure_id", ondelete="CASCADE")
+    )
+    content = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=func.now())
+
+
+class Notification(db.Model):
+    __tablename__ = "notifications"
+
+    notification_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.user_id", ondelete="CASCADE"))
+    content = db.Column(db.Text, nullable=False)
+    type = db.Column(db.Text)
+    is_read = db.Column(db.Integer, default=0)
+    timestamp = db.Column(db.DateTime, default=func.now())
+
+
+class Bookmark(db.Model):
+    __tablename__ = "bookmarks"
+
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("users.user_id", ondelete="CASCADE"), primary_key=True
+    )
+    failure_id = db.Column(
+        db.Integer,
+        db.ForeignKey("failures.failure_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    timestamp = db.Column(db.DateTime, default=func.now())
+
+
+class LearningAssignment(db.Model):
+    __tablename__ = "learning_assignment"
+
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("users.user_id", ondelete="CASCADE"), primary_key=True
+    )
+    failure_id = db.Column(
+        db.Integer,
+        db.ForeignKey("failures.failure_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    due_date = db.Column(db.Date)
+
+
 class TokenBlacklist(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     jti = db.Column(db.String(36), nullable=False, index=True)
