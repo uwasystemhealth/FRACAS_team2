@@ -16,56 +16,51 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as React from "react";
-import Link from "@mui/material/Link";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
+import React, { useEffect, useState } from "react";
 import Typography from "@mui/material/Typography";
+import { DataGrid, GridColDef, GridValueGetterParams } from '@mui/x-data-grid';
+import axios from 'axios';
 
-// Generate Order Data
-function createData(
-  id: number,
-  team_name: string,
-  number_of_members: number,
-  options: string
-) {
-  return { id, team_name, number_of_members, options };
+interface Team {
+  id: number;
+  team: string;
+  leader: string;
 }
 
-const rows = [createData(0, "NIL", 0, "NIL")];
+const columns: GridColDef[] = [
+  { field: 'id', headerName: 'ID', width: 70 },
+  { field: 'team', headerName: 'Team', width: 200 },
+  { field: 'leader', headerName: 'Leader', width: 200 },
+];
 
-function preventDefault(event: React.MouseEvent) {
-  event.preventDefault();
-}
+const UserTable: React.FC = () => {
+  const [teams, setTeams] = useState<Team[]>([]);
 
-export default function Teams() {
+  useEffect(() => {
+    // Make a GET request to your Flask backend to fetch the list of users
+    axios.get('http://localhost:5000/api/v1/get/team_list')
+      .then((response) => {
+        setTeams(response.data);
+      })
+      .catch((error) => {
+        console.error('Error fetching teams:', error);
+      });
+  }, []);
+
   return (
     <React.Fragment>
-      <Typography>Teams List</Typography>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Team Name</TableCell>
-            <TableCell>Number of Members</TableCell>
-            <TableCell align="right">Options</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {rows.map((row) => (
-            <TableRow key={row.id}>
-              <TableCell>{row.team_name}</TableCell>
-              <TableCell>{row.number_of_members}</TableCell>
-              <TableCell align="right">{row.options}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-      <Link color="primary" href="#" onClick={preventDefault} sx={{ mt: 3 }}>
-        View more teams
-      </Link>
+      <DataGrid
+        rows={teams}
+        columns={columns}
+        initialState={{
+          pagination: {
+            paginationModel: { page: 0, pageSize: 5 },
+          },
+        }}
+        pageSizeOptions={[5, 10]}
+        checkboxSelection
+      />
     </React.Fragment>
   );
 }
+export default UserTable;

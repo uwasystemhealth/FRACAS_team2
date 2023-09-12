@@ -21,48 +21,72 @@
 import * as React from "react";
 import CssBaseline from "@mui/material/CssBaseline";
 import Box from "@mui/material/Box";
-import Toolbar from "@mui/material/Toolbar";
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
-import { mainListItems, secondaryListItems } from "@/components/listItems";
 import Members from "@/components/members";
 import Teams from "@/components/teams";
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
+import Typography from '@mui/material/Typography';
 
-export default function Dashboard() {
-  const [open, setOpen] = React.useState(true);
-  const toggleDrawer = () => {
-    setOpen(!open);
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function CustomTabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ p: 3 }}>
+          <Typography>{children}</Typography>
+        </Box>
+      )}
+    </div>
+  );
+}
+
+function a11yProps(index: number) {
+  return {
+    id: `simple-tab-${index}`,
+    'aria-controls': `simple-tabpanel-${index}`,
+  };
+}
+
+export default function Admin() {
+  const [value, setValue] = React.useState(0);
+
+  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+    setValue(newValue);
   };
 
   return (
-    <Box sx={{ display: "flex" }}>
-      <CssBaseline />
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          height: "100vh",
-          overflow: "auto",
-        }}
-      >
-        <Toolbar />
-        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-          <Grid container spacing={3}>
-            {/* Recent Orders */}
-            <Grid item xs={12}>
-              <Paper sx={{ p: 2, display: "flex", flexDirection: "column" }}>
-                <Members />
-              </Paper>
-            </Grid>
-            <Grid item xs={12}>
-              <Paper sx={{ p: 2, display: "flex", flexDirection: "column" }}>
-                <Teams />
-              </Paper>
-            </Grid>
-          </Grid>
-        </Container>
+    <Box sx={{ width: "100%" }}>
+      <Typography variant="h4" gutterBottom>
+        Admin Management
+      </Typography>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
+          <Tab label="Members" {...a11yProps(0)} />
+          <Tab label="Teams" {...a11yProps(1)} />
+        </Tabs>
       </Box>
+      <CustomTabPanel value={value} index={0}>
+        <Members />
+      </CustomTabPanel>
+      <CustomTabPanel value={value} index={1}>
+        <Teams />
+      </CustomTabPanel>
     </Box>
   );
 }
