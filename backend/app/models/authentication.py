@@ -18,6 +18,7 @@ from enum import Enum
 
 from flask_jwt_extended import get_current_user, get_jwt_identity
 from sqlalchemy import func
+from sqlalchemy.orm import Session
 from app import db, jwt
 from datetime import datetime
 
@@ -35,9 +36,13 @@ class User(db.Model):
     email = db.Column(
         db.String(MAX_EMAIL_LENGTH), index=True, unique=True, nullable=False
     )
-    password_hash = db.Column(db.String(128), nullable=True)
+    fullname = db.Column(db.String, nullable=False)
+    password_hash = db.Column(db.String(128), nullable=False)
     registered = db.Column(db.Boolean(False), nullable=False, default=False)
     superuser = db.Column(db.Boolean(False), nullable=False, default=False)
+    team_id = db.Column(db.Integer, db.ForeignKey('team.id'))
+    
+    team = db.relationship('Team', backref=db.backref('members', lazy=True), foreign_keys=[team_id])
 
     def __repr__(self):
         return f"<User {self.email} {'(UNREGISTERED)' if not self.registered else ''}>"
@@ -61,42 +66,23 @@ class User(db.Model):
         return self.superuser
 
     def set_superuser(self, superuser: bool) -> None:
-        self.superuser = superuser
+        self.superuser = True
 
 
 class Team(db.Model):
-    __tablename__ = "teams"
-
-    team_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    team_name = db.Column(db.String, nullable=False, unique=True)
-    created_at = db.Column(db.DateTime, default=func.now())
-
-
-class UserTeam(db.Model):
-    __tablename__ = "user_teams"
-
-    user_id = db.Column(
-        db.Integer, db.ForeignKey("users.user_id", ondelete="CASCADE"), primary_key=True
-    )
-    team_id = db.Column(
-        db.Integer, db.ForeignKey("teams.team_id", ondelete="CASCADE"), primary_key=True
-    )
-    is_leader = db.Column(db.Integer, default=0)
-
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(50), nullable=False, unique=True)
+    leader_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=True)
+    
+    leader = db.relationship('User', foreign_keys=[leader_id])
 
 class FailureReport(db.Model):
-    __tablename__ = "failures"
-
     failure_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    creator_id = db.Column(
-        db.Integer, db.ForeignKey("users.user_id", ondelete="CASCADE")
-    )
-    owner_id = db.Column(db.Integer, db.ForeignKey("users.user_id", ondelete="CASCADE"))
-    teamleader_id = db.Column(
-        db.Integer, db.ForeignKey("users.user_id", ondelete="CASCADE")
-    )
-    team_id = db.Column(db.Integer, db.ForeignKey("teams.team_id", ondelete="CASCADE"))
-    failure_title = db.Column(db.Text)
+    creator_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    owner_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    teamleader_id = db.Column(db.Integer, db.ForeignKey("team.leader_id"))
+    team_id = db.Column(db.Integer, db.ForeignKey("team.id"))
+    failure_title = db.Column(db.Text(60))
     description = db.Column(db.Text)
     impact = db.Column(db.Text)
     cause = db.Column(db.Text)
@@ -113,7 +99,11 @@ class FailureReport(db.Model):
     correction_valid = db.Column(db.Integer)
     is_reviewed = db.Column(db.Integer)
 
-
+    team = db.relationship('Team', backref=db.backref('team', lazy=True), foreign_keys=[team_id])
+    team_leader = db.relationship('Team', backref=db.backref('team_leader', lazy=True), foreign_keys=[teamleader_id])
+    creator = db.relationship('User', backref=db.backref('creators', lazy=True), foreign_keys=[creator_id])
+    owner = db.relationship('User', backref=db.backref('owners', lazy=True), foreign_keys=[owner_id])
+'''
 class Comment(db.Model):
     __tablename__ = "comments"
 
@@ -163,7 +153,7 @@ class LearningAssignment(db.Model):
         primary_key=True,
     )
     due_date = db.Column(db.Date)
-
+'''
 
 class TokenBlacklist(db.Model):
     id = db.Column(db.Integer, primary_key=True)
