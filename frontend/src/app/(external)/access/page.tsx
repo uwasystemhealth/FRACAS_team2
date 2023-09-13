@@ -25,7 +25,7 @@ import withAuth from "@/helpers/authWrapper";
 import { API_CLIENT, API_ENDPOINT, API_TYPES, TOKEN } from "@/helpers/api";
 import { useRouter } from "next/navigation";
 import { BACKEND_URL } from "@/helpers/constants";
-
+/*
 const Home = () => {
   const [message, setMessage] = useState("");
   const router = useRouter();
@@ -133,3 +133,4 @@ const Home = () => {
 Home.getInitialProps = async () => {};
 
 export default Home;
+*/
