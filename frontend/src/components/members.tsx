@@ -1,6 +1,6 @@
 /*
  * Better FRACAS
- * Copyright (C) 2023  ??? Better Fracas team
+ * Copyright (C) 2023  Peter Tanner, ??? Better Fracas team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,14 +18,20 @@
 
 import React, { useEffect, useState } from "react";
 import Typography from "@mui/material/Typography";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import DoNotDisturbIcon from "@mui/icons-material/DoNotDisturb";
+import { API_CLIENT, API_ENDPOINT, API_TYPES } from "@/helpers/api";
+import { AxiosError } from "axios";
+import { Switch } from "@mui/material";
 import { DataGrid, GridColDef, GridValueGetterParams } from '@mui/x-data-grid';
-import axios from 'axios';
 
 interface User {
   id: number;
   fullname: string,
   email: string;
   team: string;
+  registered: boolean;
+  superuser: boolean;
 }
 
 const columns: GridColDef[] = [
@@ -35,18 +41,19 @@ const columns: GridColDef[] = [
   { field: 'team', headerName: 'Team', width: 200 },
 ];
 
-const UserTable: React.FC = () => {
+const UserTable = () => {
   const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {
-    // Make a GET request to your Flask backend to fetch the list of users
-    axios.get('http://localhost:5000/api/v1/get/member_list')
-      .then((response) => {
-        setUsers(response.data);
-      })
-      .catch((error) => {
-        console.error('Error fetching users:', error);
-      });
+    (async () => {
+      try {
+        await API_CLIENT.get<API_TYPES.USER.RESPONSE[]>(API_ENDPOINT.USER)
+          .then((response) => {
+            setUsers(response.data);
+          })
+          .catch((error: AxiosError<API_TYPES.USER.RESPONSE>) => {});
+      } catch (error) {}
+    })();
   }, []);
 
   return (

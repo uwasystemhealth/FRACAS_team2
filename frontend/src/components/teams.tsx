@@ -18,8 +18,9 @@
 
 import React, { useEffect, useState } from "react";
 import Typography from "@mui/material/Typography";
+import { AxiosError } from "axios";
+import { API_CLIENT, API_TYPES, API_ENDPOINT } from "@/helpers/api";
 import { DataGrid, GridColDef, GridValueGetterParams } from '@mui/x-data-grid';
-import axios from 'axios';
 
 interface Team {
   id: number;
@@ -33,18 +34,19 @@ const columns: GridColDef[] = [
   { field: 'leader', headerName: 'Leader', width: 200 },
 ];
 
-const UserTable: React.FC = () => {
+export default function TeamTable() {
   const [teams, setTeams] = useState<Team[]>([]);
 
   useEffect(() => {
-    // Make a GET request to your Flask backend to fetch the list of users
-    axios.get('http://localhost:5000/api/v1/get/team_list')
-      .then((response) => {
-        setTeams(response.data);
+    (async () => {
+      try {
+        await API_CLIENT.get<API_TYPES.TEAM.GET.RESPONSE[]>(API_ENDPOINT.TEAM)
+          .then((response) => {
+            setTeams(response.data);
       })
-      .catch((error) => {
-        console.error('Error fetching teams:', error);
-      });
+          .catch((error: AxiosError<API_TYPES.TEAM.GET.RESPONSE>) => {});
+      } catch (error) {}
+    })();
   }, []);
 
   return (
@@ -63,4 +65,3 @@ const UserTable: React.FC = () => {
     </React.Fragment>
   );
 }
-export default UserTable;

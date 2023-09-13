@@ -2,7 +2,7 @@
 
 /*
  * Better FRACAS
- * Copyright (C) 2023  ??? Better Fracas team
+ * Copyright (C) 2023  Peter Tanner, ??? Better Fracas team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@ import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Members from "@/components/members";
 import Teams from "@/components/teams";
+import CheckSuperuser from "@/components/CheckSuperuser";
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
@@ -72,6 +73,7 @@ export default function Admin() {
 
   return (
     <Box sx={{ width: "100%" }}>
+      <CheckSuperuser />
       <Typography variant="h4" gutterBottom>
         Admin Management
       </Typography>
