@@ -14,10 +14,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 from pwinput import pwinput
 from app import app, db
 from app.models.authentication import User
 from app.routes.authentication import send_signup_request_email
+from app.add_test_userteams import repopulate_db
 
 
 def create_db_():
@@ -49,6 +51,26 @@ def quickstart():
 @app.cli.command("create-db")
 def create_db():
     create_db_()
+
+
+@app.cli.command("recreate-db")
+def recreate_db():
+    user_input = input("Do you want to delete the database file app.db? (yes/no): ")
+
+    if user_input.lower() in ["yes", "y"]:
+        try:
+            os.remove("app.db")
+            print("The database file app.db has been deleted.")
+        except OSError as e:
+            print(f"Error: {e}")
+        create_db_()
+        from app import db
+
+        db.create_all()
+        repopulate_db()
+        print("db fileld with sample data!")
+    else:
+        print("Database file was not deleted.")
 
 
 @app.cli.command("create-superuser")

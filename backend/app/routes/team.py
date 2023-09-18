@@ -3,18 +3,20 @@ from app import app, db
 from app.models.authentication import User
 from app.utils import superuser_jwt_required, user_jwt_required
 from app.models.team import Team
-from app.models.authentication import User
+
 
 def team_json(teams):
-    team_json = [{
-                    'id': team.id, 
-                    'name': team.name, 
-                    'leader_id': team.leader_id,
-                    'leader_name': get_username(team.leader_id)
-                } 
-                for team in teams]
+    team_json = [
+        {
+            "id": team.id,
+            "name": team.name,
+            "leader_id": team.leader_id,
+            "leader_name": get_username(team.leader_id),
+        }
+        for team in teams
+    ]
     return jsonify(team_json)
-    
+
 
 # Add Team
 # curl -X POST localhost:5000/api/v1/team -H 'Content-Type:application/json' --data '{"name": "test team"}'
@@ -37,6 +39,7 @@ def list_teams():
     teams = Team.query.filter_by(inactive=False).all()
     return team_json(teams)
 
+
 # Updates team record (with json header referencing data type)
 @app.route("/api/v1/team/<int:team_id>", methods=["PUT"])
 def update_team(team_id):
@@ -45,10 +48,10 @@ def update_team(team_id):
         return jsonify({"error": "Team not found"}), 404
     data = request.get_json()
     print(data)
-    if 'name' in data:
-        team.name = data['name']
-    if 'leader' in data:
-        user = User.query.get(data['leader'])
+    if "name" in data:
+        team.name = data["name"]
+    if "leader" in data:
+        user = User.query.get(data["leader"])
         team.leader = user
 
     db.session.commit()

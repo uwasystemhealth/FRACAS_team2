@@ -11,13 +11,10 @@ export const API_ENDPOINT = {
     LOGOUT: "/api/v1/authentication/logout",
     TEST_LOGGED_IN: "/api/v1/authentication/test_logged_in",
   },
-<<<<<<< HEAD
   RECORD: "/api/v1/record",
   SUBSYSTEM: "/api/v1/subsystem",
-=======
   USER: "/api/v1/user",
   TEAM: "/api/v1/team", // TODO: add /leader
->>>>>>> 8843b4d68613a4064df2d33f264f60d15056e6b7
 };
 
 export namespace API_TYPES {
