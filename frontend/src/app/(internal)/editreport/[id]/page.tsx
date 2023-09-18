@@ -2,7 +2,7 @@
 
 /*
  * Better FRACAS
- * Copyright (C) 2023  ??? Better Fracas team
+ * Copyright (C) 2023  Peter Tanner, ??? Better Fracas team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@ import FormControl from "@mui/material/FormControl";
 import Divider from "@mui/material/Divider";
 import FormGroup from "@mui/material/FormGroup";
 import Checkbox from "@mui/material/Checkbox";
+import { useRouter } from "next/navigation";
 
 const steps = ["Record", "Analysis", "Correction"];
 
@@ -67,7 +68,7 @@ const schema = yup.object().shape({
   failure_time: yup.string().required(),
 });
 
-export default function EditReport() {
+export default function EditReport({ params, searchParams }) {
   const [team, setTeam] = React.useState("");
   const [subsystem, setSubsystem] = React.useState("");
 
@@ -89,6 +90,8 @@ export default function EditReport() {
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
+  const router = useRouter();
+
   const {
     register,
     control,
@@ -105,8 +108,13 @@ export default function EditReport() {
   console.log(watch("email"));
   console.log("errors are", errors);
 
+  if (false) {
+    router.push("/404");
+  }
+
   return (
     <Box sx={{ width: "100%" }}>
+      <h1>{params.id}</h1>
       <Stepper activeStep={activeStep}>
         {steps.map((label, index) => {
           const stepProps: { completed?: boolean } = {};

@@ -75,10 +75,10 @@ class Record(db.Model, SerializerMixin):
     )
     # TODO: WAIT UNTIL TEAMS LOGIC IS MERGED INTO ALPHA BUILD.
     # # Team (by default, member's assigned team, but can be changed to other teams
-    # team_id = db.Column(
-    #     db.Integer, db.ForeignKey("team.id", ondelete="SET NULL"), nullable=False
-    # )
-    # team = db.relationship("Team", uselist=False, foreign_keys=[team_id])
+    team_id = db.Column(
+        db.Integer, db.ForeignKey("team.id", ondelete="SET NULL"), nullable=True
+    )
+    team = db.relationship("Team", uselist=False, foreign_keys=[team_id])
     # Car year (current year)
     car_year = db.Column(db.Integer, nullable=True)
     # Creator name & email (prefilled with current user's name and email)

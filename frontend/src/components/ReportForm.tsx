@@ -91,7 +91,7 @@ const ReportForm = (props: Props) => {
   const { report_id } = props;
 
   const [activeStep, setActiveStep] = useState(0);
-  const [teams, setTeams] = useState<Array<number>>([]);
+  const [teams, setTeams] = useState<API_TYPES.TEAM.GET.RESPONSE[]>([]);
   const [subsystems, setSubsystems] = useState<
     API_TYPES.SUBSYSTEM.GET.RESPONSE[]
   >([]);
@@ -162,6 +162,26 @@ const ReportForm = (props: Props) => {
         // Do something with the token (e.g., store it)
       } catch (error: any) {}
     })();
+    (async () => {
+      try {
+        const response = await API_CLIENT.get<
+          any,
+          AxiosResponse<API_TYPES.TEAM.GET.RESPONSE[]>
+        >(API_ENDPOINT.TEAM, {})
+          .then((response) => {
+            if (response) {
+              setTeams(response.data);
+            } else {
+              console.error("An error occurred");
+            }
+          })
+          .catch((error: AxiosError) => {
+            console.error("An error occurred " + error.message);
+          });
+
+        // Do something with the token (e.g., store it)
+      } catch (error: any) {}
+    })();
   }, []);
 
   return (
@@ -218,7 +238,7 @@ const ReportForm = (props: Props) => {
                     />
                   </Grid>
                   {/* TODO: WHEN TEAMS/ADMIN BRANCH IS MERGED ADD LOGIC FOR THIS */}
-                  {/* <Grid xs={3}>
+                  <Grid xs={3}>
                     <Controller
                       name="team_id"
                       control={control}
@@ -231,13 +251,14 @@ const ReportForm = (props: Props) => {
                             id="team"
                             label="Team"
                           >
-                            <MenuItem value={1}>Powertrain</MenuItem>
-                            <MenuItem value={2}>Suspension</MenuItem>
+                            {teams.map((team) => (
+                              <MenuItem value={team.id}>{team.name}</MenuItem>
+                            ))}
                           </Select>
                         </FormControl>
                       )}
                     />
-                  </Grid> */}
+                  </Grid>
                   <Grid xs={3}>
                     <Controller
                       name="subsystem_id"
