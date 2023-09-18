@@ -35,5 +35,6 @@
     "eslint": "latest",
     "eslint-config-next": "latest",
     "typescript": "latest"
-  }
+  },
+  "proxy": "http://localhost:5000"
 }
