@@ -1,5 +1,6 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { BACKEND_URL } from "./constants";
+import { string } from "prop-types";
 
 export const API_ENDPOINT = {
   AUTHENTICATION: {
@@ -10,9 +11,12 @@ export const API_ENDPOINT = {
     LOGOUT: "/api/v1/authentication/logout",
     TEST_LOGGED_IN: "/api/v1/authentication/test_logged_in",
   },
+  RECORD: "/api/v1/record",
+  SUBSYSTEM: "/api/v1/subsystem",
 };
 
 export namespace API_TYPES {
+  export interface NULLREQUEST_ {}
   export namespace AUTHENTICATION {
     export namespace LOGIN {
       export interface REQUEST {
@@ -38,6 +42,72 @@ export namespace API_TYPES {
       export interface RESPONSE {
         msg: string;
         email: string;
+      }
+    }
+  }
+
+  export namespace REPORT {
+    export namespace POST {
+      export interface RESPONSE {
+        err: string;
+        msg: string;
+        id: number;
+      }
+    }
+    export namespace PATCH {
+      export interface REQUEST {
+        title: string;
+        subsystem_id: number;
+        description: string;
+        impact: string;
+        cause: string;
+        mechanism: string;
+        corrective_action_plan: string;
+        time_of_failure: string;
+        car_year: string;
+        creator_id: number;
+        creator: string;
+      }
+      export interface RESPONSE {
+        msg: string;
+        err: string;
+      }
+    }
+    export namespace DELETE {
+      export interface RESPONSE {
+        msg: string;
+        err: string;
+      }
+    }
+    export namespace GET {
+      export interface RESPONSE {
+        title: string;
+        subsystem_id: number;
+        description: string;
+        impact: string;
+        cause: string;
+        mechanism: string;
+        corrective_action_plan: string;
+        time_of_failure: string;
+        car_year: string;
+        creator_id: number;
+        creator: string;
+      }
+    }
+  }
+  export namespace SUBSYSTEM {
+    export namespace POST {
+      export interface REQUEST {
+        subsystem: string;
+      }
+      export interface RESPONSE {
+        id: number;
+      }
+    }
+    export namespace GET {
+      export interface RESPONSE {
+        id: number;
+        subsystem: string;
       }
     }
   }

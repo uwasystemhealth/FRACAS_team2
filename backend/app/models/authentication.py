@@ -18,6 +18,7 @@ from enum import Enum
 
 from flask_jwt_extended import get_current_user, get_jwt_identity
 from sqlalchemy import func
+from sqlalchemy_serializer import SerializerMixin
 from app import db, jwt
 from datetime import datetime
 
@@ -28,7 +29,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 # db.session.commit()
 
 
-class User(db.Model):
+class User(db.Model, SerializerMixin):
+    serialize_only = (
+        "id",
+        "email",
+    )
+
     MAX_EMAIL_LENGTH = 64
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False)

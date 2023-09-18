@@ -15,12 +15,31 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from functools import wraps
+import json
 from typing import Callable, Literal
 from flask import jsonify
 
 from flask_jwt_extended import get_jwt_identity, jwt_required
+import app
 
 from app.models.authentication import User
+
+
+def handle_exceptions(func):
+    @wraps(func)
+    def decorated_function(*args, **kwargs):
+        try:
+            result = func(*args, **kwargs)
+            if result[1] < 200 or result[1] >= 300:
+                app.logging.error(
+                    f"{str(func)} {result[0].response[0]} code={result[1]}"
+                )
+            return result
+        except Exception as e:
+            app.logging.error(f"{str(func)} {e} code=500")
+            return jsonify({"err": "generic_error", "msg": str(e)}), 500
+
+    return decorated_function
 
 
 def u_jwt_required__(type: Literal["superuser", "user"]) -> Callable:
