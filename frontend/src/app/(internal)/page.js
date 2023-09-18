@@ -79,7 +79,7 @@ const Dashboard = () => {
       date: "27/08/2023",
       ReportName: "Report 1",
       carYear: 2023,
-      creatorName: "Jon",
+      creatorName: "Kyle",
       status: "Open",
     },
     {
@@ -103,7 +103,7 @@ const Dashboard = () => {
       date: "27/08/2023",
       ReportName: "Report 4",
       carYear: 2023,
-      creatorName: "Lan",
+      creatorName: "Kyle",
       status: "Open",
     },
   ];
@@ -127,10 +127,8 @@ const Dashboard = () => {
 
   return (
     <div style={{ display: "flex" }}>
-      {/* Main Content */}
-      <Container component="main" sx={{ flexGrow: 1, p: 2, marginTop: "0px" }}>
-        {/* Layout using Grid */}
-        <Grid container spacing={2}>
+      <Container component="main" sx={{ flexGrow: 1, p: 1, marginTop: "0px", marginLeft: "1px", marginRight: "1px" }}>
+        <Grid container spacing={1}>
           <Grid item xs={12} md={4}>
             <Paper sx={{ p: 2, margin:0 }}>
               <Typography variant="h6" gutterBottom sx={{ fontSize: 16 }}>
@@ -178,7 +176,7 @@ const Dashboard = () => {
           </Grid>
 
           {/* Recent Reports DataGrid */}
-          <Grid item xs={12} md={12}>
+          <Grid item xs={12} md={12} sx={{ margin: 0 }}>
             <Paper sx={{ p: 2, marginTop: 3 }}>
               <Typography variant="h5" color="primary" gutterBottom>
                 Your Reports
