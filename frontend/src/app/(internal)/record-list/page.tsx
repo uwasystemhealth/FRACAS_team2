@@ -2,7 +2,7 @@
 
 /*
  * Better FRACAS
- * Copyright (C) 2023  ??? Better Fracas team
+ * Copyright (C) 2023  Peter Tanner, ??? Better Fracas team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,92 +22,134 @@ import * as React from "react";
 import { DataGrid, GridColDef, GridValueGetterParams } from "@mui/x-data-grid";
 import TextField from "@mui/material/TextField";
 import { date } from "yup";
+import { useEffect, useState } from "react";
+import { API_CLIENT, API_ENDPOINT, API_TYPES } from "@/helpers/api";
+import { AxiosError, AxiosResponse } from "axios";
 
 const columns: GridColDef[] = [
   { field: "id", headerName: "ID", width: 60 },
-  { field: "date", headerName: "Creation Date", width: 170 },
-  { field: "ReportName", headerName: "Report name", width: 350 },
-  { field: "carYear", headerName: "Car year", width: 100 },
-  { field: "creatorName", headerName: "Creator name", width: 130 },
+  { field: "created_at", headerName: "Creation Date", width: 170 },
+  { field: "title", headerName: "Report name", width: 350 },
+  { field: "car_year", headerName: "Car year", width: 100 },
+  { field: "creator", headerName: "Creator name", width: 130 },
   { field: "status", headerName: "Status", width: 100 },
 ];
 
-const rows = [
-  {
-    id: 1,
-    date: "27/08/2023",
-    ReportName: "Report 1",
-    carYear: 2023,
-    creatorName: "Jon",
-    status: "Open",
-  },
-  {
-    id: 2,
-    date: "27/08/2023",
-    ReportName: "Report 2",
-    carYear: 2023,
-    creatorName: "Kyle",
-    status: "Open",
-  },
-  {
-    id: 3,
-    date: "27/08/2023",
-    ReportName: "Report 3",
-    carYear: 2022,
-    creatorName: "Kyle",
-    status: "Open",
-  },
-  {
-    id: 4,
-    date: "27/08/2023",
-    ReportName: "Report 4",
-    carYear: 2023,
-    creatorName: "Lan",
-    status: "Open",
-  },
-  {
-    id: 5,
-    date: "27/08/2023",
-    ReportName: "Report 5",
-    carYear: 2022,
-    creatorName: "Steve",
-    status: "Open",
-  },
-  {
-    id: 6,
-    date: "27/08/2023",
-    ReportName: "Report 6",
-    carYear: 2021,
-    creatorName: "Jan",
-    status: "Open",
-  },
-  {
-    id: 7,
-    date: "27/08/2023",
-    ReportName: "Report 7",
-    carYear: 2023,
-    creatorName: "Red",
-    status: "Open",
-  },
-  {
-    id: 8,
-    date: "27/08/2023",
-    ReportName: "Report 8",
-    carYear: 2023,
-    creatorName: "James",
-    status: "Open",
-  },
-  {
-    id: 9,
-    date: "27/08/2023",
-    ReportName: "Report 9",
-    carYear: 2023,
-    creatorName: "Mary",
-    status: "Open",
-  },
-];
+// const rows = [
+//   {
+//     id: 1,
+//     date: "27/08/2023",
+//     ReportName: "Report 1",
+//     carYear: 2023,
+//     creatorName: "Jon",
+//     status: "Open",
+//   },
+//   {
+//     id: 2,
+//     date: "27/08/2023",
+//     ReportName: "Report 2",
+//     carYear: 2023,
+//     creatorName: "Kyle",
+//     status: "Open",
+//   },
+//   {
+//     id: 3,
+//     date: "27/08/2023",
+//     ReportName: "Report 3",
+//     carYear: 2022,
+//     creatorName: "Kyle",
+//     status: "Open",
+//   },
+//   {
+//     id: 4,
+//     date: "27/08/2023",
+//     ReportName: "Report 4",
+//     carYear: 2023,
+//     creatorName: "Lan",
+//     status: "Open",
+//   },
+//   {
+//     id: 5,
+//     date: "27/08/2023",
+//     ReportName: "Report 5",
+//     carYear: 2022,
+//     creatorName: "Steve",
+//     status: "Open",
+//   },
+//   {
+//     id: 6,
+//     date: "27/08/2023",
+//     ReportName: "Report 6",
+//     carYear: 2021,
+//     creatorName: "Jan",
+//     status: "Open",
+//   },
+//   {
+//     id: 7,
+//     date: "27/08/2023",
+//     ReportName: "Report 7",
+//     carYear: 2023,
+//     creatorName: "Red",
+//     status: "Open",
+//   },
+//   {
+//     id: 8,
+//     date: "27/08/2023",
+//     ReportName: "Report 8",
+//     carYear: 2023,
+//     creatorName: "James",
+//     status: "Open",
+//   },
+//   {
+//     id: 9,
+//     date: "27/08/2023",
+//     ReportName: "Report 9",
+//     carYear: 2023,
+//     creatorName: "Mary",
+//     status: "Open",
+//   },
+// ];
 
 export default function DataTable() {
+  const [rows, setRows] = useState<API_TYPES.REPORT.GET.RESPONSE[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const response = await API_CLIENT.get<
+          any,
+          AxiosResponse<API_TYPES.REPORT.GET.RESPONSE[]>
+        >(API_ENDPOINT.RECORD, {})
+          .then((response) => {
+            if (response) {
+              console.log(response.data);
+              const {
+                title: title,
+                created_at: created_at,
+                id: id,
+                car_year: car_year,
+                creator: creator,
+              } = response.data;
+              setRows({
+                title: title,
+                created_at: created_at,
+                id: id,
+                car_year: car_year,
+                creator: creator.email,
+              });
+            } else {
+              console.error("An error occurred");
+            }
+          })
+          .catch((error: AxiosError) => {
+            console.error("An error occurred " + error.message);
+          });
+
+        // Do something with the token (e.g., store it)
+      } catch (error: any) {}
+    })();
+  }, []);
+
   const [searchTerm, setSearchTerm] = React.useState("");
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
