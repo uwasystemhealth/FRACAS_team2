@@ -11,8 +11,13 @@ export const API_ENDPOINT = {
     LOGOUT: "/api/v1/authentication/logout",
     TEST_LOGGED_IN: "/api/v1/authentication/test_logged_in",
   },
+<<<<<<< HEAD
   RECORD: "/api/v1/record",
   SUBSYSTEM: "/api/v1/subsystem",
+=======
+  USER: "/api/v1/user",
+  TEAM: "/api/v1/team", // TODO: add /leader
+>>>>>>> 8843b4d68613a4064df2d33f264f60d15056e6b7
 };
 
 export namespace API_TYPES {
@@ -42,6 +47,36 @@ export namespace API_TYPES {
       export interface RESPONSE {
         msg: string;
         email: string;
+        superuser: boolean;
+      }
+    }
+  }
+
+  export namespace USER {
+    export interface RESPONSE {
+      id: number;
+      email: string;
+      registered: boolean;
+      superuser: boolean;
+      name: string;
+      created_at: string;
+      // teams: number[];
+      team_id?: number;
+      team?: TEAM.GET.RESPONSE;
+      leading_team?: TEAM.GET.RESPONSE;
+    }
+  }
+
+  export namespace TEAM {
+    export namespace GET {
+      export interface RESPONSE {
+        created_at: string;
+        id: number;
+        inactive: boolean;
+        leader?: USER.RESPONSE;
+        leader_id?: number;
+        members: USER.RESPONSE[];
+        name: string;
       }
     }
   }

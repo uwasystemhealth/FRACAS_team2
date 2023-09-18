@@ -149,4 +149,3 @@ def serialize_record(record_id):
 @handle_exceptions
 def serialize_all_record():
     return jsonify([r.to_dict() for r in Record.query.all()]), 200
-

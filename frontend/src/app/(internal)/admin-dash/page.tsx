@@ -2,7 +2,7 @@
 
 /*
  * Better FRACAS
- * Copyright (C) 2023  ??? Better Fracas team
+ * Copyright (C) 2023  Peter Tanner, Insan Basrewan Better Fracas team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,50 +19,53 @@
  */
 
 import * as React from "react";
-import CssBaseline from "@mui/material/CssBaseline";
 import Box from "@mui/material/Box";
-import Toolbar from "@mui/material/Toolbar";
-import Container from "@mui/material/Container";
-import Grid from "@mui/material/Grid";
-import Paper from "@mui/material/Paper";
-import { mainListItems, secondaryListItems } from "@/components/listItems";
-import Members from "@/components/members";
-import Teams from "@/components/teams";
+import Members from "@/components/Tables/members";
+import Teams from "@/components/Tables/teams";
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import Typography from '@mui/material/Typography';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import CheckSuperuser from "@/components/CheckSuperuser";
 
-export default function Dashboard() {
-  const [open, setOpen] = React.useState(true);
-  const toggleDrawer = () => {
-    setOpen(!open);
-  };
-
+const Admin: React.FC = () => {
+    const [expandedAccordion, setExpandedAccordion] = React.useState<string | false>('panel1');
+  
+    const handleAccordionChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
+      setExpandedAccordion(isExpanded ? panel : false);
+    };
   return (
-    <Box sx={{ display: "flex" }}>
-      <CssBaseline />
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          height: "100vh",
-          overflow: "auto",
-        }}
-      >
-        <Toolbar />
-        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-          <Grid container spacing={3}>
-            {/* Recent Orders */}
-            <Grid item xs={12}>
-              <Paper sx={{ p: 2, display: "flex", flexDirection: "column" }}>
-                <Members />
-              </Paper>
-            </Grid>
-            <Grid item xs={12}>
-              <Paper sx={{ p: 2, display: "flex", flexDirection: "column" }}>
-                <Teams />
-              </Paper>
-            </Grid>
-          </Grid>
-        </Container>
-      </Box>
+    <Box sx={{ width: "100%", }}>
+      <CheckSuperuser />
+      <Typography variant="h5" gutterBottom>
+        Admin
+      </Typography>
+      <Accordion defaultExpanded expanded={expandedAccordion === 'panel1'} onChange={handleAccordionChange('panel1')}>
+        <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          aria-controls="panel1a-content"
+          id="panel1a-header"
+        >
+          <Typography variant="subtitle1" gutterBottom>Users</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Members />
+        </AccordionDetails>
+      </Accordion>
+      <Accordion expanded={expandedAccordion === 'panel2'} onChange={handleAccordionChange('panel2')}>
+        <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          aria-controls="panel1a-content"
+          id="panel1a-header"
+        >
+          <Typography variant="subtitle1" gutterBottom>Teams</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Teams />
+        </AccordionDetails>
+      </Accordion>
     </Box>
   );
 }
+export default Admin;

@@ -2,7 +2,7 @@
 
 /*
  * Better FRACAS
- * Copyright (C) 2023  ??? Better Fracas team
+ * Copyright (C) 2023  Insan Basrewan, Peter Tanner, ??? Better Fracas team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 
 import * as React from "react";
 import { redirect, useRouter } from "next/navigation";
-import { API_CLIENT, API_ENDPOINT, TOKEN } from "@/helpers/api";
+import { API_CLIENT, API_ENDPOINT, API_TYPES, TOKEN } from "@/helpers/api";
 import { styled, useTheme, Theme, CSSObject } from "@mui/material/styles";
 import Link from "next/link";
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar";
@@ -121,16 +121,36 @@ const Drawer = styled(MuiDrawer, {
   }),
 }));
 
-const LINKS = [
-  { text: "Dashboard", href: "/", icon: HomeIcon },
-  { text: "Create Report", href: "/createreport", icon: CreateIcon },
-  { text: "Report List", href: "/record-list", icon: ListIcon },
-  { text: "View Report", href: "/viewreport", icon: ArticleIcon },
+const TOP_LINKS = [
+  { text: "Dashboard", href: "/", icon: HomeIcon, superuserOnly: false },
+  {
+    text: "Create Report",
+    href: "/createreport",
+    icon: CreateIcon,
+    superuserOnly: false,
+  },
+  {
+    text: "Report List",
+    href: "/record-list",
+    icon: ListIcon,
+    superuserOnly: false,
+  },
+  {
+    text: "View Report",
+    href: "/viewreport",
+    icon: ArticleIcon,
+    superuserOnly: false,
+  },
 ];
 
-const PLACEHOLDER_LINKS = [
-  { text: "Admin", href: "/admin-dash", icon: SettingsIcon },
-  //{ text: 'Logout', href: '/access', icon: LogoutIcon },
+const BOTTOM_LINKS = [
+  {
+    text: "Admin",
+    href: "/admin-dash",
+    icon: SettingsIcon,
+    superuserOnly: true,
+  },
+  //{ text: 'Logout', href: '/access', icon: LogoutIcon, superuserOnly: false },
 ];
 
 export default function RootLayout({
@@ -139,6 +159,30 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+
+  const [isSuperuser, setIsSuperuser] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        await API_CLIENT.get<API_TYPES.AUTHENTICATION.TEST_LOGGED_IN.RESPONSE>(
+          API_ENDPOINT.AUTHENTICATION.TEST_LOGGED_IN
+        )
+          .then((response) => {
+            setIsSuperuser(response.data.superuser);
+          })
+          .catch(
+            (
+              error: AxiosError<API_TYPES.AUTHENTICATION.TEST_LOGGED_IN.RESPONSE>
+            ) => {
+              router.push("/login");
+            }
+          );
+      } catch (error) {
+        router.push("/login");
+      }
+    })();
+  }, []);
 
   const logout = async () => {
     // delete refresh_token
@@ -193,7 +237,7 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <CheckLogin pageType={PAGE_TYPE.INTERNAL} />
+      {/* <CheckLogin pageType={PAGE_TYPE.INTERNAL} /> */}
       <body>
         <Box sx={{ display: "flex" }}>
           <ThemeRegistry>
@@ -227,29 +271,35 @@ export default function RootLayout({
               </DrawerHeader>
               <Divider />
               <List>
-                {LINKS.map(({ text, href, icon: Icon }) => (
-                  <ListItem key={href} disablePadding>
-                    <ListItemButton component={Link} href={href}>
-                      <ListItemIcon>
-                        <Icon />
-                      </ListItemIcon>
-                      <ListItemText primary={text} />
-                    </ListItemButton>
-                  </ListItem>
-                ))}
+                {TOP_LINKS.map(
+                  ({ text, href, icon: Icon, superuserOnly }) =>
+                    (!superuserOnly || isSuperuser) && (
+                      <ListItem key={href} disablePadding>
+                        <ListItemButton component={Link} href={href}>
+                          <ListItemIcon>
+                            <Icon />
+                          </ListItemIcon>
+                          <ListItemText primary={text} />
+                        </ListItemButton>
+                      </ListItem>
+                    )
+                )}
               </List>
               <Divider sx={{ mt: "auto" }} />
               <List>
-                {PLACEHOLDER_LINKS.map(({ text, href, icon: Icon }) => (
-                  <ListItem key={href} disablePadding>
-                    <ListItemButton component={Link} href={href}>
-                      <ListItemIcon>
-                        <Icon />
-                      </ListItemIcon>
-                      <ListItemText primary={text} />
-                    </ListItemButton>
-                  </ListItem>
-                ))}
+                {BOTTOM_LINKS.map(
+                  ({ text, href, icon: Icon, superuserOnly }) =>
+                    (!superuserOnly || isSuperuser) && (
+                      <ListItem key={href} disablePadding>
+                        <ListItemButton component={Link} href={href}>
+                          <ListItemIcon>
+                            <Icon />
+                          </ListItemIcon>
+                          <ListItemText primary={text} />
+                        </ListItemButton>
+                      </ListItem>
+                    )
+                )}
                 <ListItem disablePadding>
                   <ListItemButton onClick={logout}>
                     <ListItemIcon>

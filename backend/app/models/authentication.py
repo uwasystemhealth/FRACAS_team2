@@ -15,14 +15,17 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from enum import Enum
+from sqlalchemy_serializer import SerializerMixin
 
 from flask_jwt_extended import get_current_user, get_jwt_identity
 from sqlalchemy import func
-from sqlalchemy_serializer import SerializerMixin
+from sqlalchemy.sql import expression
 from app import db, jwt
 from datetime import datetime
 
 from werkzeug.security import generate_password_hash, check_password_hash
+
+# import app.models.team
 
 # delete a user for testing
 # db.session.delete(User.query.filter_by(email='').first())
@@ -34,6 +37,7 @@ class User(db.Model, SerializerMixin):
         "id",
         "email",
     )
+    serialize_rules = ("-password_hash",)
 
     MAX_EMAIL_LENGTH = 64
 
@@ -42,8 +46,25 @@ class User(db.Model, SerializerMixin):
         db.String(MAX_EMAIL_LENGTH), index=True, unique=True, nullable=False
     )
     password_hash = db.Column(db.String(128), nullable=True)
-    registered = db.Column(db.Boolean(False), nullable=False, default=False)
-    superuser = db.Column(db.Boolean(False), nullable=False, default=False)
+    registered = db.Column(
+        db.Boolean(False), nullable=False, server_default=expression.false()
+    )
+    superuser = db.Column(
+        db.Boolean(False), nullable=False, server_default=expression.false()
+    )
+    name = db.Column(db.String(128), nullable=False)
+    created_at = db.Column(
+        db.DateTime,
+        server_default=func.now(),
+        nullable=False,
+    )
+    team_id = db.Column(db.Integer, db.ForeignKey("team.id", ondelete="SET NULL"))
+    leading_team = db.relationship(
+        "Team", uselist=False, back_populates="leader", foreign_keys="Team.leader_id"
+    )
+    team = db.relationship(
+        "Team", uselist=False, back_populates="members", foreign_keys=[team_id]
+    )
 
     def __repr__(self):
         return f"<User {self.email} {'(UNREGISTERED)' if not self.registered else ''}>"

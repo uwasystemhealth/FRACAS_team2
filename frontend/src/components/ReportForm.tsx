@@ -413,10 +413,10 @@ const ReportForm = (props: Props) => {
                           {...field}
                           label="Corrective Action Plan"
                           variant="outlined"
-                          error={!!errors.corrective_action}
+                          error={!!errors.corrective_action_plan}
                           helperText={
-                            errors.corrective_action
-                              ? errors.corrective_action?.message
+                            errors.corrective_action_plan
+                              ? errors.corrective_action_plan?.message
                               : ""
                           }
                           fullWidth

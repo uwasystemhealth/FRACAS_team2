@@ -1,7 +1,11 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+<<<<<<< HEAD
 /backend/migrations/etc/
 .vscode
+=======
+/backend/migrations/etc
+>>>>>>> 8843b4d68613a4064df2d33f264f60d15056e6b7
 
 # dependencies
 /node_modules
