@@ -53,7 +53,7 @@ dayjs.extend(timezone);
 const steps = ["Record Entry", "Analysis", "Review"];
 
 interface IFormInputs {
-  failure_title: string;
+  title: string;
   description: string;
   impact: string;
   cause: string;
@@ -69,7 +69,7 @@ const defaultYear = new Date().getFullYear();
 const time_of_failure = dayjs(new Date());
 
 const schema = yup.object().shape({
-  failure_title: yup.string(), //.required(),
+  title: yup.string(), //.required(),
   description: yup.string(), //.min(5).required(),
   subsystem_id: yup.number(), //.required(),
   time_of_failure: yup.string().default(time_of_failure.toString()), //.required(),
@@ -198,7 +198,7 @@ const ReportForm = (props: Props) => {
                 <Grid container spacing={2}>
                   <Grid xs={10}>
                     <Controller
-                      name="failure_title"
+                      name="title"
                       control={control}
                       render={({ field }) => (
                         <TextField
@@ -206,10 +206,10 @@ const ReportForm = (props: Props) => {
                           sx={{ py: 4 }}
                           label="Title"
                           variant="standard"
-                          error={!!errors.failure_title}
+                          error={!!errors.title}
                           helperText={
-                            errors.failure_title
-                              ? errors.failure_title?.message
+                            errors.title
+                              ? errors.title?.message
                               : ""
                           }
                           fullWidth

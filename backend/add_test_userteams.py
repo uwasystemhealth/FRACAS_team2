@@ -27,18 +27,20 @@ with app.app_context():
     db.session.add(admin)
     db.session.commit()
 
+    """
+    userteam_populate = []
+    Populates database with User & Teams
+
+    FORMAT:
+    [
+    Team(name of team)
+    User(this user will be assigned as team leader)
+
+    User(regular members of team)
+    (etc..)
+    ],
+    """
     userteam_populate = [
-        
-        '''
-        Populates database with User & Teams
-
-        FORMAT:
-        Team(name of team)
-        User(this user will be assigned as team leader)
-
-        User(regular members of team)
-        (etc..)
-        '''
 
         [
             Team(name="Mercedes AMG"),
