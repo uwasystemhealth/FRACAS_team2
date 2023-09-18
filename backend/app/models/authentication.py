@@ -32,7 +32,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 # db.session.commit()
 
 
-class User(db.Model, SerializerMixin):
+class User(db.Model):
     serialize_rules = ("-password_hash",)
 
     MAX_EMAIL_LENGTH = 64
