@@ -213,15 +213,15 @@ export default function RootLayout({
                 >
                   <MenuIcon />
                 </IconButton>
-                <Typography variant="h6" noWrap component="div" color="black">
+                <Typography variant="h6" noWrap component="div" color="white">
                   UWAM FRACAS
                 </Typography>
                 <Image
                 src={LogoSVG}
                 alt="Logo"
                 width={130}
-                height={70}
-                style={{display:"flex"}}
+                height={65}
+                style={{display:"flex", marginLeft:"15px"}}
                 />
               </Toolbar>
             </AppBar>

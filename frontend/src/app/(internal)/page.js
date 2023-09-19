@@ -188,7 +188,7 @@ const Dashboard = () => {
         <Grid container spacing={4} rowSpacing={1}>
           <Grid item xs={12} md={4}>
             <Paper sx={{ p: 2, margin:0, boxShadow: 5, border: "1px solid lightblue" }}>
-              <Typography variant="h6" gutterBottom sx={{ fontSize: 16 }}>
+              <Typography variant="h6" gutterBottom sx={{ fontSize: 16 }} color={"white"}>
                 Open Reports By Team
               </Typography>
               <PieChart width={300} height={250}>
@@ -226,7 +226,7 @@ const Dashboard = () => {
                 border: "1px solid lightblue"
               }}
             >
-              <Typography variant="subtitle1">
+              <Typography variant="subtitle1" color={"white"}>
                 You have <span style={{ color: 'red' }}>{upcomingTasks.length}</span> upcoming allocated tasks
               </Typography>
               <div style={{ height: 237, width: "100%", marginTop: 16 }}>
