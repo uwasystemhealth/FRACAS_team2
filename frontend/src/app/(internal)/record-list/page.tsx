@@ -28,12 +28,12 @@ import EditIcon from '@mui/icons-material/Edit';
 import { date } from "yup";
 
 const columns: GridColDef[] = [
-  { field: "id", headerName: "ID", width: 60 },
-  { field: "date", headerName: "Creation Date", width: 170 },
-  { field: "ReportName", headerName: "Report name", width: 350 },
-  { field: "carYear", headerName: "Car year", width: 100 },
-  { field: "creatorName", headerName: "Creator name", width: 130 },
-  { field: "status", headerName: "Status", width: 100 },
+  { field: "id", headerName: "ID", flex: 1 },
+  { field: "date", headerName: "Creation Date", flex: 1 },
+  { field: "ReportName", headerName: "Report name", flex: 1},
+  { field: "carYear", headerName: "Car year", flex: 1 },
+  { field: "creatorName", headerName: "Creator name", flex: 1 },
+  { field: "status", headerName: "Status", flex: 1},
   {
     field: "edit",
     headerName: "Edit",
@@ -145,7 +145,11 @@ export default function DataTable() {
   );
 
   return (
-    <Card style={{padding:10}}>
+    <Card style={{
+      padding:10,
+      maxWidth: '100%', 
+      margin: '0 auto', 
+      }}>
       <TextField
         label="Search"
         value={searchTerm}
@@ -155,6 +159,7 @@ export default function DataTable() {
         sx={{ marginBottom: 2 }}
       />
       <DataGrid
+        
         rows={filteredRows}
         columns={columns}
         pagination

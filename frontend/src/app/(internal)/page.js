@@ -184,7 +184,7 @@ const Dashboard = () => {
 
   return (
     <div style={{ display: "flex" }}>
-      <Container component="main" maxWidth="lg" sx={{ flexGrow: 1, p: 1, marginTop: "0px", marginLeft: "1px", marginRight: "1px" }}>
+      <Container component="main" maxWidth="lg" sx={{ flexGrow: 1, p: 1, marginTop: "0px", marginLeft: "0px", marginRight: "0px" }}>
         <Grid container spacing={4} rowSpacing={1}>
           <Grid item xs={12} md={4}>
             <Paper sx={{ p: 2, margin:0, boxShadow: 5, border: "1px solid lightblue" }}>
