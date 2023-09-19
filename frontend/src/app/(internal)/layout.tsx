@@ -193,7 +193,6 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <CheckLogin pageType={PAGE_TYPE.INTERNAL} />
       <body>
         <Box sx={{ display: "flex" }}>
           <ThemeRegistry>

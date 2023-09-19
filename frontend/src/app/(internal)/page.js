@@ -18,24 +18,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React from "react";
+import React, { useState } from "react";
 import { DataGrid } from '@mui/x-data-grid';
-import {Container,Paper,Grid} from "@mui/material";
+import {Container,Paper,Grid, TextField} from "@mui/material";
 import Typography from "@mui/material/Typography";
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import EditIcon from '@mui/icons-material/Edit';
+import IconButton from '@mui/material/IconButton';
+
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
   Tooltip,
   Legend,
   PieChart,
   Pie,
   Cell,
+  Label,
+  LabelList,
 } from "recharts";
 
 const Dashboard = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+
   const upcomingTasks = [
     {
       id: 1,
@@ -55,11 +58,23 @@ const Dashboard = () => {
       assigner: "John Doe",
       dueDate: "2023-08-29",
     },
+    {
+      id: 4,
+      reportName: "Report 4",
+      assigner: "John Doe",
+      dueDate: "2023-08-29",
+    },
+    {
+      id: 5,
+      reportName: "Report 5",
+      assigner: "John Doe",
+      dueDate: "2023-08-29",
+    }
   ];
 
   const taskColumns = [
     {field: "id", headerName: "ID", width: 80},
-    {field: "reportName", reportName: "Report Name", width: 220},
+    {field: "reportName", headerName: "Report Name", width: 220},
     {field: "assigner", headerName: "Assigner", width: 160},
     {field: "dueDate", headerName: "Due Date", width: 170},
   ];
@@ -70,7 +85,27 @@ const Dashboard = () => {
     { field: "ReportName", headerName: "Report name", width: 350 },
     { field: "carYear", headerName: "Car year", width: 100 },
     { field: "creatorName", headerName: "Creator name", width: 130 },
-    { field: "status", headerName: "Status", width: 100 }
+    { field: "status", headerName: "Status", width: 100 },
+    {
+      field: "edit",
+      headerName: "Edit",
+      width: 100,
+      renderCell: (params) => (
+        <IconButton color="primary" aria-label="Edit" href = '/editreport'>
+          <EditIcon />
+        </IconButton>
+      ),
+    },
+    {
+      field: "view",
+      headerName: "View",
+      width: 100,
+      renderCell: (params) => (
+        <IconButton color="primary" aria-label="View" href = "/viewreport">
+          <VisibilityIcon />
+        </IconButton>
+      ),
+    },
   ];
 
   const recentReports = [
@@ -81,6 +116,8 @@ const Dashboard = () => {
       carYear: 2023,
       creatorName: "Kyle",
       status: "Open",
+      edit: "/editreport",
+      view: "/viewreport",
     },
     {
       id: 2,
@@ -108,7 +145,12 @@ const Dashboard = () => {
     },
   ];
 
-  const upcomingTasksCount = upcomingTasks.length;
+  const filteredReports = recentReports.filter((report) =>
+  Object.values(report).some((value) =>
+    value ? value.toString().toLowerCase().includes(searchTerm.toLowerCase()) : false
+  )
+  );
+
   const pieChartColors = [
     "#0088FE",
     "#00C49F",
@@ -128,13 +170,13 @@ const Dashboard = () => {
   return (
     <div style={{ display: "flex" }}>
       <Container component="main" sx={{ flexGrow: 1, p: 1, marginTop: "0px", marginLeft: "1px", marginRight: "1px" }}>
-        <Grid container spacing={1}>
+        <Grid container spacing={4} rowSpacing={1}>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, margin:0 }}>
+            <Paper sx={{ p: 2, margin:0, boxShadow: 5, border: "1px solid lightblue" }}>
               <Typography variant="h6" gutterBottom sx={{ fontSize: 16 }}>
                 Open Reports By Team
               </Typography>
-              <PieChart width={250} height={250}>
+              <PieChart width={300} height={250}>
                 <Pie
                   data={sampleData}
                   cx="50%"
@@ -149,6 +191,7 @@ const Dashboard = () => {
                       fill={pieChartColors[index % pieChartColors.length]}
                     />
                   ))}
+                  <LabelList dataKey="value" position="inside" fill="#fff" />
                 </Pie>
                 <Tooltip />
                 <Legend />
@@ -156,33 +199,43 @@ const Dashboard = () => {
             </Paper>
           </Grid>
 
-           {/* Upcoming Tasks DataGrid */}
-           <Grid item xs={12} md={8}>
+          {/* Upcoming Tasks DataGrid */}
+          <Grid item xs={12} md={8}>
             <Paper
               sx={{
                 p: 2,
                 height: "100%",
                 display: "flex",
                 flexDirection: "column",
+                boxShadow: 5,
+                border: "1px solid lightblue"
               }}
             >
               <Typography variant="subtitle1">
-                You have {upcomingTasks.length} upcoming allocated tasks
+                You have <span style={{ color: 'red' }}>{upcomingTasks.length}</span> upcoming allocated tasks
               </Typography>
               <div style={{ height: 237, width: "100%", marginTop: 16 }}>
-                <DataGrid rows={upcomingTasks} columns={taskColumns} />
+              <DataGrid rows={upcomingTasks} columns={taskColumns} props hideFooter={true}/>
               </div>
             </Paper>
           </Grid>
 
           {/* Recent Reports DataGrid */}
-          <Grid item xs={12} md={12} sx={{ margin: 0 }}>
-            <Paper sx={{ p: 2, marginTop: 3 }}>
+          <Grid item xs={12} md={12} >
+            <Paper sx={{ p: 2, marginTop: 3, boxShadow: 5, border: "1px solid lightblue"}}>
               <Typography variant="h5" color="primary" gutterBottom>
                 Your Reports
               </Typography>
               <div style={{ height: 350, width: "100%", marginTop: 16 }}>
-                <DataGrid rows={recentReports} columns={reportColumns} />
+                <TextField
+                  label="Search"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  variant="outlined"
+                  fullWidth
+                  sx={{ marginBottom: 2 }}
+                />
+                <DataGrid rows={filteredReports} columns={reportColumns} />
               </div>
             </Paper>
           </Grid>
