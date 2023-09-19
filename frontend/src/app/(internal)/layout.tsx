@@ -28,6 +28,7 @@ import Box from "@mui/material/Box";
 import MuiDrawer from "@mui/material/Drawer";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
+import Image from "next/image";
 import Divider from "@mui/material/Divider";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
@@ -49,6 +50,8 @@ import { BACKEND_URL } from "@/helpers/constants";
 import axios, { AxiosError } from "axios";
 import { useEffect, useState } from "react";
 import CheckLogin, { PAGE_TYPE } from "@/components/CheckLogin";
+import LogoSVG from "@/public/UWAM Logo 2023 (colour).svg";
+import { borderRight } from "@mui/system";
 
 const drawerWidth = 240;
 
@@ -192,7 +195,8 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en">
+    <html lang="en"> 
+      {/*<CheckLogin pageType={PAGE_TYPE.INTERNAL} />*/}
       <body>
         <Box sx={{ display: "flex" }}>
           <ThemeRegistry>
@@ -212,6 +216,13 @@ export default function RootLayout({
                 <Typography variant="h6" noWrap component="div" color="black">
                   UWAM FRACAS
                 </Typography>
+                <Image
+                src={LogoSVG}
+                alt="Logo"
+                width={130}
+                height={70}
+                style={{display:"flex"}}
+                />
               </Toolbar>
             </AppBar>
             <Drawer variant="permanent" open={open}>
