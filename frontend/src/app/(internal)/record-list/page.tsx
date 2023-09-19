@@ -22,6 +22,9 @@ import * as React from "react";
 import { DataGrid, GridColDef, GridValueGetterParams } from "@mui/x-data-grid";
 import TextField from "@mui/material/TextField";
 import Card from "@mui/material/Card";
+import IconButton from '@mui/material/IconButton';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import EditIcon from '@mui/icons-material/Edit';
 import { date } from "yup";
 
 const columns: GridColDef[] = [
@@ -31,6 +34,26 @@ const columns: GridColDef[] = [
   { field: "carYear", headerName: "Car year", width: 100 },
   { field: "creatorName", headerName: "Creator name", width: 130 },
   { field: "status", headerName: "Status", width: 100 },
+  {
+    field: "edit",
+    headerName: "Edit",
+    width: 100,
+    renderCell: (params) => (
+      <IconButton color="primary" aria-label="Edit" href = '/editreport'>
+        <EditIcon />
+      </IconButton>
+    ),
+  },
+  {
+    field: "view",
+    headerName: "View",
+    width: 100,
+    renderCell: (params) => (
+      <IconButton color="primary" aria-label="View" href = "/viewreport">
+        <VisibilityIcon />
+      </IconButton>
+    ),
+  },
 ];
 
 const rows = [
