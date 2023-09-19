@@ -45,30 +45,35 @@ const Dashboard = () => {
       reportName: "Report 1",
       assigner: "John Doe",
       dueDate: "2023-08-24",
+      view: "/viewreport",
     },
     {
       id: 2,
       reportName: "Report 2",
       assigner: "Jane Smith",
       dueDate: "2023-08-28",
+      view: "/viewreport",
     },
     {
       id: 3,
       reportName: "Report 3",
       assigner: "John Doe",
       dueDate: "2023-08-29",
+      view: "/viewreport",
     },
     {
       id: 4,
       reportName: "Report 4",
       assigner: "John Doe",
       dueDate: "2023-08-29",
+      view: "/viewreport",
     },
     {
       id: 5,
       reportName: "Report 5",
       assigner: "John Doe",
       dueDate: "2023-08-29",
+      view: "/viewreport",
     }
   ];
 
@@ -77,6 +82,16 @@ const Dashboard = () => {
     {field: "reportName", headerName: "Report Name", width: 220},
     {field: "assigner", headerName: "Assigner", width: 160},
     {field: "dueDate", headerName: "Due Date", width: 170},
+    {
+      field: "view",
+      headerName: "View",
+      width: 100,
+      renderCell: (params) => (
+        <IconButton color="primary" aria-label="View" href = "/viewreport">
+          <VisibilityIcon />
+        </IconButton>
+      ),
+    },
   ];
 
   const reportColumns = [
