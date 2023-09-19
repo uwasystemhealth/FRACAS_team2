@@ -21,6 +21,7 @@
 import * as React from "react";
 import { DataGrid, GridColDef, GridValueGetterParams } from "@mui/x-data-grid";
 import TextField from "@mui/material/TextField";
+import Card from "@mui/material/Card";
 import { date } from "yup";
 
 const columns: GridColDef[] = [
@@ -121,7 +122,7 @@ export default function DataTable() {
   );
 
   return (
-    <div style={{ height: 400, width: "100%" }}>
+    <Card style={{padding:10}}>
       <TextField
         label="Search"
         value={searchTerm}
@@ -137,6 +138,6 @@ export default function DataTable() {
         pageSizeOptions={[5, 25, 100]}
         checkboxSelection
       />
-    </div>
+    </Card>
   );
 }
