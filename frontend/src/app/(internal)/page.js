@@ -184,7 +184,7 @@ const Dashboard = () => {
 
   return (
     <div style={{ display: "flex" }}>
-      <Container component="main" sx={{ flexGrow: 1, p: 1, marginTop: "0px", marginLeft: "1px", marginRight: "1px" }}>
+      <Container component="main" maxWidth="lg" sx={{ flexGrow: 1, p: 1, marginTop: "0px", marginLeft: "1px", marginRight: "1px" }}>
         <Grid container spacing={4} rowSpacing={1}>
           <Grid item xs={12} md={4}>
             <Paper sx={{ p: 2, margin:0, boxShadow: 5, border: "1px solid lightblue" }}>
@@ -241,7 +241,7 @@ const Dashboard = () => {
               <Typography variant="h5" color="primary" gutterBottom>
                 Your Reports
               </Typography>
-              <div style={{ height: 350, width: "100%", marginTop: 16 }}>
+              <div style={{ height: 75, width: "100%", marginTop: 16 }}>
                 <TextField
                   label="Search"
                   value={searchTerm}
@@ -250,8 +250,8 @@ const Dashboard = () => {
                   fullWidth
                   sx={{ marginBottom: 2 }}
                 />
-                <DataGrid rows={filteredReports} columns={reportColumns} />
               </div>
+              <DataGrid rows={filteredReports} columns={reportColumns} />
             </Paper>
           </Grid>
         </Grid>
