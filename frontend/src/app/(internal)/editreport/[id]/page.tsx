@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, { FC } from "react";
+import React, { FC, useEffect, useState } from "react";
 import { FormControlLabel, TextField } from "@mui/material/";
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -39,48 +39,136 @@ import Divider from "@mui/material/Divider";
 import FormGroup from "@mui/material/FormGroup";
 import Checkbox from "@mui/material/Checkbox";
 import { useRouter } from "next/navigation";
+import { API_CLIENT, API_ENDPOINT, API_TYPES } from "@/helpers/api";
+import { AxiosError, AxiosResponse } from "axios";
+
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import { DateTimeField, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.extend(customParseFormat);
 
 const steps = ["Record", "Analysis", "Correction"];
 
-interface IFormInputs {
-  failure_title: string;
-  description: string;
-  impact: string;
-  cause: string;
-  mechanism: string;
-  corrective_action: string;
-  subsystem: string;
-  car_year: number;
-  team_id: number;
-  failure_time: string;
+const schema = yup.object().shape({
+  title: yup.string().nullable(),
+  description: yup.string().nullable(), //.min
+  subsystem_id: yup.number().nullable(),
+  time_of_failure: yup.date().nullable(),
+  impact: yup.string().nullable(),
+  cause: yup.string().nullable(),
+  mechanism: yup.string().nullable(),
+  corrective_action_plan: yup.string().nullable(),
+  car_year: yup.number().nullable(),
+  team_id: yup.number().nullable(),
+});
+export type IFormInputs = yup.InferType<typeof schema>;
+
+interface Props {
+  params: {
+    id: number;
+  };
 }
 
-const schema = yup.object().shape({
-  failure_title: yup.string().required(),
-  description: yup.string().min(5).required(),
-  impact: yup.string(),
-  cause: yup.string(),
-  mechanism: yup.string(),
-  corrective_action: yup.string(),
-  subsystem: yup.string().required(),
-  car_year: yup.number(),
-  team_id: yup.number().required(),
-  failure_time: yup.string().required(),
-});
+export default function EditReport(props: Props) {
+  const record_id = props.params.id;
 
-export default function EditReport({ params, searchParams }) {
-  const [team, setTeam] = React.useState("");
-  const [subsystem, setSubsystem] = React.useState("");
+  const [activeStep, setActiveStep] = useState(0);
+  const [teams, setTeams] = useState<API_TYPES.TEAM.GET.RESPONSE[]>([]);
+  const router = useRouter();
 
-  const teamChange = (event: SelectChangeEvent) => {
-    setTeam(event.target.value as string);
-  };
-
-  const subsystemChange = (event: SelectChangeEvent) => {
-    setSubsystem(event.target.value as string);
-  };
-
-  const [activeStep, setActiveStep] = React.useState(0);
+  const {
+    register,
+    control,
+    handleSubmit,
+    watch,
+    formState: { errors },
+    setValue,
+    reset,
+  } = useForm<IFormInputs>({
+    resolver: yupResolver(schema),
+  });
+  const [subsystems, setSubsystems] = useState<
+    API_TYPES.SUBSYSTEM.GET.RESPONSE[]
+  >([]);
+  useEffect(() => {
+    (async () => {
+      try {
+        const response = await API_CLIENT.get<
+          any,
+          AxiosResponse<API_TYPES.SUBSYSTEM.GET.RESPONSE[]>
+        >(API_ENDPOINT.SUBSYSTEM, {})
+          .then((response) => {
+            if (response) {
+              setSubsystems(response.data);
+            } else {
+              console.error("An error occurred");
+            }
+          })
+          .catch((error: AxiosError) => {
+            console.error("An error occurred " + error.message);
+          });
+      } catch (error: any) {}
+      try {
+        const response = await API_CLIENT.get<
+          any,
+          AxiosResponse<API_TYPES.TEAM.GET.RESPONSE[]>
+        >(API_ENDPOINT.TEAM, {})
+          .then((response) => {
+            if (response) {
+              setTeams(response.data);
+            } else {
+              console.error("An error occurred");
+            }
+          })
+          .catch((error: AxiosError) => {
+            console.error("An error occurred " + error.message);
+          });
+      } catch (error: any) {}
+      try {
+        const response = await API_CLIENT.get<
+          any,
+          AxiosResponse<API_TYPES.REPORT.GET.RESPONSE>
+        >(API_ENDPOINT.RECORD + "/" + record_id)
+          .then((response) => {
+            if (response) {
+              const report = response.data;
+              console.log(response.data);
+              reset({
+                title: report.title,
+                description: report.description,
+                subsystem_id: report.subsystem?.id,
+                team_id: report.team?.id,
+                // @ts-ignore: dayjs object is not a string but we can't use
+                // dayjs objects in yup date
+                time_of_failure: dayjs.utc(
+                  report.time_of_failure,
+                  "YYYY-MM-DD HH:mm:ss"
+                ),
+                impact: report.impact,
+                cause: report.cause,
+                mechanism: report.mechanism,
+                corrective_action_plan: report.corrective_action_plan,
+                car_year: report.car_year,
+              });
+            } else {
+              console.error("An error occurred");
+            }
+          })
+          .catch((error: AxiosError) => {
+            if (error.response?.status === 404) {
+              router.push("/404");
+            }
+            console.error("An error occurred " + error.message);
+          });
+      } catch (error: any) {}
+    })();
+  }, []);
 
   const handleNext = () => {
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
@@ -90,31 +178,35 @@ export default function EditReport({ params, searchParams }) {
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
-  const router = useRouter();
-
-  const {
-    register,
-    control,
-    handleSubmit,
-    watch,
-    formState: { errors },
-  } = useForm<IFormInputs>({
-    resolver: yupResolver(schema),
-  });
-
-  const onSubmit: SubmitHandler<IFormInputs> = (data) =>
+  const onSubmit: SubmitHandler<IFormInputs> = (data) => {
     console.log("data submitted: ", data);
-
-  console.log(watch("email"));
-  console.log("errors are", errors);
-
-  if (false) {
-    router.push("/404");
-  }
+    (async () => {
+      await API_CLIENT.patch(API_ENDPOINT.RECORD + "/" + record_id, data)
+        .then((response) => {
+          if (response.status !== 200) {
+            console.error(
+              "An error occurred " +
+                response.status +
+                " " +
+                response.data.message
+            );
+          }
+        })
+        .catch((error: AxiosError) => {
+          console.error(
+            "An error occurred " +
+              error.message +
+              // @ts-ignore: TODO: Add types for generic error response
+              error.response?.data["message"]
+          );
+        });
+      console.log("data submitted: ", data);
+    })();
+  };
 
   return (
     <Box sx={{ width: "100%" }}>
-      <h1>{params.id}</h1>
+      <h1>{}</h1>
       <Stepper activeStep={activeStep}>
         {steps.map((label, index) => {
           const stepProps: { completed?: boolean } = {};
@@ -145,7 +237,7 @@ export default function EditReport({ params, searchParams }) {
                 <Grid container spacing={2}>
                   <Grid xs={10}>
                     <Controller
-                      name="failure_title"
+                      name="title"
                       control={control}
                       render={({ field }) => (
                         <TextField
@@ -153,13 +245,8 @@ export default function EditReport({ params, searchParams }) {
                           sx={{ py: 4 }}
                           label="Title"
                           variant="standard"
-                          defaultValue={"LV PDM Buck Converter Failure"}
-                          error={!!errors.failure_title}
-                          helperText={
-                            errors.failure_title
-                              ? errors.failure_title?.message
-                              : ""
-                          }
+                          error={!!errors.title}
+                          helperText={errors.title ? errors.title?.message : ""}
                           fullWidth
                         />
                       )}
@@ -169,6 +256,7 @@ export default function EditReport({ params, searchParams }) {
                     <Controller
                       name="team_id"
                       control={control}
+                      defaultValue={0}
                       render={({ field }) => (
                         <FormControl fullWidth>
                           <InputLabel id="team">Team</InputLabel>
@@ -176,12 +264,12 @@ export default function EditReport({ params, searchParams }) {
                             {...field}
                             labelId="team"
                             id="team"
-                            value={team}
                             label="Team"
-                            onChange={teamChange}
+                            value={field.value}
                           >
-                            <MenuItem value={1}>Powertrain</MenuItem>
-                            <MenuItem value={2}>Suspension</MenuItem>
+                            {teams.map((team) => (
+                              <MenuItem value={team.id}>{team.name}</MenuItem>
+                            ))}
                           </Select>
                         </FormControl>
                       )}
@@ -189,8 +277,9 @@ export default function EditReport({ params, searchParams }) {
                   </Grid>
                   <Grid xs={3}>
                     <Controller
-                      name="subsystem"
+                      name="subsystem_id"
                       control={control}
+                      defaultValue={0}
                       render={({ field }) => (
                         <FormControl fullWidth>
                           <InputLabel id="subsystem">Subsystem</InputLabel>
@@ -198,12 +287,16 @@ export default function EditReport({ params, searchParams }) {
                             {...field}
                             labelId="subsystem"
                             id="subsystem"
-                            value={subsystem}
                             label="Subsystem"
-                            onChange={subsystemChange}
+                            // stupid MUI doesn't let me allow `undefined` as a
+                            // possible value, so have fun getting your console
+                            // spammed with warnings.
                           >
-                            <MenuItem value={1}>PDK</MenuItem>
-                            <MenuItem value={2}>Exhaust</MenuItem>
+                            {subsystems.map((system) => (
+                              <MenuItem value={system.id}>
+                                {system.subsystem}
+                              </MenuItem>
+                            ))}
                           </Select>
                         </FormControl>
                       )}
@@ -219,13 +312,8 @@ export default function EditReport({ params, searchParams }) {
                           {...field}
                           label="Car Year"
                           variant="outlined"
-                          defaultValue={"2022"}
-                          error={!!errors.failure_title}
-                          helperText={
-                            errors.failure_title
-                              ? errors.failure_title?.message
-                              : ""
-                          }
+                          error={!!errors.title}
+                          helperText={errors.title ? errors.title?.message : ""}
                           fullWidth
                         />
                       )}
@@ -233,22 +321,30 @@ export default function EditReport({ params, searchParams }) {
                   </Grid>
                   <Grid xs={2}>
                     <Controller
-                      name="failure_time"
+                      name="time_of_failure"
                       control={control}
                       render={({ field }) => (
-                        <TextField
-                          {...field}
-                          label="Time of Failure"
-                          defaultValue={"14:30 08/09/2023"}
-                          variant="outlined"
-                          error={!!errors.failure_title}
-                          helperText={
-                            errors.failure_title
-                              ? errors.failure_title?.message
-                              : ""
-                          }
-                          fullWidth
-                        />
+                        <LocalizationProvider
+                          // localeText={
+                          //   enUS.components.MuiLocalizationProvider.defaultProps
+                          //     .localeText
+                          // }
+                          dateAdapter={AdapterDayjs}
+                        >
+                          <DateTimeField
+                            format="YYYY-MM-DD[T]HH:mm"
+                            {...field}
+                            label="Time of Failure"
+                            variant="outlined"
+                            // error={!!errors.title}
+                            timezone="Australia/West"
+                            helperText={
+                              errors.title ? errors.title?.message : ""
+                            }
+                            disableFuture={true} // time travellers beware...
+                            fullWidth
+                          />
+                        </LocalizationProvider>
                       )}
                     />
                   </Grid>
@@ -261,9 +357,6 @@ export default function EditReport({ params, searchParams }) {
                           {...field}
                           label="Description"
                           variant="outlined"
-                          defaultValue={
-                            "The LV PDM buck converter on '22 (Flo) failed whilst driving."
-                          }
                           error={!!errors.description}
                           helperText={
                             errors.description
@@ -302,9 +395,6 @@ export default function EditReport({ params, searchParams }) {
                           {...field}
                           label="Impact"
                           variant="outlined"
-                          defaultValue={
-                            "The pump for cooling the motor lost power, cannot test drive the car until fixed. Delaying vehicle tesing and driver training. Lengthy troubleshooting / repair is diverting time from designing and manufacturing the 2023 car."
-                          }
                           error={!!errors.impact}
                           helperText={
                             errors.impact ? errors.impact?.message : ""
@@ -325,9 +415,6 @@ export default function EditReport({ params, searchParams }) {
                           {...field}
                           label="Cause"
                           variant="outlined"
-                          defaultValue={
-                            "Overheating of the inductor due to high current."
-                          }
                           error={!!errors.cause}
                           helperText={errors.cause ? errors.cause?.message : ""}
                           fullWidth
@@ -346,7 +433,6 @@ export default function EditReport({ params, searchParams }) {
                           {...field}
                           label="Mechanism"
                           variant="outlined"
-                          defaultValue={"Dielectric Breakdown."}
                           error={!!errors.mechanism}
                           helperText={
                             errors.mechanism ? errors.mechanism?.message : ""
@@ -376,20 +462,17 @@ export default function EditReport({ params, searchParams }) {
                 <Grid container spacing={2}>
                   <Grid xs={12}>
                     <Controller
-                      name="corrective_action"
+                      name="corrective_action_plan"
                       control={control}
                       render={({ field }) => (
                         <TextField
                           {...field}
                           label="Corrective Action Plan"
                           variant="outlined"
-                          defaultValue={
-                            "Replace broken inductor with a new lower-resistance inductor and validate reduced operating temperature with bench testing under expected load."
-                          }
-                          error={!!errors.corrective_action}
+                          error={!!errors.corrective_action_plan}
                           helperText={
-                            errors.corrective_action
-                              ? errors.corrective_action?.message
+                            errors.corrective_action_plan
+                              ? errors.corrective_action_plan?.message
                               : ""
                           }
                           fullWidth
@@ -412,30 +495,32 @@ export default function EditReport({ params, searchParams }) {
                 </Grid>
               </Box>
             )}
-          </form>
-          <Box sx={{ display: "flex", flexDirection: "row", pt: 2 }}>
-            <Button
-              color="inherit"
-              disabled={activeStep === 0}
-              onClick={handleBack}
-              sx={{ mr: 1 }}
-            >
-              Back
-            </Button>
-            <Box sx={{ flex: "1 1 auto" }} />
-            {activeStep === steps.length - 1 ? (
-              <Button type="submit" variant="contained">
-                Submit
-              </Button>
-            ) : (
+            <Box sx={{ display: "flex", flexDirection: "row", pt: 2 }}>
               <Button
-                onClick={handleNext}
-                disabled={activeStep === steps.length - 1}
+                type="button"
+                color="inherit"
+                disabled={activeStep === 0}
+                onClick={handleBack}
+                sx={{ mr: 1 }}
               >
-                Next
+                Back
               </Button>
-            )}
-          </Box>
+              <Box sx={{ flex: "1 1 auto" }} />
+              {activeStep === steps.length - 1 ? (
+                <Button type="submit" variant="contained">
+                  Submit
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  onClick={handleNext}
+                  disabled={activeStep === steps.length - 1}
+                >
+                  Next
+                </Button>
+              )}
+            </Box>
+          </form>
         </React.Fragment>
       )}
     </Box>

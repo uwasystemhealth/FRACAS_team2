@@ -41,7 +41,7 @@ import CardActions from "@mui/material/CardActions";
 import CardContent from "@mui/material/CardContent";
 
 interface ReportFields {
-  failure_title: "Example Failure Record";
+  title: "Example Failure Record";
   description: string;
   impact: string;
   cause: string;

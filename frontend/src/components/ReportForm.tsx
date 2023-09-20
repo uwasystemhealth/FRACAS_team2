@@ -42,6 +42,7 @@ import Divider from "@mui/material/Divider";
 import { API_CLIENT, API_ENDPOINT, API_TYPES } from "@/helpers/api";
 import { AxiosError, AxiosResponse } from "axios";
 import { LocalizationProvider } from "@mui/x-date-pickers";
+import { SubsystemSelector } from "@/components/SubsystemSelector";
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -53,7 +54,7 @@ dayjs.extend(timezone);
 const steps = ["Record Entry", "Analysis", "Review"];
 
 interface IFormInputs {
-  failure_title: string;
+  title: string;
   description: string;
   impact: string;
   cause: string;
@@ -69,7 +70,7 @@ const defaultYear = new Date().getFullYear();
 const time_of_failure = dayjs(new Date());
 
 const schema = yup.object().shape({
-  failure_title: yup.string(), //.required(),
+  title: yup.string(), //.required(),
   description: yup.string(), //.min(5).required(),
   subsystem_id: yup.number(), //.required(),
   time_of_failure: yup.string().default(time_of_failure.toString()), //.required(),
@@ -144,7 +145,7 @@ const ReportForm = (props: Props) => {
   useEffect(() => {
     (async () => {
       try {
-        const response = await API_CLIENT.get<
+        await API_CLIENT.get<
           any,
           AxiosResponse<API_TYPES.SUBSYSTEM.GET.RESPONSE[]>
         >(API_ENDPOINT.SUBSYSTEM, {})
@@ -158,16 +159,12 @@ const ReportForm = (props: Props) => {
           .catch((error: AxiosError) => {
             console.error("An error occurred " + error.message);
           });
-
-        // Do something with the token (e.g., store it)
       } catch (error: any) {}
-    })();
-    (async () => {
       try {
-        const response = await API_CLIENT.get<
-          any,
-          AxiosResponse<API_TYPES.TEAM.GET.RESPONSE[]>
-        >(API_ENDPOINT.TEAM, {})
+        await API_CLIENT.get<any, AxiosResponse<API_TYPES.TEAM.GET.RESPONSE[]>>(
+          API_ENDPOINT.TEAM,
+          {}
+        )
           .then((response) => {
             if (response) {
               setTeams(response.data);
@@ -178,8 +175,6 @@ const ReportForm = (props: Props) => {
           .catch((error: AxiosError) => {
             console.error("An error occurred " + error.message);
           });
-
-        // Do something with the token (e.g., store it)
       } catch (error: any) {}
     })();
   }, []);
@@ -210,15 +205,13 @@ const ReportForm = (props: Props) => {
         </React.Fragment>
       ) : (
         <React.Fragment>
-          <form
-            onSubmit={handleSubmit(onValid, (e) => console.error("error", e))}
-          >
+          <form onSubmit={handleSubmit(onValid)}>
             {(activeStep === 0 || activeStep === 2) && (
               <Box sx={{ flexGrow: 1, py: 2 }}>
                 <Grid container spacing={2}>
                   <Grid xs={10}>
                     <Controller
-                      name="failure_title"
+                      name="title"
                       control={control}
                       render={({ field }) => (
                         <TextField
@@ -226,12 +219,8 @@ const ReportForm = (props: Props) => {
                           sx={{ py: 4 }}
                           label="Title"
                           variant="standard"
-                          error={!!errors.failure_title}
-                          helperText={
-                            errors.failure_title
-                              ? errors.failure_title?.message
-                              : ""
-                          }
+                          error={!!errors.title}
+                          helperText={errors.title ? errors.title?.message : ""}
                           fullWidth
                         />
                       )}
@@ -260,7 +249,7 @@ const ReportForm = (props: Props) => {
                     />
                   </Grid>
                   <Grid xs={3}>
-                    <Controller
+                    {/* <Controller
                       name="subsystem_id"
                       control={control}
                       render={({ field }) => (
@@ -283,6 +272,10 @@ const ReportForm = (props: Props) => {
                           </Select>
                         </FormControl>
                       )}
+                    /> */}
+                    <SubsystemSelector
+                      control={control}
+                      subsystems={subsystems}
                     />
                   </Grid>
                   <Divider orientation="vertical" flexItem></Divider>
@@ -295,12 +288,8 @@ const ReportForm = (props: Props) => {
                           {...field}
                           label="Car Year"
                           variant="outlined"
-                          error={!!errors.failure_title}
-                          helperText={
-                            errors.failure_title
-                              ? errors.failure_title?.message
-                              : ""
-                          }
+                          error={!!errors.title}
+                          helperText={errors.title ? errors.title?.message : ""}
                           defaultValue={defaultYear}
                           fullWidth
                         />
@@ -325,12 +314,10 @@ const ReportForm = (props: Props) => {
                             defaultValue={time_of_failure}
                             label="Time of Failure"
                             variant="outlined"
-                            // error={!!errors.failure_title}
-                            timezone="Australia/West"
+                            // error={!!errors.title}
+                            timezone={process.env.TZ}
                             helperText={
-                              errors.failure_title
-                                ? errors.failure_title?.message
-                                : ""
+                              errors.title ? errors.title?.message : ""
                             }
                             disableFuture={true} // time travellers beware...
                             fullWidth

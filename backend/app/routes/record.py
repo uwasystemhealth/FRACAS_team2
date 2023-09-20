@@ -53,8 +53,9 @@ RECORD
 """
 
 
-def update_record_kv(record: Record, data: Dict[str, Union[str, int]]) -> None:
+def update_record_kv(record: Record, data: Dict[str, Union[str, int]]) -> int:
     # CHECK KEYS
+    updated = 0
     for key in data.keys():
         if not hasattr(record, key) or key in Record.PROTECTED_FIELDS:
             # DO NOT REVEAL PROTECTED FIELDS (USE SAME ERROR)
@@ -62,14 +63,16 @@ def update_record_kv(record: Record, data: Dict[str, Union[str, int]]) -> None:
     for key, value in data.items():
         # CHECK KEYS AGAIN FOR SAFETY
         if hasattr(record, key) and key not in Record.PROTECTED_FIELDS:
+            if key in Record.TIME_FIELDS:
+                value = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%fZ")
             if getattr(record, key) != value:
-                if key in Record.TIME_FIELDS:
-                    value = datetime.strptime(value, "%a, %d %b %Y %H:%M:%S %Z")
+                updated += 1
                 setattr(record, key, value)
                 record.modified_at = datetime.utcnow()
         else:
             # DO NOT REVEAL PROTECTED FIELDS (USE SAME ERROR)
             raise KeyError(key)
+    return updated
 
 
 # Create new record
@@ -95,27 +98,26 @@ def create_record():
 
 
 @app.route("/api/v1/record/<int:record_id>", methods=["PATCH"])
+@handle_exceptions
 def update_record(record_id):
+    record = Record.query.get(record_id)
+    updated = 0
+    if not record:
+        return jsonify({"error": "Record not found"}), 404
+    # TODO: PUT CHECKS FOR PROTECTED FIELDS (DELETED, CREATED_AT, ETC.)
+    data = request.json
+    if len(data.keys()) == 0:
+        return (
+            jsonify({"err": "no_data", "message": "Provide some data to update"}),
+            400,
+        )
     try:
-        record = Record.query.get(record_id)
-        if not record:
-            return jsonify({"error": "Record not found"}), 404
-        # TODO: PUT CHECKS FOR PROTECTED FIELDS (DELETED, CREATED_AT, ETC.)
-        data = request.json
-        if len(data.keys()) == 0:
-            return (
-                jsonify({"err": "no_data", "message": "Provide some data to update"}),
-                400,
-            )
-        try:
-            update_record_kv(record, data)
-        except KeyError:
-            return jsonify({"err": "bad_key", "message": "Key does not exist"}), 400
+        updated = update_record_kv(record, data)
+    except KeyError:
+        return jsonify({"err": "bad_key", "message": "Key does not exist"}), 400
 
-        db.session.commit()
-        return jsonify({"message": "Record updated successfully"}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    db.session.commit()
+    return jsonify({"message": "Record updated successfully", "updated": updated}), 200
 
 
 # Delete a record (mark inactive)

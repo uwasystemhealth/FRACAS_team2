@@ -4,7 +4,7 @@ from sqlalchemy_serializer import SerializerMixin
 from app import db
 
 
-class Team(db.Model):
+class Team(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False)
     created_at = db.Column(
         db.DateTime,
