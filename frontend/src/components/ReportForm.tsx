@@ -27,7 +27,12 @@ import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import * as yup from "yup";
 
 import SubsystemSelector from "@/components/SubsystemSelector";
-import { API_CLIENT, API_ENDPOINT, API_TYPES } from "@/helpers/api";
+import {
+  API_CLIENT,
+  API_DATE_FORMAT,
+  API_ENDPOINT,
+  API_TYPES,
+} from "@/helpers/api";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
@@ -80,7 +85,7 @@ const schema = yup.object().shape({
   subsystem_id: yup.number(), //.required(),
   time_of_failure: yup
     .string()
-    .default(time_of_failure.format("YYYY-MM-DD[T]HH:MM:ss.SSS[Z]").toString())
+    .default(time_of_failure.format(API_DATE_FORMAT).toString())
     .required(),
   impact: yup.string(),
   cause: yup.string(),
@@ -101,6 +106,7 @@ const ReportForm = (props: Props) => {
 
   const router = useRouter();
 
+  const [submitted, setSubmitted] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [teams, setTeams] = useState<API_TYPES.TEAM.GET.RESPONSE[]>([]);
   const [subsystems, setSubsystems] = useState<
@@ -128,6 +134,10 @@ const ReportForm = (props: Props) => {
   });
 
   const onValid: SubmitHandler<UserForm> = (data, event) => {
+    if (submitted) return;
+    setSubmitted(true);
+    //  Not efficient, but I cannot find out how to override the default date format, since react-hook-form abstracts away the string conversion so we can't use .format().
+    data.time_of_failure = dayjs(data.time_of_failure).format(API_DATE_FORMAT);
     (async () => {
       await API_CLIENT.post(API_ENDPOINT.RECORD, data)
         .then((response) => {

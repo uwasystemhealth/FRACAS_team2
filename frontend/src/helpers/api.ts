@@ -5,6 +5,8 @@ export const API_VERSION = 1;
 
 export const BASE_API_PATH = `/api/v${API_VERSION}`;
 
+export const API_DATE_FORMAT = "YYYY-MM-DD[T]HH:MM:ss.SSS[Z]";
+
 export const API_ENDPOINT = {
   AUTHENTICATION: {
     LOGIN: `${BASE_API_PATH}/authentication/login`,
@@ -18,7 +20,7 @@ export const API_ENDPOINT = {
   RECORD_STATS: `${BASE_API_PATH}/record/stats`,
   SUBSYSTEM: `${BASE_API_PATH}/subsystem`,
   USER: `${BASE_API_PATH}/user`,
-  TEAM: `${BASE_API_PATH}/team", // TODO: add /lead`,
+  TEAM: `${BASE_API_PATH}/team`, // TODO: add /lead
 };
 
 export namespace API_TYPES {

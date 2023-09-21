@@ -112,6 +112,9 @@ def create_record():
 
     db.session.add(record)
     db.session.commit()
+    app.logger.info(
+        f"Created report {record.id=} {record.title=} {record.description=}"
+    )
     return jsonify({"message": "Record created successfully", "id": record.id}), 201
 
 
@@ -135,6 +138,7 @@ def update_record(record_id):
         return jsonify({"err": "bad_key", "message": "Key does not exist"}), 400
 
     db.session.commit()
+    app.logger.info(f"PATCH report {record.id=} {record.title=} {record.description=}")
     return jsonify({"message": "Record updated successfully", "updated": updated}), 200
 
 

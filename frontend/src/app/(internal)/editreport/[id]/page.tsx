@@ -24,7 +24,12 @@ import React, { useEffect, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import * as yup from "yup";
 
-import { API_CLIENT, API_ENDPOINT, API_TYPES } from "@/helpers/api";
+import {
+  API_CLIENT,
+  API_DATE_FORMAT,
+  API_ENDPOINT,
+  API_TYPES,
+} from "@/helpers/api";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
@@ -49,10 +54,12 @@ import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
+import URLS from "@/helpers/urls";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(customParseFormat);
+dayjs().format();
 
 const steps = ["Record", "Analysis", "Correction"];
 
@@ -79,6 +86,7 @@ interface Props {
 export default function EditReport(props: Props) {
   const record_id = props.params.id;
 
+  const [submitted, setSubmitted] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [teams, setTeams] = useState<API_TYPES.TEAM.GET.RESPONSE[]>([]);
   const router = useRouter();
@@ -182,7 +190,11 @@ export default function EditReport(props: Props) {
   };
 
   const onSubmit: SubmitHandler<IFormInputs> = (data) => {
+    if (submitted) return;
+    setSubmitted(true);
     console.log("data submitted: ", data);
+    //  Not efficient, but I cannot find out how to override the default date format, since react-hook-form abstracts away the string conversion so we can't use .format().
+    data.time_of_failure = dayjs(data.time_of_failure).format(API_DATE_FORMAT);
     (async () => {
       await API_CLIENT.patch(API_ENDPOINT.RECORD + "/" + record_id, data)
         .then((response) => {
@@ -194,6 +206,7 @@ export default function EditReport(props: Props) {
                 response.data.message
             );
           }
+          router.push(URLS.RECORD_LIST);
         })
         .catch((error: AxiosError) => {
           console.error(
