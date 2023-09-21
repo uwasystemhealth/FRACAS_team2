@@ -21,18 +21,42 @@
 import * as React from "react";
 import { DataGrid, GridColDef, GridValueGetterParams } from "@mui/x-data-grid";
 import TextField from "@mui/material/TextField";
+import Card from "@mui/material/Card";
+import IconButton from '@mui/material/IconButton';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import EditIcon from '@mui/icons-material/Edit';
 import { date } from "yup";
 import { useEffect, useState } from "react";
 import { API_CLIENT, API_ENDPOINT, API_TYPES } from "@/helpers/api";
 import { AxiosError, AxiosResponse } from "axios";
 
 const columns: GridColDef[] = [
-  { field: "id", headerName: "ID", width: 60 },
-  { field: "created_at", headerName: "Creation Date", width: 170 },
-  { field: "title", headerName: "Report name", width: 350 },
-  { field: "car_year", headerName: "Car year", width: 100 },
-  { field: "creator", headerName: "Creator name", width: 130 },
-  { field: "status", headerName: "Status", width: 100 },
+  { field: "id", headerName: "ID", flex: 1 },
+  { field: "date", headerName: "Creation Date", flex: 1 },
+  { field: "ReportName", headerName: "Report name", flex: 1},
+  { field: "carYear", headerName: "Car year", flex: 1 },
+  { field: "creatorName", headerName: "Creator name", flex: 1 },
+  { field: "status", headerName: "Status", flex: 1},
+  {
+    field: "edit",
+    headerName: "Edit",
+    width: 100,
+    renderCell: (params) => (
+      <IconButton color="primary" aria-label="Edit" href = '/editreport'>
+        <EditIcon />
+      </IconButton>
+    ),
+  },
+  {
+    field: "view",
+    headerName: "View",
+    width: 100,
+    renderCell: (params) => (
+      <IconButton color="primary" aria-label="View" href = "/viewreport">
+        <VisibilityIcon />
+      </IconButton>
+    ),
+  },
 ];
 
 // const rows = [
@@ -163,7 +187,11 @@ export default function DataTable() {
   );
 
   return (
-    <div style={{ height: 400, width: "100%" }}>
+    <Card style={{
+      padding:10,
+      maxWidth: '100%', 
+      margin: '0 auto', 
+      }}>
       <TextField
         label="Search"
         value={searchTerm}
@@ -173,12 +201,13 @@ export default function DataTable() {
         sx={{ marginBottom: 2 }}
       />
       <DataGrid
+        
         rows={filteredRows}
         columns={columns}
         pagination
         pageSizeOptions={[5, 25, 100]}
         checkboxSelection
       />
-    </div>
+    </Card>
   );
 }

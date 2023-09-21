@@ -18,80 +18,154 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React from "react";
+import React, { useState } from "react";
+import { DataGrid } from '@mui/x-data-grid';
+import {Container,Paper,Grid, TextField} from "@mui/material";
+import Typography from "@mui/material/Typography";
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import EditIcon from '@mui/icons-material/Edit';
+import IconButton from '@mui/material/IconButton';
+
 import {
-  AppBar,
-  Container,
-  Drawer,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Toolbar,
-  Typography,
-  Divider,
-  TableContainer,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  Paper,
-  Grid,
-} from "@mui/material";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
   Tooltip,
   Legend,
   PieChart,
   Pie,
   Cell,
+  Label,
+  LabelList,
 } from "recharts";
 
 const Dashboard = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+
   const upcomingTasks = [
     {
       id: 1,
       reportName: "Report 1",
       assigner: "John Doe",
       dueDate: "2023-08-24",
+      view: "/viewreport",
     },
     {
       id: 2,
       reportName: "Report 2",
       assigner: "Jane Smith",
       dueDate: "2023-08-28",
+      view: "/viewreport",
     },
     {
       id: 3,
       reportName: "Report 3",
       assigner: "John Doe",
       dueDate: "2023-08-29",
+      view: "/viewreport",
+    },
+    {
+      id: 4,
+      reportName: "Report 4",
+      assigner: "John Doe",
+      dueDate: "2023-08-29",
+      view: "/viewreport",
+    },
+    {
+      id: 5,
+      reportName: "Report 5",
+      assigner: "John Doe",
+      dueDate: "2023-08-29",
+      view: "/viewreport",
+    }
+  ];
+
+  const taskColumns = [
+    {field: "id", headerName: "ID", width: 80},
+    {field: "reportName", headerName: "Report Name", width: 220},
+    {field: "assigner", headerName: "Assigner", width: 160},
+    {field: "dueDate", headerName: "Due Date", width: 170},
+    {
+      field: "view",
+      headerName: "View",
+      width: 100,
+      renderCell: (params) => (
+        <IconButton color="primary" aria-label="View" href = "/viewreport">
+          <VisibilityIcon />
+        </IconButton>
+      ),
+    },
+  ];
+
+  const reportColumns = [
+    { field: "id", headerName: "ID", width: 60 },
+    { field: "date", headerName: "Creation Date", width: 170 },
+    { field: "ReportName", headerName: "Report name", width: 350 },
+    { field: "carYear", headerName: "Car year", width: 100 },
+    { field: "creatorName", headerName: "Creator name", width: 130 },
+    { field: "status", headerName: "Status", width: 100 },
+    {
+      field: "edit",
+      headerName: "Edit",
+      width: 100,
+      renderCell: (params) => (
+        <IconButton color="primary" aria-label="Edit" href = '/editreport'>
+          <EditIcon />
+        </IconButton>
+      ),
+    },
+    {
+      field: "view",
+      headerName: "View",
+      width: 100,
+      renderCell: (params) => (
+        <IconButton color="primary" aria-label="View" href = "/viewreport">
+          <VisibilityIcon />
+        </IconButton>
+      ),
     },
   ];
 
   const recentReports = [
     {
       id: 1,
-      dateCreated: "2023-08-25",
-      title: "Report 1",
-      creator: "John Doe",
+      date: "27/08/2023",
+      ReportName: "Report 1",
+      carYear: 2023,
+      creatorName: "Kyle",
       status: "Open",
+      edit: "/editreport",
+      view: "/viewreport",
     },
     {
       id: 2,
-      dateCreated: "2023-08-24",
-      title: "Report 2",
-      creator: "Jane Smith",
-      status: "Draft",
+      date: "27/08/2023",
+      ReportName: "Report 2",
+      carYear: 2023,
+      creatorName: "Kyle",
+      status: "Open",
+    },
+    {
+      id: 3,
+      date: "27/08/2023",
+      ReportName: "Report 3",
+      carYear: 2022,
+      creatorName: "Kyle",
+      status: "Open",
+    },
+    {
+      id: 4,
+      date: "27/08/2023",
+      ReportName: "Report 4",
+      carYear: 2023,
+      creatorName: "Kyle",
+      status: "Open",
     },
   ];
 
-  const upcomingTasksCount = upcomingTasks.length;
+  const filteredReports = recentReports.filter((report) =>
+  Object.values(report).some((value) =>
+    value ? value.toString().toLowerCase().includes(searchTerm.toLowerCase()) : false
+  )
+  );
+
   const pieChartColors = [
     "#0088FE",
     "#00C49F",
@@ -110,33 +184,14 @@ const Dashboard = () => {
 
   return (
     <div style={{ display: "flex" }}>
-      {/* Main Content */}
-      <Container component="main" sx={{ flexGrow: 1, p: 3, marginTop: "64px" }}>
-        {/* Layout using Grid */}
-        <Grid container spacing={2}>
-          {/* Bar Graph */}
+      <Container component="main" maxWidth="lg" sx={{ flexGrow: 1, p: 1, marginTop: "0px", marginLeft: "0px", marginRight: "0px" }}>
+        <Grid container spacing={4} rowSpacing={1}>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2 }}>
-              <Typography variant="h6" gutterBottom sx={{ fontSize: 16 }}>
-                Failure Reports by Team
+            <Paper sx={{ p: 2, margin:0, boxShadow: 5, border: "1px solid lightblue" }}>
+              <Typography variant="h6" gutterBottom sx={{ fontSize: 16 }} color={"white"}>
+                Open Reports By Team
               </Typography>
-              <BarChart width={250} height={250} data={sampleData}>
-                <XAxis dataKey="name" />
-                <YAxis />
-                <CartesianGrid strokeDasharray="3 3" />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="value" fill="#8884d8" />
-              </BarChart>
-            </Paper>
-          </Grid>
-
-          <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2 }}>
-              <Typography variant="h6" gutterBottom sx={{ fontSize: 16 }}>
-                Resolution Rate
-              </Typography>
-              <PieChart width={250} height={250}>
+              <PieChart width={300} height={250}>
                 <Pie
                   data={sampleData}
                   cx="50%"
@@ -151,6 +206,7 @@ const Dashboard = () => {
                       fill={pieChartColors[index % pieChartColors.length]}
                     />
                   ))}
+                  <LabelList dataKey="value" position="inside" fill="#fff" />
                 </Pie>
                 <Tooltip />
                 <Legend />
@@ -158,72 +214,45 @@ const Dashboard = () => {
             </Paper>
           </Grid>
 
-          {/* Upcoming Tasks Tile */}
-          <Grid item xs={12} md={4}>
+          {/* Upcoming Tasks DataGrid */}
+          <Grid item xs={12} md={8}>
             <Paper
               sx={{
                 p: 2,
                 height: "100%",
                 display: "flex",
                 flexDirection: "column",
+                boxShadow: 5,
+                border: "1px solid lightblue"
               }}
             >
-              <Typography variant="subtitle1">
-                You have {upcomingTasksCount} upcoming tasks
+              <Typography variant="subtitle1" color={"white"}>
+                You have <span style={{ color: 'red' }}>{upcomingTasks.length}</span> upcoming allocated tasks
               </Typography>
-              <TableContainer component={Paper} sx={{ marginTop: 2 }}>
-                <Table>
-                  <TableBody>
-                    {upcomingTasks.map((task) => (
-                      <TableRow key={task.id}>
-                        <TableCell sx={{ fontSize: 12 }}>
-                          {task.reportName}
-                        </TableCell>
-                        <TableCell sx={{ fontSize: 12 }}>
-                          {task.assigner}
-                        </TableCell>
-                        <TableCell sx={{ fontSize: 12, color: "red" }}>
-                          {task.dueDate}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+              <div style={{ height: 237, width: "100%", marginTop: 16 }}>
+              <DataGrid rows={upcomingTasks} columns={taskColumns} props hideFooter={true}/>
+              </div>
             </Paper>
           </Grid>
 
-          {/* Recent Reports Table */}
-          <Grid item xs={12} md={12}>
-            <TableContainer component={Paper} sx={{ marginTop: 3 }}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell colSpan={5}>
-                      <Typography variant="h5" color="primary" gutterBottom>
-                        Your Reports
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Date Created</TableCell>
-                    <TableCell>Title</TableCell>
-                    <TableCell>Creator</TableCell>
-                    <TableCell>Status</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {recentReports.map((report) => (
-                    <TableRow key={report.id}>
-                      <TableCell>{report.dateCreated}</TableCell>
-                      <TableCell>{report.title}</TableCell>
-                      <TableCell>{report.creator}</TableCell>
-                      <TableCell>{report.status}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+          {/* Recent Reports DataGrid */}
+          <Grid item xs={12} md={12} >
+            <Paper sx={{ p: 2, marginTop: 3, boxShadow: 5, border: "1px solid lightblue"}}>
+              <Typography variant="h5" color="primary" gutterBottom>
+                Your Reports
+              </Typography>
+              <div style={{ height: 75, width: "100%", marginTop: 16 }}>
+                <TextField
+                  label="Search"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  variant="outlined"
+                  fullWidth
+                  sx={{ marginBottom: 2 }}
+                />
+              </div>
+              <DataGrid rows={filteredReports} columns={reportColumns} />
+            </Paper>
           </Grid>
         </Grid>
       </Container>

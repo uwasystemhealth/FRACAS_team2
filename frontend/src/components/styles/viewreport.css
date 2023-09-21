@@ -1,0 +1,73 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 0;
+  }
+  
+
+  .container {
+    border: 1px solid lightgrey;
+    max-width: 100%; 
+    margin: 0 auto;
+    padding: 1rem;
+    background-color: #fff; 
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
+  }
+  
+
+  h4, h6 {
+    color: #333; 
+    margin-top: 20px;
+    margin-bottom: 10px;
+  }
+  
+
+  p {
+    margin-bottom: 10px;
+    line-height: 1.4;
+  }
+  
+
+  .card {
+    padding: 20px;
+    margin-bottom: 20px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
+  }
+  
+  .statusButton {
+    background-color: transparent;
+    color: orange !important;
+    border: 1px solid orange;
+    border-radius: 5px;
+  }
+
+  .editButton {
+    border: 1px solid lightblue;
+    box-shadow: 0px 0px 5px lightblue;
+    background-color: transparent; 
+    display: flex; 
+    align-items: center; 
+  }
+  
+  .buttonContent {
+    display: flex;
+    align-items: center;
+  }
+  
+  .editIcon {
+    margin-right: 0.25rem;
+  }
+  
+  .button:hover {
+    background-color: #0056b3; 
+  }
+
+  .checkbox-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center; 
+  }
+
+  
