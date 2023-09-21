@@ -24,7 +24,6 @@ import axios, { AxiosError, AxiosResponse } from "axios"; // Import Axios
 import withAuth from "@/helpers/authWrapper";
 import { API_CLIENT, API_ENDPOINT, API_TYPES, TOKEN } from "@/helpers/api";
 import { useRouter } from "next/navigation";
-import { BACKEND_URL } from "@/helpers/constants";
 
 const Home = () => {
   const [message, setMessage] = useState("");
@@ -68,11 +67,14 @@ const Home = () => {
     const refresh_token = localStorage.getItem(TOKEN.REFRESH);
     if (refresh_token) {
       await axios
-        .delete(`${BACKEND_URL}${API_ENDPOINT.AUTHENTICATION.LOGOUT}`, {
-          headers: {
-            Authorization: `Bearer ${refresh_token}`,
-          },
-        })
+        .delete(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}${API_ENDPOINT.AUTHENTICATION.LOGOUT}`,
+          {
+            headers: {
+              Authorization: `Bearer ${refresh_token}`,
+            },
+          }
+        )
         .then(() => {
           localStorage.removeItem(TOKEN.REFRESH);
         })

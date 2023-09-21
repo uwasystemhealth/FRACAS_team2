@@ -15,25 +15,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { TOKEN } from "./api";
-
-const withAuth = (WrappedComponent: any) => {
-  return (props: any) => {
-    const router = useRouter();
-    useEffect(() => {
-      // TODO: CHECK IF THIS WORKS WITH EXPIRED ACCESS-TOKEN
-      const token = localStorage.getItem(TOKEN.ACCESS); // Retrieve token from local storage
-
-      if (!token) {
-        router.push("/login"); // Redirect to login page if not authenticated
-      }
-    }, []);
-
-    return WrappedComponent(props);
-  };
+const URLS = {
+  LOGIN: "/login",
+  E404: "/404",
+  DASHBOARD: "/",
+  CREATE_REPORT: "/createreport",
+  VIEW_REPORT: "/viewreport",
+  RECORD_LIST: "/record-list",
+  ADMIN_DASHBOARD: "/admin-dash",
 };
-
-export default withAuth;
+export default URLS;

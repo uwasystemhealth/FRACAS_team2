@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   AppBar,
   Container,
@@ -51,8 +51,26 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import { API_CLIENT, API_ENDPOINT, API_TYPES } from "@/helpers/api";
+import { AxiosError, AxiosResponse } from "axios";
+import { title } from "process";
+import LocalizedDate from "@/components/LocalizedDate";
+
+interface UserReports {
+  id: number;
+  created_at: string;
+  title: string;
+  creator: string;
+  status: string;
+}
+
+interface PieChart {
+  name: string;
+  value: number;
+}
 
 const Dashboard = () => {
+  // TODO: implement functionality for learning tasks
   const upcomingTasks = [
     {
       id: 1,
@@ -74,22 +92,92 @@ const Dashboard = () => {
     },
   ];
 
-  const recentReports = [
-    {
-      id: 1,
-      dateCreated: "2023-08-25",
-      title: "Report 1",
-      creator: "John Doe",
-      status: "Open",
-    },
-    {
-      id: 2,
-      dateCreated: "2023-08-24",
-      title: "Report 2",
-      creator: "Jane Smith",
-      status: "Draft",
-    },
-  ];
+  // YOUR REPORTS LOGIC
+  const [userReports, setUserReports] = useState<UserReports[]>([]);
+  const [pieChartData, setPieChartData] = useState<PieChart[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const response = await API_CLIENT.get<
+          API_TYPES.REPORT.GET.REQUEST,
+          AxiosResponse<API_TYPES.REPORT.GET.RESPONSE[]>
+        >(API_ENDPOINT.RECORD, { params: { user_only: true } })
+          .then((response) => {
+            if (response) {
+              console.log(response.data);
+              setUserReports(
+                response.data
+                  .map((report) => {
+                    // TODO: INCORPORATE REPORT VALIDATION STATUS INSTEAD OF DISPLAYING CONSTANT "Open"
+                    return {
+                      id: report.id,
+                      created_at: report.created_at || "",
+                      title: report.title || "",
+                      creator: report.creator.email || "",
+                      status: "Open",
+                    };
+                  })
+                  .reverse()
+              );
+            } else {
+              console.error("An error occurred");
+            }
+          })
+          .catch((error: AxiosError) => {
+            console.error("An error occurred " + error.message);
+          });
+
+        // Do something with the token (e.g., store it)
+      } catch (error: any) {}
+    })();
+
+    (async () => {
+      try {
+        const response = await API_CLIENT.get<
+          API_TYPES.NULLREQUEST_,
+          AxiosResponse<API_TYPES.REPORT.STATS.GET.RESPONSE[]>
+        >(API_ENDPOINT.RECORD_STATS, {})
+          .then((response) => {
+            if (response) {
+              console.log(response.data);
+              setPieChartData(
+                response.data.map((cat) => {
+                  return {
+                    name: cat.team_name || "Uncategorized",
+                    value: cat.open_reports,
+                  };
+                })
+              );
+            } else {
+              console.error("An error occurred");
+            }
+          })
+          .catch((error: AxiosError) => {
+            console.error("An error occurred " + error.message);
+          });
+
+        // Do something with the token (e.g., store it)
+      } catch (error: any) {}
+    })();
+  }, []);
+  // const recentReports = [
+  //   {
+  //     id: 1,
+  //     dateCreated: "2023-08-25",
+  //     title: "Report 1",
+  //     creator: "John Doe",
+  //     status: "Open",
+  //   },
+  //   {
+  //     id: 2,
+  //     dateCreated: "2023-08-24",
+  //     title: "Report 2",
+  //     creator: "Jane Smith",
+  //     status: "Draft",
+  //   },
+  // ];
+  // END YOUR REPORTS LOGIC
 
   const upcomingTasksCount = upcomingTasks.length;
   const pieChartColors = [
@@ -101,12 +189,12 @@ const Dashboard = () => {
     "#FF73FA",
   ];
 
-  const sampleData = [
-    { name: "Electrical", value: 30 },
-    { name: "Subsytem", value: 45 },
-    { name: "Mechanical", value: 20 },
-    // Add more sample data...
-  ];
+  // const pieChartData = [
+  //   { name: "Electrical", value: 30 },
+  //   { name: "Subsytem", value: 45 },
+  //   { name: "Mechanical", value: 20 },
+  //   // Add more sample data...
+  // ];
 
   return (
     <div style={{ display: "flex" }}>
@@ -120,7 +208,7 @@ const Dashboard = () => {
               <Typography variant="h6" gutterBottom sx={{ fontSize: 16 }}>
                 Failure Reports by Team
               </Typography>
-              <BarChart width={250} height={250} data={sampleData}>
+              <BarChart width={250} height={250} data={pieChartData}>
                 <XAxis dataKey="name" />
                 <YAxis />
                 <CartesianGrid strokeDasharray="3 3" />
@@ -138,14 +226,14 @@ const Dashboard = () => {
               </Typography>
               <PieChart width={250} height={250}>
                 <Pie
-                  data={sampleData}
+                  data={pieChartData}
                   cx="50%"
                   cy="50%"
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {sampleData.map((entry, index) => (
+                  {pieChartData.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
                       fill={pieChartColors[index % pieChartColors.length]}
@@ -213,9 +301,11 @@ const Dashboard = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {recentReports.map((report) => (
+                  {userReports.map((report) => (
                     <TableRow key={report.id}>
-                      <TableCell>{report.dateCreated}</TableCell>
+                      <TableCell>
+                        <LocalizedDate date_string={report.created_at} />
+                      </TableCell>
                       <TableCell>{report.title}</TableCell>
                       <TableCell>{report.creator}</TableCell>
                       <TableCell>{report.status}</TableCell>

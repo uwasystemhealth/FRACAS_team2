@@ -1,20 +1,24 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
-import { BACKEND_URL } from "./constants";
 import { string } from "prop-types";
+
+export const API_VERSION = 1;
+
+export const BASE_API_PATH = `/api/v${API_VERSION}`;
 
 export const API_ENDPOINT = {
   AUTHENTICATION: {
-    LOGIN: "/api/v1/authentication/login",
-    SIGNUP_REQUEST: "/api/v1/authentication/signup_request",
-    SIGNUP: "/api/v1/authentication/signup",
-    REFRESH: "/api/v1/authentication/refresh",
-    LOGOUT: "/api/v1/authentication/logout",
-    TEST_LOGGED_IN: "/api/v1/authentication/test_logged_in",
+    LOGIN: `${BASE_API_PATH}/authentication/login`,
+    SIGNUP_REQUEST: `${BASE_API_PATH}/authentication/signup_request`,
+    SIGNUP: `${BASE_API_PATH}/authentication/signup`,
+    REFRESH: `${BASE_API_PATH}/authentication/refresh`,
+    LOGOUT: `${BASE_API_PATH}/authentication/logout`,
+    TEST_LOGGED_IN: `${BASE_API_PATH}/authentication/test_logged_in`,
   },
-  RECORD: "/api/v1/record",
-  SUBSYSTEM: "/api/v1/subsystem",
-  USER: "/api/v1/user",
-  TEAM: "/api/v1/team", // TODO: add /leader
+  RECORD: `${BASE_API_PATH}/record`,
+  RECORD_STATS: `${BASE_API_PATH}/record/stats`,
+  SUBSYSTEM: `${BASE_API_PATH}/subsystem`,
+  USER: `${BASE_API_PATH}/user`,
+  TEAM: `${BASE_API_PATH}/team", // TODO: add /lead`,
 };
 
 export namespace API_TYPES {
@@ -45,6 +49,7 @@ export namespace API_TYPES {
         msg: string;
         email: string;
         superuser: boolean;
+        id: number;
       }
     }
   }
@@ -112,19 +117,37 @@ export namespace API_TYPES {
       }
     }
     export namespace GET {
+      export interface REQUEST {
+        user_only?: boolean;
+      }
       export interface RESPONSE {
-        title: string;
-        description: string;
-        impact: string;
-        cause: string;
-        mechanism: string;
-        corrective_action_plan: string;
+        id: number;
+        title?: string;
+        subsystem_id?: number;
+        subsystem?: API_TYPES.SUBSYSTEM.GET.RESPONSE;
+        description?: string;
+        impact?: string;
+        cause?: string;
+        mechanism?: string;
+        corrective_action_plan?: string;
         time_of_failure: string;
-        car_year: number;
+        created_at: string;
+        modified_at: string;
+        team_id?: number;
+        team?: API_TYPES.TEAM.GET.RESPONSE;
+        car_year?: number;
         creator_id: number;
-        subsystem?: SUBSYSTEM.GET.RESPONSE;
-        team?: TEAM.GET.RESPONSE;
-        creator: string;
+        creator: API_TYPES.USER.RESPONSE;
+        deleted: boolean;
+      }
+    }
+    export namespace STATS {
+      export namespace GET {
+        export interface RESPONSE {
+          team_id?: number;
+          team_name?: string;
+          open_reports: number;
+        }
       }
     }
   }
@@ -152,7 +175,7 @@ export const TOKEN = {
 };
 
 export const AXIOS_CONFIG: AxiosRequestConfig = {
-  baseURL: BACKEND_URL,
+  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
   timeout: 30000,
 };
 
@@ -161,6 +184,7 @@ export const API_CLIENT = axios.create(AXIOS_CONFIG);
 API_CLIENT.interceptors.request.use((config) => {
   const access_token = localStorage.getItem(TOKEN.ACCESS);
   config.headers.Authorization = access_token ? `Bearer ${access_token}` : "";
+  config.headers["Content-Type"] = "application/json"; // GET requests don't have this automatically set
   return config;
 });
 
@@ -182,7 +206,7 @@ API_CLIENT.interceptors.response.use(
       try {
         // Refresh the access token
         const response = await axios.post(
-          `${BACKEND_URL}${API_ENDPOINT.AUTHENTICATION.REFRESH}`,
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}${API_ENDPOINT.AUTHENTICATION.REFRESH}`,
           {},
           {
             headers: {

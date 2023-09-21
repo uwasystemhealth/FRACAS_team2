@@ -18,35 +18,40 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, { FC, useEffect, useState } from "react";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import React, { useEffect, useState } from "react";
 
-import { TextField } from "@mui/material/";
-import { useForm, SubmitHandler, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { TextField } from "@mui/material/";
+import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import * as yup from "yup";
 
-import { DateTimeField } from "@mui/x-date-pickers/DateTimeField";
+import SubsystemSelector from "@/components/SubsystemSelector";
+import { API_CLIENT, API_ENDPOINT, API_TYPES } from "@/helpers/api";
 import Box from "@mui/material/Box";
-import Stepper from "@mui/material/Stepper";
+import Button from "@mui/material/Button";
+import Divider from "@mui/material/Divider";
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
 import Step from "@mui/material/Step";
 import StepLabel from "@mui/material/StepLabel";
-import Button from "@mui/material/Button";
+import Stepper from "@mui/material/Stepper";
 import Typography from "@mui/material/Typography";
 import Grid from "@mui/material/Unstable_Grid2";
-import MenuItem from "@mui/material/MenuItem";
-import Select, { SelectChangeEvent } from "@mui/material/Select";
-import InputLabel from "@mui/material/InputLabel";
-import FormControl from "@mui/material/FormControl";
-import Divider from "@mui/material/Divider";
-import { API_CLIENT, API_ENDPOINT, API_TYPES } from "@/helpers/api";
-import { AxiosError, AxiosResponse } from "axios";
 import { LocalizationProvider } from "@mui/x-date-pickers";
-import { SubsystemSelector } from "@/components/SubsystemSelector";
+import { DateTimeField } from "@mui/x-date-pickers/DateTimeField";
+import { AxiosError, AxiosResponse } from "axios";
 
+import "@/helpers/urls";
+
+import { get_client_tz } from "@/helpers/client_utils";
 import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
+import { useRouter } from "next/navigation";
+import URLS from "@/helpers/urls";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -73,7 +78,10 @@ const schema = yup.object().shape({
   title: yup.string(), //.required(),
   description: yup.string(), //.min(5).required(),
   subsystem_id: yup.number(), //.required(),
-  time_of_failure: yup.string().default(time_of_failure.toString()), //.required(),
+  time_of_failure: yup
+    .string()
+    .default(time_of_failure.format("YYYY-MM-DD[T]HH:MM:ss.SSS[Z]").toString())
+    .required(),
   impact: yup.string(),
   cause: yup.string(),
   mechanism: yup.string(),
@@ -91,17 +99,21 @@ interface Props {
 const ReportForm = (props: Props) => {
   const { report_id } = props;
 
+  const router = useRouter();
+
   const [activeStep, setActiveStep] = useState(0);
   const [teams, setTeams] = useState<API_TYPES.TEAM.GET.RESPONSE[]>([]);
   const [subsystems, setSubsystems] = useState<
     API_TYPES.SUBSYSTEM.GET.RESPONSE[]
   >([]);
 
-  const handleNext = () => {
+  const handleNext = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    e.preventDefault();
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
   };
 
-  const handleBack = () => {
+  const handleBack = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    e.preventDefault();
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
@@ -127,6 +139,7 @@ const ReportForm = (props: Props) => {
                 response.data.message
             );
           }
+          router.push(URLS.RECORD_LIST);
         })
         .catch((error: AxiosError) => {
           console.error(
@@ -315,7 +328,7 @@ const ReportForm = (props: Props) => {
                             label="Time of Failure"
                             variant="outlined"
                             // error={!!errors.title}
-                            timezone={process.env.TZ}
+                            timezone={get_client_tz()}
                             helperText={
                               errors.title ? errors.title?.message : ""
                             }
@@ -449,9 +462,7 @@ const ReportForm = (props: Props) => {
               </Button>
               <Box sx={{ flex: "1 1 auto" }} />
               {activeStep === steps.length - 1 ? (
-                <Button type="submit" variant="contained">
-                  Submit
-                </Button>
+                <Button type="submit">Submit</Button>
               ) : (
                 <Button
                   onClick={handleNext}

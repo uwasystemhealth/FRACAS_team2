@@ -45,7 +45,6 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ListIcon from "@mui/icons-material/List";
 import ArticleIcon from "@mui/icons-material/Article";
-import { BACKEND_URL } from "@/helpers/constants";
 import axios, { AxiosError } from "axios";
 import { useEffect, useState } from "react";
 import CheckLogin, { PAGE_TYPE } from "@/components/CheckLogin";
@@ -189,11 +188,14 @@ export default function RootLayout({
     const refresh_token = localStorage.getItem(TOKEN.REFRESH);
     if (refresh_token) {
       await axios
-        .delete(`${BACKEND_URL}${API_ENDPOINT.AUTHENTICATION.LOGOUT}`, {
-          headers: {
-            Authorization: `Bearer ${refresh_token}`,
-          },
-        })
+        .delete(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}${API_ENDPOINT.AUTHENTICATION.LOGOUT}`,
+          {
+            headers: {
+              Authorization: `Bearer ${refresh_token}`,
+            },
+          }
+        )
         .then(() => {
           localStorage.removeItem(TOKEN.REFRESH);
         })

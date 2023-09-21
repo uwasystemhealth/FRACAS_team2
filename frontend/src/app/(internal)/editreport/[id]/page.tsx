@@ -18,36 +18,37 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, { FC, useEffect, useState } from "react";
-import { FormControlLabel, TextField } from "@mui/material/";
-import { useForm, SubmitHandler, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { FormControlLabel, TextField } from "@mui/material/";
+import React, { useEffect, useState } from "react";
+import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import * as yup from "yup";
 
+import { API_CLIENT, API_ENDPOINT, API_TYPES } from "@/helpers/api";
 import Box from "@mui/material/Box";
-import Stepper from "@mui/material/Stepper";
+import Button from "@mui/material/Button";
+import Checkbox from "@mui/material/Checkbox";
+import Divider from "@mui/material/Divider";
+import FormControl from "@mui/material/FormControl";
+import FormGroup from "@mui/material/FormGroup";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
 import Step from "@mui/material/Step";
 import StepLabel from "@mui/material/StepLabel";
-import Button from "@mui/material/Button";
+import Stepper from "@mui/material/Stepper";
 import Typography from "@mui/material/Typography";
 import Grid from "@mui/material/Unstable_Grid2";
-import MenuItem from "@mui/material/MenuItem";
-import Select, { SelectChangeEvent } from "@mui/material/Select";
-import InputLabel from "@mui/material/InputLabel";
-import FormControl from "@mui/material/FormControl";
-import Divider from "@mui/material/Divider";
-import FormGroup from "@mui/material/FormGroup";
-import Checkbox from "@mui/material/Checkbox";
-import { useRouter } from "next/navigation";
-import { API_CLIENT, API_ENDPOINT, API_TYPES } from "@/helpers/api";
 import { AxiosError, AxiosResponse } from "axios";
+import { useRouter } from "next/navigation";
 
-import dayjs from "dayjs";
-import customParseFormat from "dayjs/plugin/customParseFormat";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
+import { get_client_tz } from "@/helpers/client_utils";
 import { DateTimeField, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -59,7 +60,7 @@ const schema = yup.object().shape({
   title: yup.string().nullable(),
   description: yup.string().nullable(), //.min
   subsystem_id: yup.number().nullable(),
-  time_of_failure: yup.date().nullable(),
+  time_of_failure: yup.string().required(),
   impact: yup.string().nullable(),
   cause: yup.string().nullable(),
   mechanism: yup.string().nullable(),
@@ -170,11 +171,13 @@ export default function EditReport(props: Props) {
     })();
   }, []);
 
-  const handleNext = () => {
+  const handleNext = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    e.preventDefault();
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
   };
 
-  const handleBack = () => {
+  const handleBack = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    e.preventDefault();
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
@@ -337,7 +340,7 @@ export default function EditReport(props: Props) {
                             label="Time of Failure"
                             variant="outlined"
                             // error={!!errors.title}
-                            timezone="Australia/West"
+                            timezone={get_client_tz()}
                             helperText={
                               errors.title ? errors.title?.message : ""
                             }

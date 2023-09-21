@@ -1,12 +1,30 @@
+#  Better FRACAS
+#  Copyright (C) 2023  Peter Tanner
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 from datetime import datetime
 from typing import Dict, Union
-from flask import jsonify, request
+from flask import jsonify, request, session
 from flask_jwt_extended import get_jwt_identity
+from sqlalchemy import func
 from app import app, db
 from app.models.record import Record, Subsystem
 from app.utils import handle_exceptions
 from app.models.authentication import User
 from app.utils import user_jwt_required
+from app.models.team import Team
 
 """
 SUBSYSTEM
@@ -149,5 +167,45 @@ def serialize_record(record_id):
 # Serialize all record (Should use pagination but whatever)
 @app.route("/api/v1/record", methods=["GET"])
 @handle_exceptions
+@user_jwt_required
 def serialize_all_record():
-    return jsonify([r.to_dict() for r in Record.query.all()]), 200
+    reports = []
+    if request.args.get("user_only", "") == "true":
+        identity = get_jwt_identity()
+        user: User = User.query.filter_by(email=identity).first()
+        reports = Record.query.filter_by(creator=user)
+    else:
+        reports = Record.query.all()
+
+    return jsonify([r.to_dict() for r in reports]), 200
+
+
+# TODO: USE DATABASE INDICES INSTEAD OF A COUNT(*) GROUP BY TEAM_ID.
+@app.route("/api/v1/record/stats", methods=["GET"])
+@handle_exceptions
+def record_statistics():
+    count_query = (
+        db.session.query(
+            Record.team_id,
+            Team.name.label("team_name"),
+            func.count().label("record_count"),
+        )
+        .join(
+            Team, Record.team_id == Team.id, isouter=True
+        )  # Join Record with Team using team_id
+        .group_by(Record.team_id, Team.name)
+        .all()
+    )
+    return (
+        jsonify(
+            [
+                {
+                    "team_id": cat[0],
+                    "team_name": cat[1],
+                    "open_reports": cat[2],
+                }
+                for cat in count_query
+            ]
+        ),
+        200,
+    )

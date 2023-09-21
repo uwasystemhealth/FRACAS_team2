@@ -227,6 +227,7 @@ def test_logged_in():
                 "msg": "Logged in!",
                 "email": user.email,
                 "superuser": user.is_superuser(),
+                "id": user.id,
             }
         ),
         200,
