@@ -35,6 +35,7 @@ from app.models.authentication import TokenBlacklist, User
 
 from app.messages import MESSAGES
 from app.utils import superuser_jwt_required, user_jwt_required
+from app.utils import handle_exceptions
 
 
 @app.route("/api/v1/authentication/login", methods=["POST"])

@@ -6,18 +6,30 @@ from app import app, db
 from app.models.record import Record, Subsystem
 from app.utils import handle_exceptions
 from app.models.authentication import User
+from app.models.team import Team
 from app.utils import user_jwt_required
 
 """
 SUBSYSTEM
 """
 
+def subystem_json(subsystems):
+    subsystem_json = [
+        {
+            "id": subsystem.id,
+            "name": subsystem.name,
+        }
+        for subsystem in subsystems
+    ]
+    return jsonify(subsystem_json)
+
 
 @app.route("/api/v1/subsystem", methods=["POST"])
+@handle_exceptions
+@user_jwt_required
 def create_subsystem():
     try:
-        subsystem = Subsystem()
-        name = request.json.get("subsystem", None)
+        name = request.json.get("name", None)
         if name is None or name == "":
             return (
                 jsonify(
@@ -28,7 +40,21 @@ def create_subsystem():
                 ),
                 400,
             )
-        subsystem.subsystem = name
+        team_id = request.json.get("team_id", None)
+        team = Team.query.get(team_id)
+        if team is None or team == "":
+            return (
+                jsonify(
+                    {
+                        "err": "no_team",
+                        "msg": "subsystem requires a team to be associated with",
+                    }
+                ),
+                400,
+            )
+        subsystem = Subsystem()
+        subsystem.name = name
+        subsystem.team = team
         db.session.add(subsystem)
         db.session.commit()
         return (
@@ -40,10 +66,25 @@ def create_subsystem():
 
 
 # Serialize all subsystem (Should use pagination but whatever)
-@app.route("/api/v1/subsystem", methods=["GET"])
-def serialize_all_subsystem():
+@app.route("/api/v1/subsystem/<int:team_id>", methods=["GET"])
+@handle_exceptions
+@user_jwt_required
+def get_subsystem(team_id):
+    team = Team.query.get(team_id)
     try:
-        return jsonify([s.to_dict() for s in Subsystem.query.all()]), 200
+        if team is not None:
+            json_payload = subystem_json(Subsystem.get_by_team(team_id))
+            return json_payload, 200
+        else:
+            return (
+                jsonify(
+                    {
+                        "err": "no_team",
+                        "msg": "subsystem requires a team to be associated with",
+                    }
+                ),
+                400,
+            )
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -76,7 +117,7 @@ def update_record_kv(record: Record, data: Dict[str, Union[str, int]]) -> int:
 
 
 # Create new record
-@app.route("/api/v1/record", methods=["POST"])
+@app.route("/api/v1/record/", methods=["POST"])
 @handle_exceptions
 @user_jwt_required
 def create_record():
@@ -86,12 +127,12 @@ def create_record():
     try:
         update_record_kv(record, data)
         record.creator = User.query.filter_by(email=identity).first()
+        record.owner = record.creator
     except KeyError as e:
         return (
             jsonify({"err": "bad_key", "message": f"Key {str(e)} does not exist"}),
             400,
         )
-
     db.session.add(record)
     db.session.commit()
     return jsonify({"message": "Record created successfully", "id": record.id}), 201
@@ -99,6 +140,7 @@ def create_record():
 
 @app.route("/api/v1/record/<int:record_id>", methods=["PATCH"])
 @handle_exceptions
+@user_jwt_required
 def update_record(record_id):
     record = Record.query.get(record_id)
     updated = 0
@@ -122,13 +164,14 @@ def update_record(record_id):
 
 # Delete a record (mark inactive)
 @app.route("/api/v1/record/<int:record_id>", methods=["DELETE"])
+@handle_exceptions
+@user_jwt_required
 def delete_record(record_id):
     try:
         record = Record.query.get(record_id)
         if not record:
             return jsonify({"error": "Record not found"}), 404
-
-        record.deleted = True
+        record.marked_for_deletion = True
         db.session.commit()
         return jsonify({"message": "Record marked as deleted"}), 200
     except Exception as e:
@@ -138,16 +181,98 @@ def delete_record(record_id):
 # Serialize record
 @app.route("/api/v1/record/<int:record_id>", methods=["GET"])
 @handle_exceptions
+@user_jwt_required
 def serialize_record(record_id):
     record = Record.query.get(record_id)
     if not record:
         return jsonify({"error": "Record not found"}), 404
-
-    return jsonify(record.to_dict()), 200
+    return record_json(record), 200
 
 
 # Serialize all record (Should use pagination but whatever)
 @app.route("/api/v1/record", methods=["GET"])
 @handle_exceptions
+@user_jwt_required
 def serialize_all_record():
-    return jsonify([r.to_dict() for r in Record.query.all()]), 200
+    records = Record.query.all()
+    
+    return record_list_json(records), 200
+
+def record_json(record):
+    # User JSON Schema
+    record_json = [
+        {
+            "id": record.id,
+            "title": record.title,
+            "subsystem_name": record.subsystem_name,
+            "car_year": record.car_year,
+            "description" : record.description,
+            "impact" : record.impact,
+            "cause" : record.cause,
+            "mechanism" : record.mechanism,
+            "corrective_action_plan" : record.corrective_action_plan,
+            "time_of_failure" : record.time_of_failure,
+            #"time_resolved": record.time_resolved,
+            "created_at" : record.created_at.strftime("%d/%m/%y %l:%M %p %Z"),
+            "modified_at" : record.modified_at,
+            "team_name": get_teamname(record.team_id),
+            "team_lead": get_username(get_team_leader(record.team_id)),
+            "team_lead_email": get_email(get_team_leader(record.team_id)),
+            "creator_name": get_username(record.creator_id),
+            "creator_email": get_email(record.creator_id),
+            "owner_name": get_username(record.owner_id),
+            "owner_email": get_email(record.owner_id),
+            #"record_valid": record.record_valid,
+            #"analysis_valid": record.analysis_valid,
+            #"corrective_valid": record.corrective_valid,
+            #"draft": record.draft,
+        }
+    ]
+    return jsonify(record_json)
+
+def record_list_json(records):
+    # User JSON Schema
+    record_json = [
+        {
+            "id": record.id,
+            "title": record.title,
+            "subsystem_name": record.subsystem_name,
+            "car_year": record.car_year,
+            "time_of_failure" : record.time_of_failure,
+            "time_resolved": record.time_resolved,
+            "created_at" : record.created_at,
+            "modified_at" : record.modified_at,
+            "team_name": get_teamname(record.team_id),
+            "creator_name": get_username(record.creator_id),
+            "owner_name": get_username(record.owner_id),
+            "record_valid": record.record_valid,
+            "analysis_valid": record.analysis_valid,
+            "corrective_valid": record.corrective_valid,
+            "draft": record.draft,
+        } for record in records
+    ]
+    return jsonify(record_json)
+
+def get_teamname(team_id):
+    team = Team.query.get(team_id)
+    if team is None:
+        return "N/A"
+    return team.name
+
+def get_team_leader(team_id):
+    team = Team.query.get(team_id)
+    if team is None:
+        return "N/A"
+    return team.leader_id
+
+def get_username(user_id):
+    user = User.query.get(user_id)
+    if user is None:
+        return "N/A"
+    return user.name
+
+def get_email(user_id):
+    user = User.query.get(user_id)
+    if user is None:
+        return "N/A"
+    return user.email

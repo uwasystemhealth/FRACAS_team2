@@ -3,7 +3,14 @@ from app import app, db
 from app.models.authentication import User
 from app.models.team import Team
 from app.utils import superuser_jwt_required, user_jwt_required
+from app.utils import handle_exceptions
+from flask_jwt_extended import get_jwt_identity
 
+def get_teamname(user):
+    if user.team_id is None:
+        return "N/A"
+    team = Team.query.get(user.team_id)
+    return team.name
 
 def user_json(users):
     # User JSON Schema
@@ -15,7 +22,7 @@ def user_json(users):
             "superuser": user.superuser,
             "team_id": user.team_id,
             "team_name": get_teamname(user),
-            "is_leader": isLeader(user),
+            "can_validate": user.can_validate,
         }
         for user in users
     ]
@@ -23,23 +30,44 @@ def user_json(users):
 
 
 @app.route("/api/v1/user", methods=["GET"])
+@handle_exceptions
+@superuser_jwt_required
 # Get list of Users
 def list_users():
     users = User.query.filter_by(registered=True).all()
-    return user_json(users)
+    return user_json(users), 200
 
 
 @app.route("/api/v1/user/<int:user_id>", methods=["GET"])
-# Get User via id
+@handle_exceptions
+@user_jwt_required
+# Get Current User ID
 def get_user(user_id):
     user = User.query.get(user_id)
     if user is None:
         return jsonify({"err": "no_user", "msg": "User not found"}), 404
-    return user_json(user)
+    return user_json(user), 200
+
+@app.route("/api/v1/user/current", methods=["GET"])
+@handle_exceptions
+@user_jwt_required
+# Get User via id
+def get_current_user():
+    identity = get_jwt_identity()
+    user = User.query.filter_by(email=identity).first()
+    print(user.id, user.team_id)
+    if user is None:
+        return jsonify({"err": "no_user", "msg": "User not found"}), 404
+    user_json = {
+            "id": user.id,
+            "team_id": user.team_id,
+        }
+    return jsonify(user_json), 200
 
 
 @app.route("/api/v1/user", methods=["POST"])
 # Add user
+@handle_exceptions
 def add_user():
     data = request.get_json()
     print(data)
@@ -49,19 +77,27 @@ def add_user():
     if "name" in data:
         user.name = data["name"]
     else:
-        return jsonify({"error": "Required Fields Missing"}), 400
+        return jsonify({"error": "Name required"}), 400
     if "email" in data:
         user.email = data["email"]
     else:
-        return jsonify({"error": "Required Fields Missing"}), 400
+        return jsonify({"error": "Email required"}), 400
     if "password" in data:
         user.set_password_and_register(data["password"])
     else:
-        return jsonify({"error": "Required Fields Missing"}), 400
+        return jsonify({"error": "Password required"}), 400
+    if "team" in data:
+        team_id = data["team"]
+        if Team.exists(team_id):
+            user.team_id = team_id
+        else:
+            return jsonify({"error": "Team doesn't exist"}), 400
+    else:
+        return jsonify({"error": "Team required"}), 400
 
     db.session.add(user)
     db.session.commit()
-    return jsonify({"message": "User added successfully"}), 200
+    return jsonify({"message": "User added successfully"}), 201
 
 
 @app.route("/api/v1/user/<int:user_id>", methods=["DELETE"])
@@ -71,13 +107,15 @@ def delete_user(user_id):
     if not user:
         return jsonify({"error": "User not found"}), 404
 
-    user.registered = False
+    User.remove(user)
     db.session.commit()
     return jsonify({"message": "User is deregistered"}), 200
 
 
 # Updates user record (with json header referencing data type)
 @app.route("/api/v1/user/<int:user_id>", methods=["PUT"])
+@handle_exceptions
+@superuser_jwt_required
 def set_superuser(user_id):
     user = User.query.get(user_id)
     if not user:
@@ -90,6 +128,8 @@ def set_superuser(user_id):
         user.email = data["email"]
     if "superuser" in data:
         user.superuser = data["superuser"]
+    if "can_validate" in data:
+        user.superuser = data["can_validate"]
     if "email" in data:
         user.email = data["email"]
     if "team_id" in data:
@@ -98,16 +138,3 @@ def set_superuser(user_id):
 
     db.session.commit()
     return jsonify({"message": "User Records Updated"}), 200
-
-
-def get_teamname(user):
-    if user.team_id is None:
-        return "N/A"
-    team = Team.query.get(user.team_id)
-    return team.name
-
-
-def isLeader(user):
-    if user.leading_team:
-        return True
-    return False
