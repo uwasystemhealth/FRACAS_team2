@@ -25,18 +25,35 @@ import Card from "@mui/material/Card";
 import IconButton from '@mui/material/IconButton';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
-import { date } from "yup";
+import { boolean, date } from "yup";
 import { useEffect, useState } from "react";
 import { API_CLIENT, API_ENDPOINT, API_TYPES } from "@/helpers/api";
 import { AxiosError, AxiosResponse } from "axios";
 
+interface Record {
+    id: String;
+    title: String;
+    subsystem_name: String;
+    car_year: String;
+    time_of_failure : String;
+    time_resolved: String;
+    created_at : String;
+    modified_at : String;
+    team_name: String;
+    creator_name: String;
+    owner_name: String;
+    record_valid: Boolean;
+    analysis_valid: Boolean;
+    corrective_valid: Boolean;
+    draft: Boolean;
+}
+
 const columns: GridColDef[] = [
-  { field: "id", headerName: "ID", flex: 1 },
-  { field: "date", headerName: "Creation Date", flex: 1 },
-  { field: "ReportName", headerName: "Report name", flex: 1},
-  { field: "carYear", headerName: "Car year", flex: 1 },
-  { field: "creatorName", headerName: "Creator name", flex: 1 },
-  { field: "status", headerName: "Status", flex: 1},
+  { field: "id", headerName: "ID", width: 70 },
+  { field: "title", headerName: "Report name", flex: 1},
+  { field: "created_at", headerName: "Creation Date", flex: 1 },
+  { field: "car_year", headerName: "Car year", flex: 1 },
+  { field: "creator_name", headerName: "Creator name", flex: 1 },
   {
     field: "edit",
     headerName: "Edit",
@@ -52,7 +69,7 @@ const columns: GridColDef[] = [
     headerName: "View",
     width: 100,
     renderCell: (params) => (
-      <IconButton color="primary" aria-label="View" href = "/viewreport">
+      <IconButton color="primary" aria-label="View" href = {`/viewreport/${params.row.id}`}>
         <VisibilityIcon />
       </IconButton>
     ),
@@ -135,32 +152,16 @@ const columns: GridColDef[] = [
 // ];
 
 export default function DataTable() {
-  const [rows, setRows] = useState<API_TYPES.REPORT.GET.RESPONSE[]>([]);
+  const [rows, setRows] = useState<Record[]>([]);
 
   useEffect(() => {
     (async () => {
       try {
-        const response = await API_CLIENT.get<
-          any,
-          AxiosResponse<API_TYPES.REPORT.GET.RESPONSE[]>
-        >(API_ENDPOINT.RECORD, {})
+        const response = await API_CLIENT.get(API_ENDPOINT.RECORD)
           .then((response) => {
             if (response) {
               console.log(response.data);
-              const {
-                title: title,
-                created_at: created_at,
-                id: id,
-                car_year: car_year,
-                creator: creator,
-              } = response.data;
-              setRows({
-                title: title,
-                created_at: created_at,
-                id: id,
-                car_year: car_year,
-                creator: creator.email,
-              });
+              setRows(response.data);
             } else {
               console.error("An error occurred");
             }
