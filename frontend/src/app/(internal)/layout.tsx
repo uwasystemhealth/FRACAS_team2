@@ -138,12 +138,6 @@ const TOP_LINKS = [
     icon: ListIcon,
     superuserOnly: false,
   },
-  {
-    text: "View Report",
-    href: "/viewreport",
-    icon: ArticleIcon,
-    superuserOnly: false,
-  },
 ];
 
 const BOTTOM_LINKS = [
@@ -240,7 +234,7 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      {/* <CheckLogin pageType={PAGE_TYPE.INTERNAL} /> */}
+      <CheckLogin pageType={PAGE_TYPE.INTERNAL} />
       <body>
         <Box sx={{ display: "flex" }}>
           <ThemeRegistry>
