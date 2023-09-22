@@ -58,13 +58,16 @@ class User(db.Model, SerializerMixin):
         server_default=func.now(),
         nullable=False,
     )
+    can_validate = db.Column(db.Boolean, default=False)
+
     team_id = db.Column(db.Integer, db.ForeignKey("team.id", ondelete="SET NULL"))
-    leading_team = db.relationship(
-        "Team", uselist=False, back_populates="leader", foreign_keys="Team.leader_id"
-    )
-    team = db.relationship(
-        "Team", uselist=False, back_populates="members", foreign_keys=[team_id]
-    )
+    team = db.relationship("Team", back_populates="members", foreign_keys=[team_id])
+
+    leading = db.relationship("Team", back_populates="leader", uselist=False, foreign_keys="Team.leader_id")
+
+    created_records = db.relationship("Record", back_populates="creator", foreign_keys="Record.creator_id")
+    owned_records = db.relationship("Record", back_populates="owner", foreign_keys="Record.owner_id")
+
 
     def __repr__(self):
         return f"<User {self.email} {'(UNREGISTERED)' if not self.registered else ''}>"
@@ -89,6 +92,16 @@ class User(db.Model, SerializerMixin):
 
     def set_superuser(self, superuser: bool) -> None:
         self.superuser = superuser
+
+    def is_leading_team(self) -> bool:
+        return bool(self.team_leader)
+    
+    def remove(self):
+        if (self.created_records is None) & (self.created_records is None):
+            self.leading.clear()
+            db.session.delete(self)
+        else:
+            self.registered = False
 
 
 class TokenBlacklist(db.Model):

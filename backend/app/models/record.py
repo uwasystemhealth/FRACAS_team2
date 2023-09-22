@@ -17,12 +17,29 @@
 from sqlalchemy import false, func
 from sqlalchemy_serializer import SerializerMixin
 from app import db
+from app.models.team import Team
 
 
 class Subsystem(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False)
-    subsystem = db.Column(db.String(64), unique=True, nullable=False)
+    name = db.Column(db.String(64), unique=True, nullable=False)
+    team_id = db.Column(db.Integer, db.ForeignKey("team.id"), nullable=True)
+    team = db.relationship('Team', back_populates="subsystems")
+    records = db.relationship('Record', back_populates="subsystem")
 
+    def clean_up(cls):
+        subsystems = cls.query.all()
+        for subsys in subsystems:
+            if subsys.records is None:
+                db.session.delete(subsys)
+
+    def exists(cls, id):
+        record = cls.query.get(id)
+        return record is not None
+
+    def get_by_team(team_id):
+        subsystems = Subsystem.query.filter_by(team_id=team_id).all()
+        return subsystems
 
 class Record(db.Model, SerializerMixin):
     # Fields that should not change in the record PATCH API
@@ -42,14 +59,15 @@ class Record(db.Model, SerializerMixin):
         "time_of_failure",
         "created_at",
         "modified_at",
+        "time_resolved"
     )
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False)
     title = db.Column(db.String(192), nullable=True)
-    subsystem_id = db.Column(
-        db.Integer, db.ForeignKey("subsystem.id", ondelete="SET NULL"), nullable=True
+    subsystem_name = db.Column(
+        db.String, db.ForeignKey("subsystem.name"), nullable=True
     )
-    subsystem = db.relationship("Subsystem", uselist=False, foreign_keys=[subsystem_id])
+    subsystem = db.relationship('Subsystem', back_populates="records")
     description = db.Column(db.Text, nullable=True)
     impact = db.Column(db.Text, nullable=True)
     cause = db.Column(db.Text, nullable=True)
@@ -73,18 +91,20 @@ class Record(db.Model, SerializerMixin):
         server_default=func.now(),
         nullable=False,
     )
-    # TODO: WAIT UNTIL TEAMS LOGIC IS MERGED INTO ALPHA BUILD.
-    # # Team (by default, member's assigned team, but can be changed to other teams
     team_id = db.Column(
         db.Integer, db.ForeignKey("team.id", ondelete="SET NULL"), nullable=True
     )
-    team = db.relationship("Team", uselist=False, foreign_keys=[team_id])
+    team = db.relationship("Team", foreign_keys=[team_id])
     # Car year (current year)
     car_year = db.Column(db.Integer, nullable=True)
     # Creator name & email (prefilled with current user's name and email)
-    creator_id = db.Column(
-        db.Integer, db.ForeignKey("user.id", ondelete="SET NULL"), nullable=True
-    )
-    creator = db.relationship("User", uselist=False, foreign_keys=[creator_id])
-
-    deleted = db.Column(db.Boolean, server_default=false(), nullable=False)
+    creator_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="SET NULL"), nullable=False)
+    creator = db.relationship("User", back_populates="created_records", foreign_keys=[creator_id])
+    owner_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="SET NULL"), nullable=True)
+    owner = db.relationship("User", back_populates="owned_records", foreign_keys=[owner_id])
+    draft = db.Column(db.Boolean, server_default=false(), nullable=False)
+    marked_for_deletion = db.Column(db.Boolean, server_default=false(), nullable=False)
+    time_resolved = db.Column(db.DateTime, nullable=True)
+    record_valid = db.Column(db.Boolean, nullable=True)
+    analysis_valid = db.Column(db.Boolean, nullable=True)
+    corrective_valid = db.Column(db.Boolean, nullable=True)
