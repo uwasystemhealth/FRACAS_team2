@@ -37,6 +37,7 @@ requests-cache==1.1.0
 rich==13.5.2
 six==1.16.0
 SQLAlchemy==2.0.19
+SQLAlchemy-serializer==1.4.1
 tomli==2.0.1
 typing_extensions==4.7.1
 url-normalize==1.4.3
