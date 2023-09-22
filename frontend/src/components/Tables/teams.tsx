@@ -17,15 +17,13 @@
  */
 
 import * as React from "react";
-import { DataGrid, GridColDef, GridValueGetterParams } from '@mui/x-data-grid';
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useEffect, useState } from "react";
-import Typography from "@mui/material/Typography";
-import { AxiosError } from "axios";
+import { AxiosError, AxiosResponse } from "axios";
 import { API_CLIENT, API_TYPES, API_ENDPOINT } from "@/helpers/api";
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
+import SnackbarAlert from '@/components/SnackbarAlert';
 import NewTeamDialog from '@/components/Dialogs/NewTeam';
 import ChangeLeaderDialog from '@/components/Dialogs/ChangeLeader';
 import Stack from '@mui/material/Stack';
@@ -47,12 +45,21 @@ const columns: GridColDef[] = [
 const TeamTable: React.FC = () => {
   const [selectedRowId, setSelectedRowId] = useState<number | null>(null);
   const [ButtonsDisabled, setButtonsDisabled] = useState(true);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [teams, setTeams] = useState<Team[]>([]);
+  const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openNewTeamDialog, setOpenNewTeamDialog] = useState<boolean>(false);
   const [openChangeLeaderDialog, setOpenChangeLeaderDialog] = useState<boolean>(false);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'warning' | 'info'>('success');
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+
+  const handleSnackbarOpen = () => {
+    setOpenSnackbar(true);
+  };
+
+  const handleSnackbarClose = () => {
+    setOpenSnackbar(false);
+  };
 
   const handleOpenNewTeamDialog = () => {
     setOpenNewTeamDialog(true);
@@ -72,7 +79,6 @@ const TeamTable: React.FC = () => {
 
   const handleRowSelection = (ids) => {
     if (ids) {
-      console.log(ids[0])
       setSelectedRowId(ids[0]);
       setButtonsDisabled(false);
     } else {
@@ -81,20 +87,32 @@ const TeamTable: React.FC = () => {
     }
   };
 
-  const handleCloseSnackbar = () => {
-    setSnackbarOpen(false);
-  };
-
   // Initial API Call to get list of teams
   const fetchData = async () => {
     try {
-      await API_CLIENT.get(`/api/v1/team`)
+      await API_CLIENT.get(API_ENDPOINT.TEAM)
         .then((response) => {
-          setTeams(response.data);
-          setLoading(false);
+          if (response.status == 200) {
+            setTeams(response.data);
+            setLoading(false);
+          } else {
+            setLoading(false);
+            setSnackbarMessage('Unable to fetch teams list');
+            setSnackbarSeverity('error');
+            handleSnackbarOpen();
+          }
         })
-        .catch((error: AxiosError<API_TYPES.TEAM.RESPONSE>) => {setLoading(false);});
-    } catch (error) {setLoading(false);}
+        .catch((error: AxiosError) => {
+          setLoading(false);
+          setSnackbarMessage('Unable to fetch teams list');
+          setSnackbarSeverity('error');
+          handleSnackbarOpen();
+        })
+    } catch (error: any) {
+      setLoading(false);
+        setSnackbarMessage('Something went wrong internally');
+        setSnackbarSeverity('error');
+        handleSnackbarOpen();}
 };
 
   // Runs fetchData() when page is initally loaded
@@ -108,67 +126,69 @@ const TeamTable: React.FC = () => {
     fetchData();
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (selectedRowId !== null) {
-      // Make an API call to delete the selected row using Axios
-      API_CLIENT
-        .delete(`/api/v1/team/${selectedRowId}`)
+      await API_CLIENT.delete(API_ENDPOINT.TEAM + `/${selectedRowId}`)
         .then((response) => {
-          if (response.status === 200) {
-            // Backend responds with success message
-            setSnackbarMessage('Row deleted successfully');
-            setSnackbarOpen(true);
+          if (response.status == 200) {
             handleRefresh();
-            // Handle error response from the API
+            setSnackbarMessage(response.data.message);
+            setSnackbarSeverity('success');
+            handleSnackbarOpen();
           } else {
-            console.error('Failed to delete the row');
-          }
+            setSnackbarMessage(response.data.message);
+            setSnackbarSeverity('error');
+            handleSnackbarOpen();
+        }})
+        .catch((error: AxiosError) => {
+          setSnackbarMessage(error.message);
+          setSnackbarSeverity('error');
+          handleSnackbarOpen();
         })
-        .catch((error) => {
-          console.error('Error:', error);
-        });
-    }
-  };
-
-  const handleNew = (teamname: string) => {
-    API_CLIENT
-        .post(`/api/v1/team`, {name: teamname})
-        .then((response) => {
-          if (response.status === 200) {
-            // Backend responds with success message
-            setSnackbarMessage('New Team Added');
-            setSnackbarOpen(true);
-            handleRefresh();
-            // Handle error response from the API
-          } else {
-            console.error('Failed to delete the row');
-          }
-        })
-        .catch((error) => {
-          console.error('Error:', error);
-        });
-  };
-
-  const handleChangeLeader = (UserID: number) => {
-    // Make an API call to add the new user in via Axios
-    API_CLIENT
-    .put(`/api/v1/team/${selectedRowId}`, {leader: UserID})
-    .then((response) => {
-      if (response.status === 200) {
-        // Backend responds with success message
-        setSnackbarMessage('Leader Succesfully Changed');
-        setSnackbarOpen(true);
-        handleRefresh();
-        // Handle error response from the API
-      } else {
-        console.error('Failed to delete the row');
       }
-    })
-    .catch((error) => {
-      console.error('Error:', error);
-    });
-  };
+    };
 
+  const handleNew = async (teamname: string) => {
+      await API_CLIENT.post(API_ENDPOINT.TEAM, {name: teamname})
+        .then((response) => {
+          if (response.status === 201) {
+            handleRefresh();
+            setSnackbarMessage(response.data.message);
+            setSnackbarSeverity('success');
+            handleSnackbarOpen();
+          } else {
+            setSnackbarMessage(response.data.message);
+            setSnackbarSeverity('error');
+            handleSnackbarOpen();
+          }
+        })
+        .catch((error: AxiosError) => {
+          setSnackbarMessage(error.message);
+          setSnackbarSeverity('error');
+          handleSnackbarOpen();
+        });
+    };
+
+  const handleChangeLeader = async (UserID: number) => {
+    await API_CLIENT.put(API_ENDPOINT.TEAM + `/${selectedRowId}/leader/${UserID}`)
+      .then((response) => {
+        if (response.status === 200) {
+          handleRefresh();
+          setSnackbarMessage(response.data.message);
+          setSnackbarSeverity('success');
+          handleSnackbarOpen();
+        } else {
+          setSnackbarMessage(response.data.message);
+          setSnackbarSeverity('error');
+          handleSnackbarOpen();
+        }
+      })
+      .catch((error: AxiosError) => {
+        setSnackbarMessage(error.message);
+        setSnackbarSeverity('error');
+        handleSnackbarOpen();
+      });
+  };
   return (
     <React.Fragment>
       <DataGrid
@@ -220,15 +240,12 @@ const TeamTable: React.FC = () => {
         onClose={handleCloseNewTeamDialog}
         onSubmit={handleNew}
       />
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={3000}
-        onClose={handleCloseSnackbar}
-      >
-        <Alert onClose={handleCloseSnackbar} severity="success">
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
+      <SnackbarAlert
+        open={openSnackbar}
+        message={snackbarMessage}
+        severity={snackbarSeverity}
+        onClose={handleSnackbarClose}
+      />
     </React.Fragment>
   );
 };
