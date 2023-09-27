@@ -21,7 +21,7 @@ import ReportForm from "@/components/ReportForm";
  */
 
 const CreateReport = () => {
-  return <ReportForm report_id={undefined} />;
+  return <ReportForm />;
 };
 
 export default CreateReport;

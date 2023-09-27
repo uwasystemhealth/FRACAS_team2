@@ -68,11 +68,14 @@ const Home = () => {
     const refresh_token = localStorage.getItem(TOKEN.REFRESH);
     if (refresh_token) {
       await axios
-        .delete(`${BACKEND_URL}${API_ENDPOINT.AUTHENTICATION.LOGOUT}`, {
-          headers: {
-            Authorization: `Bearer ${refresh_token}`,
-          },
-        })
+        .delete(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}${API_ENDPOINT.AUTHENTICATION.LOGOUT}`,
+          {
+            headers: {
+              Authorization: `Bearer ${refresh_token}`,
+            },
+          }
+        )
         .then(() => {
           localStorage.removeItem(TOKEN.REFRESH);
         })

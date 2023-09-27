@@ -1,4 +1,3 @@
-
 /*
  * Better FRACAS
  * Copyright (C) 2023  Peter Tanner, Insan Basrewan, ??? Better Fracas team
@@ -17,100 +16,119 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, { useEffect, useState } from 'react';
-import { FormControl, InputLabel, Select, MenuItem, FormHelperText } from '@mui/material';
-import NewSubsystemDialog from '@/components/Dialogs/NewSubsystem';
+import React, { useEffect, useState } from "react";
+import {
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormHelperText,
+} from "@mui/material";
+import NewSubsystemDialog from "@/components/Dialogs/NewSubsystem";
 import Button from "@mui/material/Button";
 import { API_CLIENT, API_ENDPOINT, API_TYPES } from "@/helpers/api";
+import { Control, FieldValues, ControllerRenderProps } from "react-hook-form";
 
 interface Subsystem {
-    id: string;
-    name: string;
-  }
+  id: string;
+  name: string;
+}
 
-interface Props {
-    team_id: string;
-    field: any;
-    label: string;
-    onSelectSubsystem: (subsysID: string) => void;
-};
+interface Props<T extends FieldValues> {
+  team_id: number;
+  field: any;
+  label: string;
+}
 
-const SubsysMenu: React.FC<Props> = ({ team_id, field, label, onSelectSubsystem }) => {
-    const [selectedSubsystem, setSelectedSubsystem] = useState<string>('');
-    const [subsystems, setSubsystems] = useState<Subsystem[]>([]);
-    const handleSubsystemChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-        const subsysID = event.target.value as string;
-        setSelectedSubsystem(subsysID);
-        onSelectSubsystem(subsysID); // Call the callback to update the selected team ID in the parent component
-      };
+function SubsysMenu<T extends FieldValues>({
+  team_id,
+  field,
+  label,
+}: Props<T>) {
+  const [selectedSubsystem, setSelectedSubsystem] = useState<string>("");
+  const [subsystems, setSubsystems] = useState<Subsystem[]>([]);
+  const handleSubsystemChange = (
+    event: React.ChangeEvent<{ value: unknown }>
+  ) => {
+    const subsysID = event.target.value as string;
+    setSelectedSubsystem(subsysID);
+  };
 
-    const [NewSubsystemDialogOpen, setNewSubsystemDialog] = useState(false);
+  const [NewSubsystemDialogOpen, setNewSubsystemDialog] = useState(false);
 
-    const openNewSubsystemDialog = () => {
-        setNewSubsystemDialog(true);
-      };
-    
-      const handleDialogClose = () => {
-        setNewSubsystemDialog(false);
-      };
+  const openNewSubsystemDialog = () => {
+    setNewSubsystemDialog(true);
+  };
 
-    const fetchSubsystem = () => {
+  const handleDialogClose = () => {
+    setNewSubsystemDialog(false);
+  };
+
+  const fetchSubsystem = () => {
     try {
-        API_CLIENT.get(API_ENDPOINT.SUBSYSTEM+`/${team_id}`, {})
+      API_CLIENT.get(API_ENDPOINT.SUBSYSTEM + `/${team_id}`, {})
         .then((response) => {
-            if (response) {
+          if (response) {
             setSubsystems(response.data);
-            } else {
+          } else {
             console.error("An error occurred");
-            }
+          }
         })
         .catch(() => {
-            console.error("An error occurred ");
+          console.error("An error occurred ");
         });
     } catch (error: any) {}
-    };
+  };
 
-    const createSubsystem = async (subsystemName: string) => {
-    await API_CLIENT.post(API_ENDPOINT.SUBSYSTEM, {team_id: team_id, name: subsystemName})
-        .then((response) => {
-            if (response.status == 201) {
-            fetchSubsystem()
-            setSelectedSubsystem(response.data.id)
-            } else {
-            }
-        })
-        .catch(() => {
-        })
-    }
+  // TODO: cache subsystem
+  const createSubsystem = async (subsystemName: string) => {
+    await API_CLIENT.post(API_ENDPOINT.SUBSYSTEM, {
+      team_id: team_id,
+      name: subsystemName,
+    })
+      .then((response) => {
+        if (response.status == 201) {
+          fetchSubsystem();
+          setSelectedSubsystem(response.data.id);
+        } else {
+        }
+      })
+      .catch(() => {});
+  };
 
-    useEffect(() => {
-        fetchSubsystem()
-    }, [team_id]);
+  useEffect(() => {
+    fetchSubsystem();
+  }, [team_id]);
 
   return (
     <React.Fragment>
-    <FormControl fullWidth>
-                <InputLabel id="subsystem_name">Subsystem</InputLabel>
-                <Select
-                {...field}
-                label={label}
-                fullWidth
-                value={selectedSubsystem}
-                onChange={handleSubsystemChange}
-                >
-                {subsystems.map((system) => (
-                    <MenuItem key={system.id} value={system.name}>
-                    {system.name}
-                    </MenuItem>
-                ))}
-                </Select>
-            </FormControl>
-            <Button size="small" variant="text" color="primary" onClick={openNewSubsystemDialog}>
-            Add New Subsystem
-            </Button>
-            <NewSubsystemDialog open={NewSubsystemDialogOpen} onClose={handleDialogClose} onSubmit={createSubsystem} />
+      <FormControl fullWidth>
+        <InputLabel id="subsystem_name">Subsystem</InputLabel>
+        <Select {...field} label={label} fullWidth>
+          {subsystems.map((system) => (
+            // TODO: change this from key={subsystem.name} to key={subsystem.id}
+            // when changing subsystem to be indexed by id number
+            <MenuItem key={system.name} value={system.name}>
+              {system.name}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+      <Button
+        size="small"
+        variant="text"
+        color="primary"
+        onClick={openNewSubsystemDialog}
+      >
+        Add New Subsystem
+      </Button>
+      <NewSubsystemDialog
+        open={NewSubsystemDialogOpen}
+        onClose={handleDialogClose}
+        onSubmit={createSubsystem}
+      />
     </React.Fragment>
   );
-};
+}
 
 export default SubsysMenu;

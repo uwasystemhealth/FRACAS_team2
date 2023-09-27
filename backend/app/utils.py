@@ -20,6 +20,7 @@ from typing import Callable, Literal
 from flask import jsonify
 
 from flask_jwt_extended import get_jwt_identity, jwt_required
+from jwt import ExpiredSignatureError
 import app
 
 from app.models.authentication import User
@@ -35,8 +36,10 @@ def handle_exceptions(func):
                     f"{str(func)} {result[0].response[0]} code={result[1]}"
                 )
             return result
+        except ExpiredSignatureError as e:  # Pass-through expired tokens for refresh
+            raise e
         except Exception as e:
-            app.logging.error(f"{str(func)} {e} code=500")
+            app.logging.error(f"{str(func)} {e} {type(e)} code=500")
             return jsonify({"err": "generic_error", "msg": str(e)}), 500
 
     return decorated_function

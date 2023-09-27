@@ -1,4 +1,3 @@
-
 /*
  * Better FRACAS
  * Copyright (C) 2023  Peter Tanner, Insan Basrewan, ??? Better Fracas team
@@ -17,55 +16,70 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, { useState } from 'react';
-import { FormControl, InputLabel, Select, MenuItem, FormHelperText } from '@mui/material';
-import { number } from 'prop-types';
+import React, { useEffect, useState } from "react";
+import {
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormHelperText,
+} from "@mui/material";
+import { number } from "prop-types";
+import { Control, Controller, FieldValues } from "react-hook-form";
+import { API_TYPES } from "@/helpers/api";
 
-interface Team {
-    id: string;
-    name: string;
-  }
+export interface Team {
+  id: string;
+  name: string;
+}
 
-interface Props {
-    default_id: string;
-    field: any;
-    label: string;
-    teams: Team[];
-    onSelectTeam: (teamId: string) => void;
-};
+interface Props<T extends FieldValues> {
+  // default_id: string;
+  // field: any;
+  name: string;
+  id: string;
+  label: string;
+  teams: Team[];
+  // onSelectTeam: (teamId: string) => void;
+  control: Control<T> | undefined;
+}
 
-const TeamMenu: React.FC<Props> = ({ default_id, field, label, teams, onSelectTeam }) => {
-    console.log(default_id)
-    const [selectedTeamID, setSelectedTeamID] = useState<string>('');
-
-    const handleTeamChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-        const teamID = event.target.value as string;
-        setSelectedTeamID(teamID);
-        onSelectTeam(teamID); // Call the callback to update the selected team ID in the parent component
-      };
-    
-
+function TeamMenu<T extends FieldValues>(props: Props<T>) {
+  const {
+    // default_id,
+    // field,
+    label,
+    teams,
+    name,
+    id,
+    // onSelectTeam,
+    control,
+  } = props;
   return (
-    <React.Fragment>
-    <FormControl fullWidth>
-      <InputLabel>{label}</InputLabel>
-      <Select
-        {...field}
-        label={label}
-        fullWidth
-        value={selectedTeamID}
-        onChange={handleTeamChange}
-      >
-        {teams.map((team) => (
-          <MenuItem key={team.id} value={team.id}>
-            {team.name}
-          </MenuItem>
-        ))}
-      </Select>
-      <FormHelperText>Select a team</FormHelperText>
-    </FormControl>
-    </React.Fragment>
+    <Controller
+      name={name}
+      defaultValue={0}
+      control={control}
+      render={({ field }) => (
+        <FormControl fullWidth>
+          <InputLabel id="team">Team</InputLabel>
+          <Select
+            {...field}
+            labelId={id}
+            id={id}
+            label={label}
+            value={field.value}
+            fullWidth
+          >
+            {teams.map((team) => (
+              <MenuItem value={team.id}>{team.name}</MenuItem>
+            ))}
+          </Select>
+          <FormHelperText>Select a team</FormHelperText>
+        </FormControl>
+      )}
+    />
   );
-};
+}
 
 export default TeamMenu;

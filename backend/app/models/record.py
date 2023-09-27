@@ -21,11 +21,16 @@ from app.models.team import Team
 
 
 class Subsystem(db.Model, SerializerMixin):
+    serialize_rules = (
+        "-team.subsystems",
+        "-record.subsystem",
+    )
+
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False)
     name = db.Column(db.String(64), unique=True, nullable=False)
     team_id = db.Column(db.Integer, db.ForeignKey("team.id"), nullable=True)
-    team = db.relationship('Team', back_populates="subsystems")
-    records = db.relationship('Record', back_populates="subsystem")
+    team = db.relationship("Team", back_populates="subsystems")
+    records = db.relationship("Record", back_populates="subsystem")
 
     def clean_up(cls):
         subsystems = cls.query.all()
@@ -41,7 +46,22 @@ class Subsystem(db.Model, SerializerMixin):
         subsystems = Subsystem.query.filter_by(team_id=team_id).all()
         return subsystems
 
+
 class Record(db.Model, SerializerMixin):
+    serialize_rules = (
+        "-creator.created_records",
+        "-creator.owned_records",
+        "-creator.team.records",
+        "-owner.created_records",
+        "-owner.owned_records",
+        "-owner.team.records",
+        "-subsystem.records",
+        "-subsystem.team.records",
+        "-team.records",
+        "-team.members",
+        "-team.subsystems",
+    )
+
     # Fields that should not change in the record PATCH API
     # These correspond directly to variables in this table
     PROTECTED_FIELDS = (
@@ -55,19 +75,16 @@ class Record(db.Model, SerializerMixin):
 
     # THESE FIELDS NEED ADDITIONAL PARSING AND CANNOT BE DIRECTLY INSERTED AS
     # STRINGS
-    TIME_FIELDS = (
-        "time_of_failure",
-        "created_at",
-        "modified_at",
-        "time_resolved"
-    )
+    TIME_FIELDS = ("time_of_failure", "created_at", "modified_at", "time_resolved")
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False)
     title = db.Column(db.String(192), nullable=True)
+    # TODO: why did we use a string for this database relation??? Change it to
+    # use subsystem_id instead.
     subsystem_name = db.Column(
         db.String, db.ForeignKey("subsystem.name"), nullable=True
     )
-    subsystem = db.relationship('Subsystem', back_populates="records")
+    subsystem = db.relationship("Subsystem", back_populates="records")
     description = db.Column(db.Text, nullable=True)
     impact = db.Column(db.Text, nullable=True)
     cause = db.Column(db.Text, nullable=True)
@@ -98,10 +115,18 @@ class Record(db.Model, SerializerMixin):
     # Car year (current year)
     car_year = db.Column(db.Integer, nullable=True)
     # Creator name & email (prefilled with current user's name and email)
-    creator_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="SET NULL"), nullable=False)
-    creator = db.relationship("User", back_populates="created_records", foreign_keys=[creator_id])
-    owner_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="SET NULL"), nullable=True)
-    owner = db.relationship("User", back_populates="owned_records", foreign_keys=[owner_id])
+    creator_id = db.Column(
+        db.Integer, db.ForeignKey("user.id", ondelete="SET NULL"), nullable=False
+    )
+    creator = db.relationship(
+        "User", back_populates="created_records", foreign_keys=[creator_id]
+    )
+    owner_id = db.Column(
+        db.Integer, db.ForeignKey("user.id", ondelete="SET NULL"), nullable=True
+    )
+    owner = db.relationship(
+        "User", back_populates="owned_records", foreign_keys=[owner_id]
+    )
     draft = db.Column(db.Boolean, server_default=false(), nullable=False)
     marked_for_deletion = db.Column(db.Boolean, server_default=false(), nullable=False)
     time_resolved = db.Column(db.DateTime, nullable=True)

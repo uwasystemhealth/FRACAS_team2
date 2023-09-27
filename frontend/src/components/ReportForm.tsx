@@ -18,43 +18,43 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, { FC, useEffect, useState } from "react";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import React, { useEffect, useState } from "react";
 
-import { TextField } from "@mui/material/";
-import { useForm, SubmitHandler, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
+import {
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
+} from "@mui/material/";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import * as yup from "yup";
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 
-import { DateTimeField } from "@mui/x-date-pickers/DateTimeField";
+import { API_CLIENT, API_DATE_FORMAT, API_ENDPOINT } from "@/helpers/api";
 import Box from "@mui/material/Box";
-import Stepper from "@mui/material/Stepper";
+import Button from "@mui/material/Button";
+import Divider from "@mui/material/Divider";
 import Step from "@mui/material/Step";
 import StepLabel from "@mui/material/StepLabel";
-import Button from "@mui/material/Button";
+import Stepper from "@mui/material/Stepper";
 import Typography from "@mui/material/Typography";
 import Grid from "@mui/material/Unstable_Grid2";
-import MenuItem from "@mui/material/MenuItem";
-import Select, { SelectChangeEvent } from "@mui/material/Select";
-import Input from "@mui/material/Input";
-import InputLabel from "@mui/material/InputLabel";
-import FormControl from "@mui/material/FormControl";
-import FormHelperText from "@mui/material/FormHelperText"
-import Divider from "@mui/material/Divider";
-import { API_CLIENT, API_ENDPOINT, API_TYPES } from "@/helpers/api";
-import { AxiosError, AxiosResponse } from "axios";
 import { LocalizationProvider } from "@mui/x-date-pickers";
-import NewSubsystemDialog from '@/components/Dialogs/NewSubsystem';
-import SnackbarAlert from '@/components/SnackbarAlert';
+import { AxiosError } from "axios";
+
+import "@/helpers/urls";
 
 import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-import { number } from "prop-types";
 
-import TeamMenu from '@/components/ViewReportComponents/TeamMenu';
-import SubsysMenu from '@/components/ViewReportComponents/SubsystemMenu';
+import SubsysMenu from "@/components/ViewReportComponents/SubsystemMenu";
+import TeamMenu, { Team } from "@/components/ViewReportComponents/TeamMenu";
+import URLS from "@/helpers/urls";
+import utc from "dayjs/plugin/utc";
+import { useRouter } from "next/navigation";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -70,23 +70,18 @@ interface IFormInputs {
   mechanism: string;
   corrective_action_plan: string;
   car_year: number;
-  team_id: string;
+  team_id: number;
   time_of_failure: string;
 }
 
 interface Subsystem {
   id: string;
   name: string;
-};
+}
 
-interface Team {
+interface CurrentUser {
   id: string;
-  name: string;
-};
-
-interface CurrentUser{
-  id: string;
-  team_id: string;
+  team_id: number;
 }
 
 const defaultYear = new Date().getFullYear();
@@ -96,43 +91,54 @@ const schema = yup.object().shape({
   title: yup.string(), //.required(),
   description: yup.string(), //.min(5).required(),
   subsystem_name: yup.string(), //.required(),
-  time_of_failure: yup.date().default(time_of_failure.toDate), //.required(),
+  time_of_failure: yup
+    .string()
+    .default(time_of_failure.format(API_DATE_FORMAT).toString())
+    .required(),
   impact: yup.string(),
   cause: yup.string(),
   mechanism: yup.string(),
   corrective_action_plan: yup.string(),
   car_year: yup.number().default(defaultYear),
-  team_id: yup.string(), //.required(),
+  team_id: yup.number(), //.required(),
 });
 
 export type UserForm = yup.InferType<typeof schema>;
 
 interface Props {
   report_id?: number; // if no report_id given, assume we are creating a new report
-};
+}
 
 const ReportForm: React.FC = (props: Props) => {
   const { report_id } = props;
+
+  const router = useRouter();
+
+  const [submitted, setSubmitted] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [subsystems, setSubsystems] = useState([]);
   const [helperTextLinkClicked, setHelperTextLinkClicked] = useState(false);
   const [isTextFieldOpen, setIsTextFieldOpen] = useState(false);
-  const [textFieldValue, setTextFieldValue] = useState('');
+  const [textFieldValue, setTextFieldValue] = useState("");
   const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'warning' | 'info'>('success');
-  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<
+    "success" | "error" | "warning" | "info"
+  >("success");
+  const [snackbarMessage, setSnackbarMessage] = useState("");
 
   const [loading, setLoading] = useState(true);
 
   const [teams, setTeams] = useState<Team[]>([]);
   const [currentUser, setCurrentUser] = useState<CurrentUser[]>([]);
-  const [selectedTeamId, setSelectedTeamId] = useState<string>(''); // State to keep track of selected team ID
+  const [selectedTeamId, setSelectedTeamId] = useState<number | undefined>(); // State to keep track of selected team ID
 
-  const handleNext = () => {
+  const handleNext = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    e.preventDefault();
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
   };
 
-  const handleBack = () => {
+  const handleBack = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    e.preventDefault();
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
@@ -143,18 +149,11 @@ const ReportForm: React.FC = (props: Props) => {
   const handleSnackbarClose = () => {
     setOpenSnackbar(false);
   };
-  const [selectedSubsystem, setSelectedSubsystem] = useState<string>('');
-
-
-  const handleSelectedSubsystemChange = (subsysID: string) => {
-    setSelectedSubsystem(subsysID)
-  }
 
   // Callback function to update the selected team ID
   const handleSelectTeam = (teamId: string) => {
     setSelectedTeamId(teamId);
   };
-
 
   const {
     register,
@@ -162,11 +161,17 @@ const ReportForm: React.FC = (props: Props) => {
     handleSubmit,
     watch,
     formState: { errors },
+    setValue,
+    reset,
   } = useForm<UserForm>({
     resolver: yupResolver(schema),
   });
 
   const onValid: SubmitHandler<UserForm> = (data, event) => {
+    if (submitted) return;
+    setSubmitted(true);
+    //  Not efficient, but I cannot find out how to override the default date format, since react-hook-form abstracts away the string conversion so we can't use .format().
+    data.time_of_failure = dayjs(data.time_of_failure).format(API_DATE_FORMAT);
     (async () => {
       await API_CLIENT.post(API_ENDPOINT.RECORD, data)
         .then((response) => {
@@ -178,6 +183,7 @@ const ReportForm: React.FC = (props: Props) => {
                 response.data.message
             );
           }
+          router.push(URLS.RECORD_LIST);
         })
         .catch((error: AxiosError) => {
           console.error(
@@ -205,30 +211,36 @@ const ReportForm: React.FC = (props: Props) => {
       .catch((error: AxiosError) => {
         console.error("An error occurred " + error.message);
       });
-  }
+  };
 
   const fetchCurrentUser = () => {
     API_CLIENT.get(API_ENDPOINT.USER + `/current`)
-        .then((response) => {
-          if (response.status == 200) {
-            setCurrentUser(response.data)
-          } else {
-            setSnackbarMessage(response.data.message);
-            setSnackbarSeverity('error');
-            handleSnackbarOpen();
-          }
-        })
-        .catch((error: AxiosError) => {
-          setSnackbarMessage(error.message);
-          setSnackbarSeverity('error');
+      .then((response) => {
+        if (response.status == 200) {
+          setCurrentUser(response.data);
+          // setValue("subsystem_name", response.data.team_id, {
+          //   shouldValidate: true,
+          // });
+          reset({
+            team_id: response.data.team_id,
+          });
+        } else {
+          setSnackbarMessage(response.data.message);
+          setSnackbarSeverity("error");
           handleSnackbarOpen();
-        })
-  }
+        }
+      })
+      .catch((error: AxiosError) => {
+        setSnackbarMessage(error.message);
+        setSnackbarSeverity("error");
+        handleSnackbarOpen();
+      });
+  };
 
   useEffect(() => {
-      fetchCurrentUser()
-      fetchTeam()
-      setLoading(false);
+    fetchCurrentUser();
+    fetchTeam();
+    setLoading(false);
   }, []);
 
   return (
@@ -279,20 +291,25 @@ const ReportForm: React.FC = (props: Props) => {
                     />
                   </Grid>
                   <Grid xs={3}>
-                    <Controller
-                      name="team_id"
+                    <TeamMenu<UserForm>
                       control={control}
-                      render={({ field }) => (
-                        <TeamMenu src={currentUser} default_id={currentUser.team_id} field={field} label="Team" teams={teams} onSelectTeam={handleSelectTeam} />
-                      )}
+                      teams={teams}
+                      label="Team"
+                      name="team_id"
+                      id="team"
                     />
                   </Grid>
                   <Grid xs={3}>
                     <Controller
                       name="subsystem_name"
+                      defaultValue={""}
                       control={control}
                       render={({ field }) => (
-                        <SubsysMenu src={selectedTeamId} team_id={selectedTeamId} field={field} label="Subsystem" onSelectSubsystem={handleSelectedSubsystemChange} />
+                        <SubsysMenu<UserForm>
+                          team_id={watch("team_id")}
+                          field={field}
+                          label="Subsystem"
+                        />
                       )}
                     />
                   </Grid>
@@ -313,7 +330,7 @@ const ReportForm: React.FC = (props: Props) => {
                         />
                       )}
                     />
-                      </Grid>
+                  </Grid>
                   <Grid xs={3}>
                     <Controller
                       name="time_of_failure"
@@ -462,9 +479,7 @@ const ReportForm: React.FC = (props: Props) => {
               </Button>
               <Box sx={{ flex: "1 1 auto" }} />
               {activeStep === steps.length - 1 ? (
-                <Button type="submit" variant="contained">
-                  Submit
-                </Button>
+                <Button type="submit">Submit</Button>
               ) : (
                 <Button
                   onClick={handleNext}

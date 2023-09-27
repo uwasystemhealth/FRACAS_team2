@@ -1,16 +1,34 @@
+#  Better FRACAS
+#  Copyright (C) 2023  Peter Tanner
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 from flask import jsonify, request
+from flask_jwt_extended import get_jwt_identity
 from app import app, db
 from app.models.authentication import User
 from app.models.team import Team
-from app.utils import superuser_jwt_required, user_jwt_required
-from app.utils import handle_exceptions
-from flask_jwt_extended import get_jwt_identity
+from app.utils import handle_exceptions, superuser_jwt_required, user_jwt_required
+from app.models.record import Record
+
 
 def get_teamname(user):
     if user.team_id is None:
         return "N/A"
     team = Team.query.get(user.team_id)
     return team.name
+
 
 def user_json(users):
     # User JSON Schema
@@ -48,6 +66,7 @@ def get_user(user_id):
         return jsonify({"err": "no_user", "msg": "User not found"}), 404
     return user_json(user), 200
 
+
 @app.route("/api/v1/user/current", methods=["GET"])
 @handle_exceptions
 @user_jwt_required
@@ -59,9 +78,9 @@ def get_current_user():
     if user is None:
         return jsonify({"err": "no_user", "msg": "User not found"}), 404
     user_json = {
-            "id": user.id,
-            "team_id": user.team_id,
-        }
+        "id": user.id,
+        "team_id": user.team_id,
+    }
     return jsonify(user_json), 200
 
 

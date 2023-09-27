@@ -1,7 +1,24 @@
+#  Better FRACAS
+#  Copyright (C) 2023  Peter Tanner
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 from datetime import datetime
-from typing import Dict, Union
-from flask import jsonify, request
+from typing import Dict, List, Union
+from flask import jsonify, request, session
 from flask_jwt_extended import get_jwt_identity
+from sqlalchemy import func
 from app import app, db
 from app.models.record import Record, Subsystem
 from app.utils import handle_exceptions
@@ -12,6 +29,7 @@ from app.utils import user_jwt_required
 """
 SUBSYSTEM
 """
+
 
 def subystem_json(subsystems):
     subsystem_json = [
@@ -135,6 +153,9 @@ def create_record():
         )
     db.session.add(record)
     db.session.commit()
+    app.logger.info(
+        f"Created report {record.id=} {record.title=} {record.description=}"
+    )
     return jsonify({"message": "Record created successfully", "id": record.id}), 201
 
 
@@ -159,6 +180,7 @@ def update_record(record_id):
         return jsonify({"err": "bad_key", "message": "Key does not exist"}), 400
 
     db.session.commit()
+    app.logger.info(f"PATCH report {record.id=} {record.title=} {record.description=}")
     return jsonify({"message": "Record updated successfully", "updated": updated}), 200
 
 
@@ -183,10 +205,10 @@ def delete_record(record_id):
 @handle_exceptions
 @user_jwt_required
 def serialize_record(record_id):
-    record = Record.query.get(record_id)
+    record: Record = Record.query.get(record_id)
     if not record:
         return jsonify({"error": "Record not found"}), 404
-    return record_json(record), 200
+    return record.to_dict(), 200
 
 
 # Serialize all record (Should use pagination but whatever)
@@ -194,64 +216,49 @@ def serialize_record(record_id):
 @handle_exceptions
 @user_jwt_required
 def serialize_all_record():
-    records = Record.query.all()
-    
-    return record_list_json(records), 200
+    reports = []
 
-def record_json(record):
-    # User JSON Schema
-    record_json = [
-        {
-            "id": record.id,
-            "title": record.title,
-            "subsystem_name": record.subsystem_name,
-            "car_year": record.car_year,
-            "description" : record.description,
-            "impact" : record.impact,
-            "cause" : record.cause,
-            "mechanism" : record.mechanism,
-            "corrective_action_plan" : record.corrective_action_plan,
-            "time_of_failure" : record.time_of_failure,
-            #"time_resolved": record.time_resolved,
-            "created_at" : record.created_at.strftime("%d/%m/%y %l:%M %p %Z"),
-            "modified_at" : record.modified_at,
-            "team_name": get_teamname(record.team_id),
-            "team_lead": get_username(get_team_leader(record.team_id)),
-            "team_lead_email": get_email(get_team_leader(record.team_id)),
-            "creator_name": get_username(record.creator_id),
-            "creator_email": get_email(record.creator_id),
-            "owner_name": get_username(record.owner_id),
-            "owner_email": get_email(record.owner_id),
-            #"record_valid": record.record_valid,
-            #"analysis_valid": record.analysis_valid,
-            #"corrective_valid": record.corrective_valid,
-            #"draft": record.draft,
-        }
-    ]
-    return jsonify(record_json)
+    filter_owner = request.args.get("filter_owner", "") == "true"
+    if filter_owner:
+        identity = get_jwt_identity()
+        user: User = User.query.filter_by(email=identity).first()
+        reports: List[Record] = Record.query.filter_by(owner=user)
+    else:
+        reports: List[Record] = Record.query.all()
 
-def record_list_json(records):
-    # User JSON Schema
-    record_json = [
-        {
-            "id": record.id,
-            "title": record.title,
-            "subsystem_name": record.subsystem_name,
-            "car_year": record.car_year,
-            "time_of_failure" : record.time_of_failure,
-            "time_resolved": record.time_resolved,
-            "created_at" : record.created_at,
-            "modified_at" : record.modified_at,
-            "team_name": get_teamname(record.team_id),
-            "creator_name": get_username(record.creator_id),
-            "owner_name": get_username(record.owner_id),
-            "record_valid": record.record_valid,
-            "analysis_valid": record.analysis_valid,
-            "corrective_valid": record.corrective_valid,
-            "draft": record.draft,
-        } for record in records
-    ]
-    return jsonify(record_json)
+    return jsonify([r.to_dict() for r in reports]), 200
+
+
+# TODO: USE DATABASE INDICES INSTEAD OF A COUNT(*) GROUP BY TEAM_ID.
+@app.route("/api/v1/record/stats", methods=["GET"])
+@handle_exceptions
+def record_statistics():
+    count_query = (
+        db.session.query(
+            Record.team_id,
+            Team.name.label("team_name"),
+            func.count().label("record_count"),
+        )
+        .join(
+            Team, Record.team_id == Team.id, isouter=True
+        )  # Join Record with Team using team_id
+        .group_by(Record.team_id, Team.name)
+        .all()
+    )
+    return (
+        jsonify(
+            [
+                {
+                    "team_id": cat[0],
+                    "team_name": cat[1],
+                    "open_reports": cat[2],
+                }
+                for cat in count_query
+            ]
+        ),
+        200,
+    )
+
 
 def get_teamname(team_id):
     team = Team.query.get(team_id)
@@ -259,17 +266,20 @@ def get_teamname(team_id):
         return "N/A"
     return team.name
 
+
 def get_team_leader(team_id):
     team = Team.query.get(team_id)
     if team is None:
         return "N/A"
     return team.leader_id
 
+
 def get_username(user_id):
     user = User.query.get(user_id)
     if user is None:
         return "N/A"
     return user.name
+
 
 def get_email(user_id):
     user = User.query.get(user_id)

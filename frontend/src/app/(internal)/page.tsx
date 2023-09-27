@@ -18,13 +18,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, { useState } from "react";
-import { DataGrid } from '@mui/x-data-grid';
-import {Container,Paper,Grid, TextField} from "@mui/material";
+import React, { useEffect, useState } from "react";
+import { DataGrid } from "@mui/x-data-grid";
+import { Container, Paper, Grid, TextField } from "@mui/material";
 import Typography from "@mui/material/Typography";
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import EditIcon from '@mui/icons-material/Edit';
-import IconButton from '@mui/material/IconButton';
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import EditIcon from "@mui/icons-material/Edit";
+import IconButton from "@mui/material/IconButton";
 
 import {
   Tooltip,
@@ -35,9 +35,92 @@ import {
   Label,
   LabelList,
 } from "recharts";
+import { API_CLIENT, API_TYPES, API_ENDPOINT } from "@/helpers/api";
+import { AxiosResponse, AxiosError } from "axios";
+
+interface UserReports {
+  id: number;
+  created_at: string;
+  title: string;
+  creator: string;
+  status: string;
+}
+
+interface PieChart {
+  name: string;
+  value: number;
+}
 
 const Dashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [ownedReports, setOwnedReports] = useState<UserReports[]>([]);
+  const [pieChartData, setPieChartData] = useState<PieChart[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const response = await API_CLIENT.get<
+          API_TYPES.REPORT.GET.REQUEST,
+          AxiosResponse<API_TYPES.REPORT.GET.RESPONSE[]>
+        >(API_ENDPOINT.RECORD, { params: { filter_owner: true } })
+          .then((response) => {
+            if (response) {
+              console.log(response.data);
+              setOwnedReports(
+                response.data
+                  .map((report) => {
+                    // TODO: INCORPORATE REPORT VALIDATION STATUS INSTEAD OF DISPLAYING CONSTANT "Open"
+                    return {
+                      id: report.id,
+                      created_at: report.created_at || "",
+                      title: report.title || "",
+                      creator: report.creator.email || "",
+                      status: "Open",
+                    };
+                  })
+                  .reverse()
+              );
+            } else {
+              console.error("An error occurred");
+            }
+          })
+          .catch((error: AxiosError) => {
+            console.error("An error occurred " + error.message);
+          });
+
+        // Do something with the token (e.g., store it)
+      } catch (error: any) {}
+    })();
+
+    (async () => {
+      try {
+        const response = await API_CLIENT.get<
+          API_TYPES.NULLREQUEST_,
+          AxiosResponse<API_TYPES.REPORT.STATS.GET.RESPONSE[]>
+        >(API_ENDPOINT.RECORD_STATS, {})
+          .then((response) => {
+            if (response) {
+              console.log(response.data);
+              setPieChartData(
+                response.data.map((cat) => {
+                  return {
+                    name: cat.team_name || "Uncategorized",
+                    value: cat.open_reports,
+                  };
+                })
+              );
+            } else {
+              console.error("An error occurred");
+            }
+          })
+          .catch((error: AxiosError) => {
+            console.error("An error occurred " + error.message);
+          });
+
+        // Do something with the token (e.g., store it)
+      } catch (error: any) {}
+    })();
+  }, []);
 
   const upcomingTasks = [
     {
@@ -74,20 +157,20 @@ const Dashboard = () => {
       assigner: "John Doe",
       dueDate: "2023-08-29",
       view: "/viewreport",
-    }
+    },
   ];
 
   const taskColumns = [
-    {field: "id", headerName: "ID", width: 80},
-    {field: "reportName", headerName: "Report Name", width: 220},
-    {field: "assigner", headerName: "Assigner", width: 160},
-    {field: "dueDate", headerName: "Due Date", width: 170},
+    { field: "id", headerName: "ID", width: 80 },
+    { field: "reportName", headerName: "Report Name", width: 220 },
+    { field: "assigner", headerName: "Assigner", width: 160 },
+    { field: "dueDate", headerName: "Due Date", width: 170 },
     {
       field: "view",
       headerName: "View",
       width: 100,
       renderCell: (params) => (
-        <IconButton color="primary" aria-label="View" href = "/viewreport">
+        <IconButton color="primary" aria-label="View" href="/viewreport">
           <VisibilityIcon />
         </IconButton>
       ),
@@ -96,17 +179,17 @@ const Dashboard = () => {
 
   const reportColumns = [
     { field: "id", headerName: "ID", width: 60 },
-    { field: "date", headerName: "Creation Date", width: 170 },
-    { field: "ReportName", headerName: "Report name", width: 350 },
-    { field: "carYear", headerName: "Car year", width: 100 },
-    { field: "creatorName", headerName: "Creator name", width: 130 },
+    { field: "created_at", headerName: "Creation Date", width: 170 },
+    { field: "title", headerName: "Report name", width: 350 },
+    { field: "car_year", headerName: "Car year", width: 100 },
+    { field: "creator", headerName: "Creator name", width: 130 },
     { field: "status", headerName: "Status", width: 100 },
     {
       field: "edit",
       headerName: "Edit",
       width: 100,
       renderCell: (params) => (
-        <IconButton color="primary" aria-label="Edit" href = '/editreport'>
+        <IconButton color="primary" aria-label="Edit" href="/editreport">
           <EditIcon />
         </IconButton>
       ),
@@ -116,54 +199,19 @@ const Dashboard = () => {
       headerName: "View",
       width: 100,
       renderCell: (params) => (
-        <IconButton color="primary" aria-label="View" href = "/viewreport">
+        <IconButton color="primary" aria-label="View" href="/viewreport">
           <VisibilityIcon />
         </IconButton>
       ),
     },
   ];
 
-  const recentReports = [
-    {
-      id: 1,
-      date: "27/08/2023",
-      ReportName: "Report 1",
-      carYear: 2023,
-      creatorName: "Kyle",
-      status: "Open",
-      edit: "/editreport",
-      view: "/viewreport",
-    },
-    {
-      id: 2,
-      date: "27/08/2023",
-      ReportName: "Report 2",
-      carYear: 2023,
-      creatorName: "Kyle",
-      status: "Open",
-    },
-    {
-      id: 3,
-      date: "27/08/2023",
-      ReportName: "Report 3",
-      carYear: 2022,
-      creatorName: "Kyle",
-      status: "Open",
-    },
-    {
-      id: 4,
-      date: "27/08/2023",
-      ReportName: "Report 4",
-      carYear: 2023,
-      creatorName: "Kyle",
-      status: "Open",
-    },
-  ];
-
-  const filteredReports = recentReports.filter((report) =>
-  Object.values(report).some((value) =>
-    value ? value.toString().toLowerCase().includes(searchTerm.toLowerCase()) : false
-  )
+  const filteredReports = ownedReports.filter((report) =>
+    Object.values(report).some((value) =>
+      value
+        ? value.toString().toLowerCase().includes(searchTerm.toLowerCase())
+        : false
+    )
   );
 
   const pieChartColors = [
@@ -175,32 +223,47 @@ const Dashboard = () => {
     "#FF73FA",
   ];
 
-  const sampleData = [
-    { name: "Electrical", value: 30 },
-    { name: "Subsytem", value: 45 },
-    { name: "Mechanical", value: 20 },
-    // Add more sample data...
-  ];
-
   return (
     <div style={{ display: "flex" }}>
-      <Container component="main" maxWidth="lg" sx={{ flexGrow: 1, p: 1, marginTop: "0px", marginLeft: "0px", marginRight: "0px" }}>
+      <Container
+        component="main"
+        maxWidth="lg"
+        sx={{
+          flexGrow: 1,
+          p: 1,
+          marginTop: "0px",
+          marginLeft: "0px",
+          marginRight: "0px",
+        }}
+      >
         <Grid container spacing={4} rowSpacing={1}>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, margin:0, boxShadow: 5, border: "1px solid lightblue" }}>
-              <Typography variant="h6" gutterBottom sx={{ fontSize: 16 }} color={"white"}>
+            <Paper
+              sx={{
+                p: 2,
+                margin: 0,
+                boxShadow: 5,
+                border: "1px solid lightblue",
+              }}
+            >
+              <Typography
+                variant="h6"
+                gutterBottom
+                sx={{ fontSize: 16 }}
+                color={"white"}
+              >
                 Open Reports By Team
               </Typography>
               <PieChart width={300} height={250}>
                 <Pie
-                  data={sampleData}
+                  data={pieChartData}
                   cx="50%"
                   cy="50%"
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {sampleData.map((entry, index) => (
+                  {pieChartData.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
                       fill={pieChartColors[index % pieChartColors.length]}
@@ -214,7 +277,7 @@ const Dashboard = () => {
             </Paper>
           </Grid>
 
-          {/* Upcoming Tasks DataGrid */}
+          {/* Bookmarked Tasks DataGrid */}
           <Grid item xs={12} md={8}>
             <Paper
               sx={{
@@ -223,21 +286,35 @@ const Dashboard = () => {
                 display: "flex",
                 flexDirection: "column",
                 boxShadow: 5,
-                border: "1px solid lightblue"
+                border: "1px solid lightblue",
               }}
             >
               <Typography variant="subtitle1" color={"white"}>
-                You have <span style={{ color: 'red' }}>{upcomingTasks.length}</span> upcoming allocated tasks
+                You have{" "}
+                <span style={{ color: "red" }}>{upcomingTasks.length}</span>{" "}
+                bookmarked tasks
               </Typography>
               <div style={{ height: 237, width: "100%", marginTop: 16 }}>
-              <DataGrid rows={upcomingTasks} columns={taskColumns} props hideFooter={true}/>
+                <DataGrid
+                  rows={upcomingTasks}
+                  columns={taskColumns}
+                  props
+                  hideFooter={true}
+                />
               </div>
             </Paper>
           </Grid>
 
           {/* Recent Reports DataGrid */}
-          <Grid item xs={12} md={12} >
-            <Paper sx={{ p: 2, marginTop: 3, boxShadow: 5, border: "1px solid lightblue"}}>
+          <Grid item xs={12} md={12}>
+            <Paper
+              sx={{
+                p: 2,
+                marginTop: 3,
+                boxShadow: 5,
+                border: "1px solid lightblue",
+              }}
+            >
               <Typography variant="h5" color="primary" gutterBottom>
                 Your Reports
               </Typography>

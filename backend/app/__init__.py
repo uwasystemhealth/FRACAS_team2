@@ -44,6 +44,7 @@ CORS(app, origins=Config.CORS_ALLOWED_ORIGINS)
 
 app.config.from_object(Config)
 app.logger.setLevel(logging.DEBUG)
+logging.getLogger().setLevel(logging.DEBUG)
 
 convention = {
     "ix": "ix_%(column_0_label)s",
