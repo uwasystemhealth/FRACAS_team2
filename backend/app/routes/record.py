@@ -193,6 +193,10 @@ def update_record(record_id):
 @user_jwt_required
 def delete_record(record_id):
     record = Record.query.get(record_id)
+    identity = get_jwt_identity()
+    user: User = User.query.filter_by(email=identity).first()
+    if not user.is_leading_team():
+        return jsonify({"error": "Insufficient privileges"}), 403
     if not record or record.marked_for_deletion:
         return jsonify({"error": "Record not found"}), 404
     record.marked_for_deletion = True

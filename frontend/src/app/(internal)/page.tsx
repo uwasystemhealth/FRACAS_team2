@@ -25,6 +25,7 @@ import Typography from "@mui/material/Typography";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import EditIcon from "@mui/icons-material/Edit";
 import IconButton from "@mui/material/IconButton";
+import { selectCols } from "@/components/ReportList";
 
 import {
   Tooltip,
@@ -60,20 +61,7 @@ const Dashboard = () => {
           .then((response) => {
             if (response) {
               console.log(response.data);
-              setOwnedReports(
-                response.data
-                  .map((report) => {
-                    // TODO: INCORPORATE REPORT VALIDATION STATUS INSTEAD OF DISPLAYING CONSTANT "Open"
-                    return {
-                      id: report.id,
-                      created_at: report.created_at || "",
-                      title: report.title || "",
-                      creator: report.creator.email || "",
-                      status: "Open",
-                    };
-                  })
-                  .reverse()
-              );
+              setOwnedReports(selectCols(response.data));
             } else {
               console.error("An error occurred");
             }

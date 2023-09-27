@@ -21,6 +21,7 @@ import ReportList, { UserReport } from "@/components/ReportList";
 import { API_TYPES, API_CLIENT, API_ENDPOINT } from "@/helpers/api";
 import { AxiosError } from "axios";
 import { useState, useEffect } from "react";
+import { selectCols } from "@/components/ReportList";
 
 const RecordList = () => {
   const [rows, setRows] = useState<UserReport[]>([]);
@@ -30,8 +31,7 @@ const RecordList = () => {
         const response = await API_CLIENT.get(API_ENDPOINT.RECORD)
           .then((response) => {
             if (response) {
-              console.log(response.data);
-              setRows(response.data);
+              setRows(selectCols(response.data));
             } else {
               console.error("An error occurred");
             }

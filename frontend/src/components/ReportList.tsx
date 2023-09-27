@@ -54,31 +54,42 @@ export interface UserReport {
   title: string;
   creator: string;
   status: string;
+  car_year: number;
 }
 
 export interface Props {
   rows: UserReport[];
   setRows: React.Dispatch<React.SetStateAction<UserReport[]>>;
+  // showDelete: boolean;
 }
 
-export default function ReportList({ rows, setRows }: Props) {
+export function selectCols(data: API_TYPES.REPORT.GET.RESPONSE[]) {
+  return data.map((e) => {
+    return {
+      id: e.id || -1,
+      title: e.title || "?",
+      created_at: e.created_at || "?",
+      status: "Open" || "?",
+      car_year: e.car_year || -1,
+      creator: e.creator.name || "?",
+    };
+  });
+}
+
+export default function ReportList({ rows, setRows /*, showDelete*/ }: Props) {
   const [searchTerm, setSearchTerm] = React.useState("");
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
   const [deleteFunction, setDeleteFunction] = useState<
     React.MouseEventHandler<HTMLButtonElement> | undefined
   >(undefined);
+  const [showDelete, setShowDelete] = useState(false);
 
-  const columns: GridColDef[] = [
+  const everyoneColumns: GridColDef[] = [
     { field: "id", headerName: "ID", width: 70 },
     { field: "title", headerName: "Report name", flex: 1 },
     { field: "created_at", headerName: "Creation Date", flex: 1 },
     { field: "car_year", headerName: "Car year", flex: 1 },
-    {
-      field: "creator.name",
-      headerName: "Creator name",
-      flex: 1,
-      valueGetter: (params) => params.row?.creator?.email,
-    },
+    { field: "creator", headerName: "Creator name", flex: 1 },
     {
       field: "edit",
       headerName: "Edit",
@@ -115,6 +126,9 @@ export default function ReportList({ rows, setRows }: Props) {
         </IconButton>
       ),
     },
+  ];
+
+  const superColumns: GridColDef[] = [
     {
       field: "delete",
       headerName: "Delete",
@@ -153,6 +167,10 @@ export default function ReportList({ rows, setRows }: Props) {
     },
   ];
 
+  const columns = showDelete
+    ? [...everyoneColumns, ...superColumns]
+    : everyoneColumns;
+
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
   };
@@ -162,6 +180,33 @@ export default function ReportList({ rows, setRows }: Props) {
       value?.toString().toLowerCase().includes(searchTerm.toLowerCase())
     )
   );
+
+  // Get user privileges
+  useEffect(() => {
+    (async () => {
+      try {
+        const response = await API_CLIENT.get<
+          API_TYPES.NULLREQUEST_,
+          AxiosResponse<API_TYPES.REPORT.STATS.GET.RESPONSE[]>
+        >(API_ENDPOINT.USER + "/current", {})
+          .then((response) => {
+            if (response) {
+              console.log(response.data);
+              if (response.data.leading != undefined) {
+                setShowDelete(true);
+              }
+            } else {
+              console.error("An error occurred");
+            }
+          })
+          .catch((error: AxiosError) => {
+            console.error("An error occurred " + error.message);
+          });
+
+        // Do something with the token (e.g., store it)
+      } catch (error: any) {}
+    })();
+  }, []);
 
   return (
     <>
