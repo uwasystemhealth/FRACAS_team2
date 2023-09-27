@@ -37,14 +37,8 @@ import {
 } from "recharts";
 import { API_CLIENT, API_TYPES, API_ENDPOINT } from "@/helpers/api";
 import { AxiosResponse, AxiosError } from "axios";
-
-interface UserReports {
-  id: number;
-  created_at: string;
-  title: string;
-  creator: string;
-  status: string;
-}
+import RecordList from "./record-list/page";
+import { UserReport } from "@/components/ReportList";
 
 interface PieChart {
   name: string;
@@ -53,7 +47,7 @@ interface PieChart {
 
 const Dashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [ownedReports, setOwnedReports] = useState<UserReports[]>([]);
+  const [ownedReports, setOwnedReports] = useState<UserReport[]>([]);
   const [pieChartData, setPieChartData] = useState<PieChart[]>([]);
 
   useEffect(() => {
@@ -318,17 +312,7 @@ const Dashboard = () => {
               <Typography variant="h5" color="primary" gutterBottom>
                 Your Reports
               </Typography>
-              <div style={{ height: 75, width: "100%", marginTop: 16 }}>
-                <TextField
-                  label="Search"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  variant="outlined"
-                  fullWidth
-                  sx={{ marginBottom: 2 }}
-                />
-              </div>
-              <DataGrid rows={filteredReports} columns={reportColumns} />
+              <RecordList rows={ownedReports} setRows={setOwnedReports} />
             </Paper>
           </Grid>
         </Grid>

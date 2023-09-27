@@ -113,6 +113,9 @@ RECORD
 
 
 def update_record_kv(record: Record, data: Dict[str, Union[str, int]]) -> int:
+    # Deleted records are immutable
+    if record.marked_for_deletion:
+        return 0
     # CHECK KEYS
     updated = 0
     for key in data.keys():
@@ -165,7 +168,7 @@ def create_record():
 def update_record(record_id):
     record = Record.query.get(record_id)
     updated = 0
-    if not record:
+    if not record or record.marked_for_deletion:
         return jsonify({"error": "Record not found"}), 404
     # TODO: PUT CHECKS FOR PROTECTED FIELDS (DELETED, CREATED_AT, ETC.)
     data = request.json
@@ -189,15 +192,12 @@ def update_record(record_id):
 @handle_exceptions
 @user_jwt_required
 def delete_record(record_id):
-    try:
-        record = Record.query.get(record_id)
-        if not record:
-            return jsonify({"error": "Record not found"}), 404
-        record.marked_for_deletion = True
-        db.session.commit()
-        return jsonify({"message": "Record marked as deleted"}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    record = Record.query.get(record_id)
+    if not record or record.marked_for_deletion:
+        return jsonify({"error": "Record not found"}), 404
+    record.marked_for_deletion = True
+    db.session.commit()
+    return jsonify({"message": "Record marked as deleted"}), 200
 
 
 # Serialize record
@@ -206,7 +206,7 @@ def delete_record(record_id):
 @user_jwt_required
 def serialize_record(record_id):
     record: Record = Record.query.get(record_id)
-    if not record:
+    if not record or record.marked_for_deletion:
         return jsonify({"error": "Record not found"}), 404
     return record.to_dict(), 200
 
@@ -222,9 +222,11 @@ def serialize_all_record():
     if filter_owner:
         identity = get_jwt_identity()
         user: User = User.query.filter_by(email=identity).first()
-        reports: List[Record] = Record.query.filter_by(owner=user)
+        reports: List[Record] = Record.query.filter_by(
+            owner=user, marked_for_deletion=False
+        )
     else:
-        reports: List[Record] = Record.query.all()
+        reports: List[Record] = Record.query.filter_by(marked_for_deletion=False)
 
     return jsonify([r.to_dict() for r in reports]), 200
 
@@ -239,6 +241,7 @@ def record_statistics():
             Team.name.label("team_name"),
             func.count().label("record_count"),
         )
+        .filter_by(marked_for_deletion=False)
         .join(
             Team, Record.team_id == Team.id, isouter=True
         )  # Join Record with Team using team_id

@@ -1,5 +1,4 @@
 "use client";
-
 /*
  * Better FRACAS
  * Copyright (C) 2023  Peter Tanner, ??? Better Fracas team
@@ -18,62 +17,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as React from "react";
-import { DataGrid, GridColDef, GridValueGetterParams } from "@mui/x-data-grid";
-import TextField from "@mui/material/TextField";
-import Card from "@mui/material/Card";
-import IconButton from "@mui/material/IconButton";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import EditIcon from "@mui/icons-material/Edit";
-import { boolean, date } from "yup";
-import { useEffect, useState } from "react";
-import { API_CLIENT, API_ENDPOINT, API_TYPES } from "@/helpers/api";
-import { AxiosError, AxiosResponse } from "axios";
+import ReportList, { UserReport } from "@/components/ReportList";
+import { API_TYPES, API_CLIENT, API_ENDPOINT } from "@/helpers/api";
+import { AxiosError } from "axios";
+import { useState, useEffect } from "react";
 
-const columns: GridColDef[] = [
-  { field: "id", headerName: "ID", width: 70 },
-  { field: "title", headerName: "Report name", flex: 1 },
-  { field: "created_at", headerName: "Creation Date", flex: 1 },
-  { field: "car_year", headerName: "Car year", flex: 1 },
-  {
-    field: "creator.name",
-    headerName: "Creator name",
-    flex: 1,
-    valueGetter: (params) => params.row?.creator?.email,
-  },
-  {
-    field: "edit",
-    headerName: "Edit",
-    width: 100,
-    renderCell: (params) => (
-      <IconButton
-        color="primary"
-        aria-label="Edit"
-        href={`/editreport/${params.row.id}`}
-      >
-        <EditIcon />
-      </IconButton>
-    ),
-  },
-  {
-    field: "view",
-    headerName: "View",
-    width: 100,
-    renderCell: (params) => (
-      <IconButton
-        color="primary"
-        aria-label="View"
-        href={`/viewreport/${params.row.id}`}
-      >
-        <VisibilityIcon />
-      </IconButton>
-    ),
-  },
-];
-
-export default function DataTable() {
-  const [rows, setRows] = useState<API_TYPES.REPORT.GET.RESPONSE[]>([]);
-
+const RecordList = () => {
+  const [rows, setRows] = useState<UserReport[]>([]);
   useEffect(() => {
     (async () => {
       try {
@@ -95,41 +45,7 @@ export default function DataTable() {
     })();
   }, []);
 
-  const [searchTerm, setSearchTerm] = React.useState("");
+  return <ReportList rows={rows} setRows={setRows} />;
+};
 
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(event.target.value);
-  };
-
-  const filteredRows = rows.filter((row) =>
-    Object.values(row).some((value) =>
-      value?.toString().toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  );
-
-  return (
-    <Card
-      style={{
-        padding: 10,
-        maxWidth: "100%",
-        margin: "0 auto",
-      }}
-    >
-      <TextField
-        label="Search"
-        value={searchTerm}
-        onChange={handleSearchChange}
-        variant="outlined"
-        fullWidth
-        sx={{ marginBottom: 2 }}
-      />
-      <DataGrid
-        rows={filteredRows}
-        columns={columns}
-        pagination
-        pageSizeOptions={[5, 25, 100]}
-        checkboxSelection
-      />
-    </Card>
-  );
-}
+export default RecordList;
