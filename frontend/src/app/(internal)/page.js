@@ -43,45 +43,45 @@ const Dashboard = () => {
     {
       id: 1,
       reportName: "Report 1",
-      assigner: "John Doe",
-      dueDate: "2023-08-24",
+      date: "2023-08-24",
+      status: "Open",
       view: "/viewreport",
     },
     {
       id: 2,
       reportName: "Report 2",
-      assigner: "Jane Smith",
-      dueDate: "2023-08-28",
+      date: "2023-08-28",
+      status: "Open",
       view: "/viewreport",
     },
     {
       id: 3,
       reportName: "Report 3",
-      assigner: "John Doe",
-      dueDate: "2023-08-29",
+      date: "2023-08-29",
+      status: "Open",
       view: "/viewreport",
     },
     {
       id: 4,
       reportName: "Report 4",
-      assigner: "John Doe",
-      dueDate: "2023-08-29",
+      date: "2023-08-29",
+      status: "Open",
       view: "/viewreport",
     },
     {
       id: 5,
       reportName: "Report 5",
-      assigner: "John Doe",
-      dueDate: "2023-08-29",
+      date: "2023-08-29",
+      status: "Open",
       view: "/viewreport",
     }
   ];
 
   const taskColumns = [
     {field: "id", headerName: "ID", width: 80},
-    {field: "reportName", headerName: "Report Name", width: 220},
-    {field: "assigner", headerName: "Assigner", width: 160},
-    {field: "dueDate", headerName: "Due Date", width: 170},
+    {field: "reportName", headerName: "Report Name", flex: 1},
+    {field: "date", headerName: "Date Created", flex: 1},
+    {field: "status", headerName: "Status", width: 120},
     {
       field: "view",
       headerName: "View",
@@ -227,7 +227,7 @@ const Dashboard = () => {
               }}
             >
               <Typography variant="subtitle1" color={"white"}>
-                You have <span style={{ color: 'red' }}>{upcomingTasks.length}</span> upcoming allocated tasks
+                Bookmarked Reports
               </Typography>
               <div style={{ height: 237, width: "100%", marginTop: 16 }}>
               <DataGrid rows={upcomingTasks} columns={taskColumns} props hideFooter={true}/>
