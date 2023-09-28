@@ -77,11 +77,7 @@ def get_current_user():
     print(user.id, user.team_id)
     if user is None:
         return jsonify({"err": "no_user", "msg": "User not found"}), 404
-    user_json = {
-        "id": user.id,
-        "team_id": user.team_id,
-    }
-    return jsonify(user_json), 200
+    return jsonify(user.to_dict()), 200
 
 
 @app.route("/api/v1/user", methods=["POST"])

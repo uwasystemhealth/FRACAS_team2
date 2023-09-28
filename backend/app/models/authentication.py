@@ -34,11 +34,35 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 class User(db.Model, SerializerMixin):
     serialize_only = (
+        # Commenting out for now, cause sending over password hash in get requests is extremely sus
+        #"password_hash",
+        "registered",
         "id",
+        "superuser",
         "name",
-        "email",
+        "created_at",
+        "can_validate",
+        "team_id",
+        "team",
+        "leading",
     )
-    serialize_rules = ("-password_hash",)
+    serialize_rules = (
+        "-password_hash",
+        "-team.reports",
+        "-created_records",
+        "-owned_records",
+        "-team.leader",
+        "-team.members",
+        "-team.records",
+        "-team.subsystems",
+        "-leading.leader",
+        "-leading.members",
+        "-leading.records",
+        "-leading.subsystems",
+        # Future proofing
+        "-created_records.creator",
+        "-owned_records.owner",
+    )
 
     MAX_EMAIL_LENGTH = 64
 
