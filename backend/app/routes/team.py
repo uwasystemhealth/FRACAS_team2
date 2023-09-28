@@ -81,7 +81,7 @@ def update_team(team_id):
         team.name = data["name"]
     if "leader" in data:
         user = User.query.get(data["leader"])
-        team.leader = user
+        team.change_leader(user)
 
     db.session.commit()
     return jsonify({"message": "Team Records Updated"}), 200

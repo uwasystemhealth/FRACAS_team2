@@ -35,6 +35,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 class User(db.Model, SerializerMixin):
     serialize_only = (
         "id",
+        "name",
         "email",
     )
     serialize_rules = ("-password_hash",)

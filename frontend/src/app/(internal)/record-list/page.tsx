@@ -33,18 +33,41 @@ import { AxiosError, AxiosResponse } from "axios";
 const columns: GridColDef[] = [
   { field: "id", headerName: "ID", width: 70 },
   { field: "title", headerName: "Report name", flex: 1 },
-  { field: "created_at", headerName: "Creation Date", flex: 1 },
-  { field: "car_year", headerName: "Car year", flex: 1 },
+  { field: "created_at",
+    headerName: "Creation Date",
+    type: 'date',
+    valueGetter: ({ value }) => value && new Date(value),
+    valueFormatter: ({ value }) => value.toLocaleDateString(),
+    flex: 0.35
+  },
+  { field: "team.name", 
+    headerName: "Team", 
+    valueGetter: (params) => {
+      if (params.row.team){
+        return params.row.team.name
+      } else {
+        return ""
+      }},
+    flex: 0.5 },
+  { field: "subsystem.name", 
+  headerName: "Subsystem", 
+  valueGetter: (params) => {
+    if (params.row.subsystem){
+      return params.row.subsystem.name
+    } else {
+      return ""
+    }},
+  flex: 0.5 },
   {
-    field: "creator.name",
-    headerName: "Creator name",
-    flex: 1,
-    valueGetter: (params) => params.row?.creator?.email,
+    field: "owner.name",
+    headerName: "Owner",
+    flex: 0.5,
+    valueGetter: (params) => params.row.owner.name,
   },
   {
     field: "edit",
     headerName: "Edit",
-    width: 100,
+    flex: 0.15,
     renderCell: (params) => (
       <IconButton
         color="primary"
@@ -58,7 +81,7 @@ const columns: GridColDef[] = [
   {
     field: "view",
     headerName: "View",
-    width: 100,
+    flex: 0.15,
     renderCell: (params) => (
       <IconButton
         color="primary"
@@ -80,8 +103,8 @@ export default function DataTable() {
         const response = await API_CLIENT.get(API_ENDPOINT.RECORD)
           .then((response) => {
             if (response) {
-              console.log(response.data);
               setRows(response.data);
+              console.log(response.data)
             } else {
               console.error("An error occurred");
             }
@@ -128,7 +151,7 @@ export default function DataTable() {
         columns={columns}
         pagination
         pageSizeOptions={[5, 25, 100]}
-        checkboxSelection
+        
       />
     </Card>
   );

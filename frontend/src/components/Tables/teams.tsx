@@ -231,6 +231,8 @@ const TeamTable: React.FC = () => {
         </ButtonGroup>
       </Stack>
       <ChangeLeaderDialog
+        src={selectedRowId}
+        input_id={selectedRowId}
         open={openChangeLeaderDialog}
         onClose={handleCloseChangeLeaderDialog}
         onSubmit={handleChangeLeader}

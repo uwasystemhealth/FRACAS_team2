@@ -89,7 +89,8 @@ function SubsysMenu<T extends FieldValues>({
       .then((response) => {
         if (response.status == 201) {
           fetchSubsystem();
-          setSelectedSubsystem(response.data.id);
+          setSelectedSubsystem(response.data.name);
+          team_id = team_id
         } else {
         }
       })
@@ -104,7 +105,11 @@ function SubsysMenu<T extends FieldValues>({
     <React.Fragment>
       <FormControl fullWidth>
         <InputLabel id="subsystem_name">Subsystem</InputLabel>
-        <Select {...field} label={label} fullWidth>
+        <Select
+        {...field}
+        label={label}
+        fullWidth
+        >
           {subsystems.map((system) => (
             // TODO: change this from key={subsystem.name} to key={subsystem.id}
             // when changing subsystem to be indexed by id number

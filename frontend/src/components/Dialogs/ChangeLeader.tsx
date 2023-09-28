@@ -28,20 +28,26 @@ import MenuItem from '@mui/material/MenuItem';
 import { API_CLIENT, API_ENDPOINT, API_TYPES } from "@/helpers/api";
 
 interface ChangeLeaderDialogProps {
+  input_id: string;
   open: boolean;
   onClose: () => void;
   onSubmit: (id: number) => void;
 }
 
-const ChangeLeaderDialog: React.FC<ChangeLeaderDialogProps> = ({ open, onClose, onSubmit }) => {
+const ChangeLeaderDialog: React.FC<ChangeLeaderDialogProps> = ({ input_id, open, onClose, onSubmit }) => {
   const [users, setUsers] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState<number | undefined>(undefined);
   
   const fetchData = async () => {
     try {
-      await API_CLIENT.get(`/api/v1/user`)
+      await API_CLIENT.get(API_ENDPOINT.USER)
         .then((response) => {
-          setUsers(response.data);
+          console.log(input_id)
+          var team_list = response.data;
+          var team_filtered = team_list.filter(user =>
+            user.team_id === input_id
+          );
+          setUsers(team_filtered);
         })
         .catch((error) => {});
     } catch (error) {}

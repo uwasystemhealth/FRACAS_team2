@@ -33,9 +33,18 @@ import EditIcon from "@mui/icons-material/Edit";
 import Checkbox from "@mui/material/Checkbox";
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
+import GradingIcon from '@mui/icons-material/Grading';
+import TroubleshootIcon from '@mui/icons-material/Troubleshoot';
+import BuildIcon from '@mui/icons-material/Build';
+import PendingActionsOutlinedIcon from '@mui/icons-material/PendingActionsOutlined';
+import DoneOutlineIcon from '@mui/icons-material/DoneOutline';
+import Alert from '@mui/material/Alert'
 import "@/components/styles/viewreport.css";
 import { API_CLIENT, API_ENDPOINT, API_TYPES } from "@/helpers/api";
 import { AxiosError, AxiosResponse } from "axios";
+import { validateConfig } from "next/dist/server/config-shared";
+import { amber, green, orange, blue } from '@mui/material/colors';
+
 
 interface ViewReportProps {
   id: number;
@@ -60,7 +69,6 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
       >(API_ENDPOINT.RECORD + `/${id}`)
         .then((response) => {
           setReport(response.data);
-          console.log(response.data);
           setLoading(false);
         })
         .catch((error: AxiosError<API_TYPES.USER.RESPONSE>) => {
@@ -76,11 +84,74 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
     fetchData();
   }, []);
 
+  const stringToDateTime = (input_date: string) => {
+    var date = new Date(input_date)
+    return date.toLocaleString([], {year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'})
+  }
+
+  const validationSection = (status: boolean, type: string) => {
+    var icon = <GradingIcon fontSize="inherit" />
+    if (type == "Record") {
+      icon = <GradingIcon fontSize="inherit" />
+    } else if (type == "Analysis") {
+      icon = <TroubleshootIcon fontSize="inherit" />
+    } else if (type == "Corrective Action") {
+      icon = <BuildIcon fontSize="inherit" />
+    }
+    if (status) {
+      return <Alert icon={icon} color="success">{type} Validated</Alert>
+    } else {
+      return <Alert icon={icon} color="warning">{type} Validation Pending</Alert>
+    }
+  }
+
+  const reportStatus = () => {
+    if (!report?.record_valid) {
+      return <Typography
+        variant="body2"
+        style={{ fontWeight: "bold" }}
+        color={orange[500]}
+        >
+        PENDING REPORT VALIDATION
+      </Typography>
+    } else if (!report.analysis_valid) {
+      return <Typography
+        variant="body2"
+        style={{ fontWeight: "bold" }}
+        color={amber[500]}
+        >
+        PENDING ANALYSIS VALIDATION
+      </Typography>
+    } else if (!report.corrective_valid) {
+      return <Typography
+        variant="body2"
+        style={{ fontWeight: "bold" }}
+        color={amber[500]}
+        >
+        PENDING CORRECTIVE ACTION VALIDATION
+      </Typography>
+    } else if (!report.time_resolved) {
+      return <Typography
+        variant="body2"
+        style={{ fontWeight: "bold" }}
+        color={blue[500]}
+        >
+        MONITORING CORRECTIVE ACTION
+      </Typography>
+    } else {
+      return <Typography
+        variant="body2"
+        style={{ fontWeight: "bold" }}
+        color={green[500]}
+        >
+        RESOLVED
+      </Typography>
+    }
+  }
+
   return (
     <Box sx={{ width: "100%" }}>
-      <Button className="statusButton" size="small">
-        Pending Review
-      </Button>
+      {reportStatus()}
       <Grid container alignItems="center">
         <Grid xs={6}>
           <Typography
@@ -120,7 +191,7 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
       <Grid container spacing={2}>
         <Grid xs={3}>
           <Typography variant="body2">
-            <b>Date Created:</b> {report?.created_at}
+            <b>Date Created:</b> {stringToDateTime(report?.created_at)}
           </Typography>
         </Grid>
         <Grid xs={3}>
@@ -144,7 +215,7 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
         style={{ margin: "1rem 0", borderColor: "lightblue" }}
       />
       <Typography
-        variant="subtitle1"
+        variant="body1"
         className="sectionTitle"
         style={{ fontWeight: "bold" }}
       >
@@ -153,20 +224,13 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
       <Typography variant="body1" className="sectionText">
         {report?.description}
       </Typography>
-      <Grid container justifyContent="flex-end" spacing={1}>
-        <Checkbox
-          icon={<CheckBoxOutlineBlankIcon fontSize="small" />}
-          checkedIcon={<CheckBoxIcon fontSize="small" />}
-          checked={isChecked1}
-          onChange={() => setIsChecked1(!isChecked1)}
-        />
-      </Grid>
+      {validationSection(report?.record_valid, "Record")}
       <Divider
         variant="fullWidth"
         style={{ margin: "1rem 0", borderColor: "lightblue" }}
       />
       <Typography
-        variant="subtitle1"
+        variant="body1"
         className="sectionTitle"
         style={{ fontWeight: "bold" }}
       >
@@ -176,7 +240,7 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
         {report?.impact}
       </Typography>
       <Typography
-        variant="subtitle1"
+        variant="body1"
         className="sectionTitle"
         style={{ fontWeight: "bold" }}
       >
@@ -186,7 +250,7 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
         {report?.cause}
       </Typography>
       <Typography
-        variant="subtitle1"
+        variant="body1"
         className="sectionTitle"
         style={{ fontWeight: "bold" }}
       >
@@ -195,20 +259,13 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
       <Typography variant="body1" className="sectionText">
         {report?.mechanism}
       </Typography>
-      <Grid container justifyContent="flex-end" spacing={1}>
-        <Checkbox
-          icon={<CheckBoxOutlineBlankIcon fontSize="small" />}
-          checkedIcon={<CheckBoxIcon fontSize="small" />}
-          checked={isChecked2}
-          onChange={() => setIsChecked2(!isChecked2)}
-        />
-      </Grid>
+      {validationSection(report?.analysis_valid, "Analysis")}
       <Divider
         variant="fullWidth"
         style={{ margin: "1rem 0", borderColor: "lightblue" }}
       />
       <Typography
-        variant="subtitle1"
+        variant="body1"
         className="sectionTitle"
         style={{ fontWeight: "bold" }}
       >
@@ -217,23 +274,13 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
       <Typography variant="body1" className="sectionText">
         {report?.corrective_action_plan}
       </Typography>
-      <Grid container justifyContent="flex-end" spacing={1}>
-        <Checkbox
-          icon={<CheckBoxOutlineBlankIcon fontSize="small" />}
-          checkedIcon={<CheckBoxIcon fontSize="small" />}
-          checked={isChecked3}
-          onChange={() => setIsChecked3(!isChecked3)}
-        />
-      </Grid>
+      {validationSection(report?.corrective_valid, "Corrective Action")}
       <Divider
         variant="fullWidth"
         style={{ margin: "1rem 0", borderColor: "lightblue" }}
       />
       <Card className="infoCard">
         <CardContent>
-          <Typography variant="h6" className="sectionTitle">
-            Additional Information
-          </Typography>
           <Grid container spacing={1}>
             <Grid xs={3}>
               <Typography variant="body2">
@@ -252,7 +299,7 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
             </Grid>
             <Grid xs={3}>
               <Typography variant="body2">
-                <b>Time of Failure:</b> {report?.time_of_failure}
+                <b>Time of Failure:</b> {stringToDateTime(report?.time_of_failure)}
               </Typography>
             </Grid>
             <Grid xs={3}>

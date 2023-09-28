@@ -48,7 +48,7 @@ import { AxiosError, AxiosResponse } from "axios";
 import { useRouter } from "next/navigation";
 
 import { get_client_tz } from "@/helpers/client_utils";
-import { DateTimeField, LocalizationProvider } from "@mui/x-date-pickers";
+import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
@@ -56,7 +56,7 @@ import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import URLS from "@/helpers/urls";
 import SubsysMenu from "@/components/ViewReportComponents/SubsystemMenu";
-
+import 'dayjs/locale/en-au'
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(customParseFormat);
@@ -75,6 +75,9 @@ const schema = yup.object().shape({
   corrective_action_plan: yup.string().nullable(),
   car_year: yup.number().nullable(),
   team_id: yup.number().nullable(),
+  record_valid: yup.boolean().nullable(),
+  analysis_valid: yup.boolean().nullable(),
+  corrective_valid: yup.boolean().nullable(),
 });
 export type UserForm = yup.InferType<typeof schema>;
 
@@ -165,6 +168,9 @@ export default function EditReport(props: Props) {
                 mechanism: report.mechanism,
                 corrective_action_plan: report.corrective_action_plan,
                 car_year: report.car_year,
+                record_valid: report.record_valid,
+                analysis_valid: report.analysis_valid,
+                corrective_valid: report.corrective_valid
               });
             } else {
               console.error("An error occurred");
@@ -207,7 +213,7 @@ export default function EditReport(props: Props) {
                 response.data.message
             );
           }
-          router.push(URLS.RECORD_LIST);
+          router.push(URLS.VIEW_REPORT + "/" + record_id);
         })
         .catch((error: AxiosError) => {
           console.error(
@@ -265,6 +271,7 @@ export default function EditReport(props: Props) {
                           error={!!errors.title}
                           helperText={errors.title ? errors.title?.message : ""}
                           fullWidth
+                          InputLabelProps={{ shrink: false }}
                         />
                       )}
                     />
@@ -319,6 +326,7 @@ export default function EditReport(props: Props) {
                           error={!!errors.title}
                           helperText={errors.title ? errors.title?.message : ""}
                           fullWidth
+                          InputLabelProps={{ shrink: true }}
                         />
                       )}
                     />
@@ -333,20 +341,14 @@ export default function EditReport(props: Props) {
                           //   enUS.components.MuiLocalizationProvider.defaultProps
                           //     .localeText
                           // }
-                          dateAdapter={AdapterDayjs}
+                          dateAdapter={AdapterDayjs} adapterLocale="en-au"
                         >
-                          <DateTimeField
-                            format="YYYY-MM-DD[T]HH:mm"
+                          <DateTimePicker
                             {...field}
                             label="Time of Failure"
-                            variant="outlined"
                             // error={!!errors.title}
                             timezone={get_client_tz()}
-                            helperText={
-                              errors.title ? errors.title?.message : ""
-                            }
                             disableFuture={true} // time travellers beware...
-                            fullWidth
                           />
                         </LocalizationProvider>
                       )}
@@ -370,6 +372,7 @@ export default function EditReport(props: Props) {
                           fullWidth
                           multiline
                           minRows={4}
+                          InputLabelProps={{ shrink: true }}
                         />
                       )}
                     />
@@ -377,12 +380,20 @@ export default function EditReport(props: Props) {
                     <Typography variant="h6" gutterBottom>
                       Validation
                     </Typography>
-                    <FormGroup>
+                    <Controller
+                      name="record_valid"
+                      control={control}
+                      defaultValue={false}
+                      render={({ field }) => (
+                        <FormGroup>
                       <FormControlLabel
-                        control={<Checkbox defaultChecked />}
+                        {...field}
+                        control={<Checkbox checked={field.value} />}
                         label="Record Valid?"
                       />
                     </FormGroup>
+                      )}
+                    />
                   </Grid>
                 </Grid>
               </Box>
@@ -406,6 +417,7 @@ export default function EditReport(props: Props) {
                           fullWidth
                           multiline
                           minRows={4}
+                          InputLabelProps={{ shrink: true }}
                         />
                       )}
                     />
@@ -424,6 +436,7 @@ export default function EditReport(props: Props) {
                           fullWidth
                           multiline
                           minRows={4}
+                          InputLabelProps={{ shrink: true }}
                         />
                       )}
                     />
@@ -444,6 +457,7 @@ export default function EditReport(props: Props) {
                           fullWidth
                           multiline
                           minRows={4}
+                          InputLabelProps={{ shrink: true }}
                         />
                       )}
                     />
@@ -451,12 +465,20 @@ export default function EditReport(props: Props) {
                     <Typography variant="h6" gutterBottom>
                       Validation
                     </Typography>
-                    <FormGroup>
+                    <Controller
+                      name="analysis_valid"
+                      control={control}
+                      defaultValue={false}
+                      render={({ field }) => (
+                        <FormGroup>
                       <FormControlLabel
-                        control={<Checkbox defaultChecked />}
+                        {...field}
+                        control={<Checkbox checked={field.value} />}
                         label="Analysis Valid?"
                       />
                     </FormGroup>
+                      )}
+                    />
                   </Grid>
                 </Grid>
               </Box>
@@ -489,12 +511,20 @@ export default function EditReport(props: Props) {
                     <Typography variant="h6" gutterBottom>
                       Validation
                     </Typography>
-                    <FormGroup>
+                    <Controller
+                      name="corrective_valid"
+                      control={control}
+                      defaultValue={false}
+                      render={({ field }) => (
+                        <FormGroup>
                       <FormControlLabel
-                        control={<Checkbox />}
-                        label="Correction Valid?"
+                        {...field}
+                        control={<Checkbox checked={Boolean(field.value)} />}
+                        label="Corrective Action Valid?"
                       />
                     </FormGroup>
+                      )}
+                    />
                   </Grid>
                 </Grid>
               </Box>

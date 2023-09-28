@@ -39,7 +39,7 @@ const ChangeTeamDialog: React.FC<ChangeTeamDialogProps> = ({ open, onClose, onSu
   
   const fetchData = async () => {
     try {
-      await API_CLIENT.get(`/api/v1/team`)
+      await API_CLIENT.get(API_ENDPOINT.TEAM)
         .then((response) => {
           setTeams(response.data);
         })

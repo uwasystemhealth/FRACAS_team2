@@ -148,9 +148,7 @@ def set_superuser(user_id):
     if "superuser" in data:
         user.superuser = data["superuser"]
     if "can_validate" in data:
-        user.superuser = data["can_validate"]
-    if "email" in data:
-        user.email = data["email"]
+        user.can_validate = data["can_validate"]
     if "team_id" in data:
         team = Team.query.get(data["team_id"])
         user.team = team
