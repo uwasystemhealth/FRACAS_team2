@@ -39,18 +39,33 @@ import { API_CLIENT, API_ENDPOINT, TOKEN, API_TYPES } from "@/helpers/api";
 import { useRouter } from "next/navigation";
 import CheckLogin, { PAGE_TYPE } from "./CheckLogin";
 
+enum MESSAGE_TYPE {
+  NONE,
+  NEW_USER,
+  RESET_PASSWORD,
+}
+
 const SignInForm: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [emailError, setEmailError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
-  const [newUser, setNewUser] = useState(false);
+  const [newUser, setNewUser] = useState(MESSAGE_TYPE.NONE);
   const router = useRouter();
 
+  const get_boolean = (param: string | null) =>
+    param !== null && param?.trim() !== "0" && param?.trim() !== "";
+
   useEffect(() => {
-    const param = new URLSearchParams(window.location.search).get("new_user");
-    setNewUser(param !== null && param?.trim() !== "0" && param?.trim() !== "");
+    const new_user = new URLSearchParams(window.location.search).get(
+      "new_user"
+    );
+    const reset_pwd = new URLSearchParams(window.location.search).get(
+      "reset_pwd"
+    );
+    if (get_boolean(new_user)) setNewUser(MESSAGE_TYPE.NEW_USER);
+    else if (get_boolean(reset_pwd)) setNewUser(MESSAGE_TYPE.RESET_PASSWORD);
   }, []);
 
   const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -155,10 +170,9 @@ const SignInForm: React.FC = () => {
           error={passwordError}
           helperText={passwordError && "Password is required."}
         />
-        {/* <FormControlLabel
-            control={<Checkbox value="remember" color="primary" />}
-            label="Remember me"
-          /> */}
+        <Link href="/password-reset-request">
+          <Typography>Forgot password?</Typography>
+        </Link>
         <Button
           type="submit"
           fullWidth
@@ -169,9 +183,15 @@ const SignInForm: React.FC = () => {
         </Button>
         {errorMessage && <Typography color="error">{errorMessage}</Typography>}
         <Grid container>
-          {newUser && (
+          {newUser === MESSAGE_TYPE.NEW_USER && (
             <Alert style={{ width: "100%" }} severity="success">
               <AlertTitle>Registration successful!</AlertTitle>
+              Please login with your credentials.
+            </Alert>
+          )}
+          {newUser === MESSAGE_TYPE.RESET_PASSWORD && (
+            <Alert style={{ width: "100%" }} severity="success">
+              <AlertTitle>Password reset successful!</AlertTitle>
               Please login with your credentials.
             </Alert>
           )}

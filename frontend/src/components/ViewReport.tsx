@@ -33,18 +33,17 @@ import EditIcon from "@mui/icons-material/Edit";
 import Checkbox from "@mui/material/Checkbox";
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
-import GradingIcon from '@mui/icons-material/Grading';
-import TroubleshootIcon from '@mui/icons-material/Troubleshoot';
-import BuildIcon from '@mui/icons-material/Build';
-import PendingActionsOutlinedIcon from '@mui/icons-material/PendingActionsOutlined';
-import DoneOutlineIcon from '@mui/icons-material/DoneOutline';
-import Alert from '@mui/material/Alert'
+import GradingIcon from "@mui/icons-material/Grading";
+import TroubleshootIcon from "@mui/icons-material/Troubleshoot";
+import BuildIcon from "@mui/icons-material/Build";
+import PendingActionsOutlinedIcon from "@mui/icons-material/PendingActionsOutlined";
+import DoneOutlineIcon from "@mui/icons-material/DoneOutline";
+import Alert from "@mui/material/Alert";
 import "@/components/styles/viewreport.css";
 import { API_CLIENT, API_ENDPOINT, API_TYPES } from "@/helpers/api";
 import { AxiosError, AxiosResponse } from "axios";
 import { validateConfig } from "next/dist/server/config-shared";
-import { amber, green, orange, blue } from '@mui/material/colors';
-
+import { amber, green, orange, blue } from "@mui/material/colors";
 
 interface ViewReportProps {
   id: number;
@@ -84,70 +83,94 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
     fetchData();
   }, []);
 
-  const stringToDateTime = (input_date: string) => {
-    var date = new Date(input_date)
-    return date.toLocaleString([], {year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'})
-  }
+  const stringToDateTime = (input_date?: string) => {
+    const date = input_date ? new Date(input_date) : new Date(0);
+    return date.toLocaleString([], {
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   const validationSection = (status: boolean, type: string) => {
-    var icon = <GradingIcon fontSize="inherit" />
+    var icon = <GradingIcon fontSize="inherit" />;
     if (type == "Record") {
-      icon = <GradingIcon fontSize="inherit" />
+      icon = <GradingIcon fontSize="inherit" />;
     } else if (type == "Analysis") {
-      icon = <TroubleshootIcon fontSize="inherit" />
+      icon = <TroubleshootIcon fontSize="inherit" />;
     } else if (type == "Corrective Action") {
-      icon = <BuildIcon fontSize="inherit" />
+      icon = <BuildIcon fontSize="inherit" />;
     }
     if (status) {
-      return <Alert icon={icon} color="success">{type} Validated</Alert>
+      return (
+        <Alert icon={icon} color="success">
+          {type} Validated
+        </Alert>
+      );
     } else {
-      return <Alert icon={icon} color="warning">{type} Validation Pending</Alert>
+      return (
+        <Alert icon={icon} color="warning">
+          {type} Validation Pending
+        </Alert>
+      );
     }
-  }
+  };
 
   const reportStatus = () => {
     if (!report?.record_valid) {
-      return <Typography
-        variant="body2"
-        style={{ fontWeight: "bold" }}
-        color={orange[500]}
+      return (
+        <Typography
+          variant="body2"
+          style={{ fontWeight: "bold" }}
+          color={orange[500]}
         >
-        PENDING REPORT VALIDATION
-      </Typography>
+          PENDING REPORT VALIDATION
+        </Typography>
+      );
     } else if (!report.analysis_valid) {
-      return <Typography
-        variant="body2"
-        style={{ fontWeight: "bold" }}
-        color={amber[500]}
+      return (
+        <Typography
+          variant="body2"
+          style={{ fontWeight: "bold" }}
+          color={amber[500]}
         >
-        PENDING ANALYSIS VALIDATION
-      </Typography>
+          PENDING ANALYSIS VALIDATION
+        </Typography>
+      );
     } else if (!report.corrective_valid) {
-      return <Typography
-        variant="body2"
-        style={{ fontWeight: "bold" }}
-        color={amber[500]}
+      return (
+        <Typography
+          variant="body2"
+          style={{ fontWeight: "bold" }}
+          color={amber[500]}
         >
-        PENDING CORRECTIVE ACTION VALIDATION
-      </Typography>
+          PENDING CORRECTIVE ACTION VALIDATION
+        </Typography>
+      );
     } else if (!report.time_resolved) {
-      return <Typography
-        variant="body2"
-        style={{ fontWeight: "bold" }}
-        color={blue[500]}
+      return (
+        <Typography
+          variant="body2"
+          style={{ fontWeight: "bold" }}
+          color={blue[500]}
         >
-        MONITORING CORRECTIVE ACTION
-      </Typography>
+          MONITORING CORRECTIVE ACTION
+        </Typography>
+      );
     } else {
-      return <Typography
-        variant="body2"
-        style={{ fontWeight: "bold" }}
-        color={green[500]}
+      return (
+        <Typography
+          variant="body2"
+          style={{ fontWeight: "bold" }}
+          color={green[500]}
         >
-        RESOLVED
-      </Typography>
+          RESOLVED
+        </Typography>
+      );
     }
-  }
+  };
 
   return (
     <Box sx={{ width: "100%" }}>
@@ -224,7 +247,7 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
       <Typography variant="body1" className="sectionText">
         {report?.description}
       </Typography>
-      {validationSection(report?.record_valid, "Record")}
+      {validationSection(report?.record_valid || false, "Record")}
       <Divider
         variant="fullWidth"
         style={{ margin: "1rem 0", borderColor: "lightblue" }}
@@ -259,7 +282,7 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
       <Typography variant="body1" className="sectionText">
         {report?.mechanism}
       </Typography>
-      {validationSection(report?.analysis_valid, "Analysis")}
+      {validationSection(report?.analysis_valid || false, "Analysis")}
       <Divider
         variant="fullWidth"
         style={{ margin: "1rem 0", borderColor: "lightblue" }}
@@ -274,7 +297,10 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
       <Typography variant="body1" className="sectionText">
         {report?.corrective_action_plan}
       </Typography>
-      {validationSection(report?.corrective_valid, "Corrective Action")}
+      {validationSection(
+        report?.corrective_valid || false,
+        "Corrective Action"
+      )}
       <Divider
         variant="fullWidth"
         style={{ margin: "1rem 0", borderColor: "lightblue" }}
@@ -299,7 +325,8 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
             </Grid>
             <Grid xs={3}>
               <Typography variant="body2">
-                <b>Time of Failure:</b> {stringToDateTime(report?.time_of_failure)}
+                <b>Time of Failure:</b>{" "}
+                {stringToDateTime(report?.time_of_failure)}
               </Typography>
             </Grid>
             <Grid xs={3}>

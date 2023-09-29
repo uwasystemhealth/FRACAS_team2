@@ -18,16 +18,24 @@
 
 import SignUpForm from "@/components/SignUpForm";
 import { API_ENDPOINT } from "@/helpers/api";
+import { Link, Typography } from "@mui/material";
 import React from "react";
 
 const SignUp = () => (
   <SignUpForm
-    title="Sign up"
-    description="Welcome to Better FRACAS! You have been invited by your team lead to
-join this organization. Please complete registration by setting your
-password."
-    endpoint={API_ENDPOINT.AUTHENTICATION.SIGNUP}
-    url_params="new_user=1"
+    title="Password reset"
+    description={
+      <>
+        <Typography>
+          Enter a new password. And don't lose it this time.
+        </Typography>
+        <Link href="https://en.wikipedia.org/wiki/List_of_password_managers?&useskin=vector">
+          https://en.wikipedia.org/wiki/List_of_password_managers
+        </Link>
+      </>
+    }
+    endpoint={API_ENDPOINT.AUTHENTICATION.PASSWORD_RESET}
+    url_params="reset_pwd=1"
   />
 );
 
