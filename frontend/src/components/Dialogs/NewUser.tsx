@@ -41,7 +41,7 @@ interface NewUserDialogProps {
   onSubmit: (newUser: {
     name: string;
     email: string;
-    password: string;
+    // password: string;
   }) => void;
 }
 
@@ -50,7 +50,7 @@ const NewUser: React.FC<NewUserDialogProps> = ({ open, onClose, onSubmit }) => {
     setUser({
       name: "",
       email: "",
-      password: "",
+      // password: "",
       team: "-1",
     });
     onClose();
@@ -60,7 +60,7 @@ const NewUser: React.FC<NewUserDialogProps> = ({ open, onClose, onSubmit }) => {
   const [user, setUser] = useState({
     name: "",
     email: "",
-    password: "",
+    // password: "",
     team: "-1",
   });
 
@@ -79,7 +79,7 @@ const NewUser: React.FC<NewUserDialogProps> = ({ open, onClose, onSubmit }) => {
     setUser({
       name: "",
       email: "",
-      password: "",
+      // password: "",
       team: "-1",
     });
   };
@@ -136,7 +136,9 @@ const NewUser: React.FC<NewUserDialogProps> = ({ open, onClose, onSubmit }) => {
           value={user.email}
           onChange={handleInputChange}
         />
-        <TextField
+        {/* [!] YOU SHOULD NOT SET A PASSWORD AT THIS STAGE.
+            THIS WILL SET THE PASSWORD _AND_ REGISTER THE USER */}
+        {/* <TextField
           margin="dense"
           label="Password"
           type="password"
@@ -144,7 +146,7 @@ const NewUser: React.FC<NewUserDialogProps> = ({ open, onClose, onSubmit }) => {
           fullWidth
           value={user.password}
           onChange={handleInputChange}
-        />
+        /> */}
         <FormControl fullWidth>
           <InputLabel>Team</InputLabel>
           <Select

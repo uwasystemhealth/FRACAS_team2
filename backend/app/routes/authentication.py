@@ -53,7 +53,7 @@ def login():
             401,
         )
     user: User = User.query.filter_by(email=email).first()
-    if user is None or not user.check_password(password):
+    if user is None or not user.registered or not user.check_password(password):
         return (
             jsonify(
                 {

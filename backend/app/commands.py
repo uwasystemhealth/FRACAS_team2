@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import click
 from pwinput import pwinput
 from app import app, db
 from app.models.authentication import User
@@ -110,3 +111,24 @@ def invite_user():
 
         send_signup_request_email(email)
         return print({"msg": "signup email sent"})
+
+
+# Deletes a user by email address (for real...)
+@app.cli.command("nuke-user")
+@click.argument("email")
+def nuke_user(email):
+    # Find the user by email
+    user = User.query.filter_by(email=email).first()
+
+    if user:
+        if click.confirm(
+            f"Are you sure you want to nuke {user.email} ?\nThis will reset all references to this user in reports"
+        ):
+            # Delete the user
+            db.session.delete(user)
+            db.session.commit()
+            click.echo(f"User with email '{email}' has been deleted.")
+        else:
+            click.echo("Operation canceled.")
+    else:
+        click.echo(f"No user found with email '{email}'.")
