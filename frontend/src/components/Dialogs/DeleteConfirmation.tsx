@@ -29,10 +29,22 @@ import DialogTitle from "@mui/material/DialogTitle";
 interface Props {
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  onDelete: React.MouseEventHandler<HTMLButtonElement> | undefined;
+  onDelete?: React.MouseEventHandler<HTMLButtonElement>;
+  title?: string;
+  description?: string;
 }
 
-const DeleteConfirmation = ({ open, setOpen, onDelete }: Props) => {
+const DEFAULT_TITLE = "Are you sure you want to delete this item?";
+const DEFAULT_DESCRIPTION =
+  "This item will remain accessible to the database administrator, but it will not be visible to users.";
+
+const DeleteConfirmation = ({
+  open,
+  setOpen,
+  onDelete,
+  title = DEFAULT_TITLE,
+  description = DEFAULT_DESCRIPTION,
+}: Props) => {
   const handleClickOpen = () => {
     setOpen(true);
   };
@@ -48,13 +60,10 @@ const DeleteConfirmation = ({ open, setOpen, onDelete }: Props) => {
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
     >
-      <DialogTitle id="alert-dialog-title">
-        {"Are you sure you want to delete this item?"}
-      </DialogTitle>
+      <DialogTitle id="alert-dialog-title">{title}</DialogTitle>
       <DialogContent>
         <DialogContentText id="alert-dialog-description">
-          This item will remain accessible to the database administrator, but it
-          will not be visible to users.
+          {description}
         </DialogContentText>
       </DialogContent>
       <DialogActions>

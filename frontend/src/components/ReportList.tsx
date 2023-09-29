@@ -71,7 +71,7 @@ export function selectCols(data: API_TYPES.REPORT.GET.RESPONSE[]) {
       created_at: e.created_at || "?",
       status: "Open" || "?",
       car_year: e.car_year || -1,
-      creator: e.creator.name || "?",
+      owner: e?.owner?.name || "?",
     };
   });
 }
@@ -87,37 +87,44 @@ export default function ReportList({ rows, setRows /*, showDelete*/ }: Props) {
   const everyoneColumns: GridColDef[] = [
     { field: "id", headerName: "ID", width: 70 },
     { field: "title", headerName: "Report", flex: 1 },
-    { field: "created_at",
-    headerName: "Creation Date",
-    type: 'date',
-    valueGetter: ({ value }) => value && new Date(value),
-    valueFormatter: ({ value }) => value.toLocaleDateString(),
-    flex: 0.35
+    {
+      field: "created_at",
+      headerName: "Creation Date",
+      type: "date",
+      valueGetter: ({ value }) => value && new Date(value),
+      valueFormatter: ({ value }) => value.toLocaleDateString(),
+      flex: 0.35,
     },
-    { field: "team.name", 
-    headerName: "Team", 
-    valueGetter: (params) => {
-      if (params.row.team){
-        return params.row.team.name
-      } else {
-        return ""
-      }},
-    flex: 0.5 },
-    { field: "subsystem.name", 
-    headerName: "Subsystem", 
-    valueGetter: (params) => {
-      if (params.row.subsystem){
-        return params.row.subsystem.name
-      } else {
-        return ""
-      }},
-    flex: 0.5 },
+    {
+      field: "team.name",
+      headerName: "Team",
+      valueGetter: (params) => {
+        if (params.row.team) {
+          return params.row.team.name;
+        } else {
+          return "";
+        }
+      },
+      flex: 0.5,
+    },
+    {
+      field: "subsystem.name",
+      headerName: "Subsystem",
+      valueGetter: (params) => {
+        if (params.row.subsystem) {
+          return params.row.subsystem.name;
+        } else {
+          return "";
+        }
+      },
+      flex: 0.5,
+    },
     { field: "car_year", headerName: "Car year", flex: 1 },
     {
       field: "owner.name",
       headerName: "Owner",
       flex: 0.5,
-      valueGetter: (params) => params.row.owner.name,
+      valueGetter: (params) => params.row.owner,
     },
     {
       field: "edit",
@@ -216,7 +223,7 @@ export default function ReportList({ rows, setRows /*, showDelete*/ }: Props) {
       try {
         const response = await API_CLIENT.get<
           API_TYPES.NULLREQUEST_,
-          AxiosResponse<API_TYPES.REPORT.STATS.GET.RESPONSE[]>
+          AxiosResponse<API_TYPES.USER.RESPONSE>
         >(API_ENDPOINT.USER + "/current", {})
           .then((response) => {
             if (response) {
