@@ -175,7 +175,7 @@ def password_managment(password, token, signup=True):
         # TODO: can set max_age as well for security
         email = serializer.loads(token, salt=app.config["SECURITY_PASSWORD_SALT"])
         user: User = User.query.filter_by(email=email).first()
-        if user is None:
+        if user is None or (not signup and not user.is_registered()):
             return (
                 jsonify(
                     {
