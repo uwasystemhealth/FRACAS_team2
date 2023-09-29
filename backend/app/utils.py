@@ -16,6 +16,7 @@
 
 from functools import wraps
 import json
+import traceback
 from typing import Callable, Literal
 from flask import jsonify
 
@@ -40,6 +41,7 @@ def handle_exceptions(func):
             raise e
         except Exception as e:
             app.logging.error(f"{str(func)} {e} {type(e)} code=500")
+            app.logging.error(traceback.format_exc())
             return jsonify({"err": "generic_error", "msg": str(e)}), 500
 
     return decorated_function

@@ -86,6 +86,7 @@ def get_current_user():
 def add_user():
     data = request.get_json()
     print(data)
+    print(data["team"])
 
     user = User()
 
@@ -103,7 +104,7 @@ def add_user():
         return jsonify({"error": "Password required"}), 400
     if "team" in data:
         team_id = data["team"]
-        if Team.exists(team_id):
+        if Team.query.filter_by(id=team_id).first():
             user.team_id = team_id
         else:
             return jsonify({"error": "Team doesn't exist"}), 400
