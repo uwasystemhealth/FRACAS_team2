@@ -25,7 +25,7 @@ const montserrat = Montserrat({
   display: "swap",
 });
 
-const theme = createTheme({
+const darkTheme = createTheme({
   palette: {
     mode: "dark",
   },
@@ -45,4 +45,26 @@ const theme = createTheme({
   },
 });
 
-export default theme;
+// TODO: Add theme switch
+// Currently only used for printing.
+const lightTheme = createTheme({
+  palette: {
+    mode: "light",
+  },
+  typography: {
+    fontFamily: montserrat.style.fontFamily,
+  },
+  // components: {
+  //   MuiAlert: {
+  //     styleOverrides: {
+  //       root: ({ ownerState }) => ({
+  //         ...(ownerState.severity === "info" && {
+  //           backgroundColor: "#60a5fa",
+  //         }),
+  //       }),
+  //     },
+  //   },
+  // },
+});
+
+export { darkTheme, lightTheme };

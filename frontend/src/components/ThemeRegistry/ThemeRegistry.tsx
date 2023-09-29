@@ -22,20 +22,53 @@ import * as React from "react";
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import NextAppDirEmotionCacheProvider from "./EmotionCache";
-import theme from "./theme";
+import { darkTheme, lightTheme } from "./theme";
+import { useMediaQuery } from "@mui/material";
+import { useEffect, useState } from "react";
+import ReactToPrint from "react-to-print";
 
 export default function ThemeRegistry({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const [isPrinting, setIsPrinting] = useState(false);
+  const [lightMode, setLightMode] = useState(
+    useMediaQuery("(prefers-color-scheme: light)")
+  );
+
+  const checkTerribleMode = () => {
+    if (typeof window === "object") {
+      const url = new URL(window.location.href);
+      const params = new URLSearchParams(url.search);
+      return (params.get("light") || "0") === "1";
+    }
+    return false;
+  };
+
+  useEffect(() => {
+    setLightMode(isPrinting || checkTerribleMode());
+  }, [isPrinting, checkTerribleMode()]);
+
+  useEffect(() => {
+    console.log(isPrinting, lightMode);
+  }, [isPrinting, lightMode]);
+
   return (
-    <NextAppDirEmotionCacheProvider options={{ key: "mui" }}>
-      <ThemeProvider theme={theme}>
-        {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
-        <CssBaseline />
-        {children}
-      </ThemeProvider>
-    </NextAppDirEmotionCacheProvider>
+    <>
+      <ReactToPrint
+        onBeforeGetContent={() => setIsPrinting(true)}
+        onBeforePrint={() => setIsPrinting(true)}
+        onAfterPrint={() => setIsPrinting(false)}
+        content={() => null}
+      />
+      <NextAppDirEmotionCacheProvider options={{ key: "mui" }}>
+        <ThemeProvider theme={lightMode ? lightTheme : darkTheme}>
+          {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
+          <CssBaseline />
+          {children}
+        </ThemeProvider>
+      </NextAppDirEmotionCacheProvider>
+    </>
   );
 }
