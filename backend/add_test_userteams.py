@@ -20,72 +20,73 @@ from app.models.team import Team
 
 password = "test"
 
-with app.app_context():
-    # Superuser account
-    admin = User(email="admin@test.com",name="Admin",superuser=True)
-    admin.set_password_and_register(password)
-    db.session.add(admin)
-    db.session.commit()
+def add_test_userteams():
+    with app.app_context():
+        # Superuser account
+        admin = User(email="admin@test.com",name="Admin",superuser=True)
+        admin.set_password_and_register(password)
+        db.session.add(admin)
+        db.session.commit()
 
-    """
-    userteam_populate = []
-    Populates database with User & Teams
+        """
+        userteam_populate = []
+        Populates database with User & Teams
 
-    FORMAT:
-    [
-    Team(name of team)
-    User(this user will be assigned as team leader)
-
-    User(regular members of team)
-    (etc..)
-    ],
-    """
-    userteam_populate = [
-
+        FORMAT:
         [
-            Team(name="Mercedes AMG"),
-            User(email="wolff@test.com",name="Toto Wolff"),
+        Team(name of team)
+        User(this user will be assigned as team leader)
 
-            User(email="hamilton@test.com",name="Lewis Hamilton"),
-            User(email="russell@test.com",name="George Russell"),
-            User(email="schumacher@test.com",name="Mick Schumacher"),
+        User(regular members of team)
+        (etc..)
         ],
+        """
+        userteam_populate = [
 
-        [
-            Team(name="Red Bull racing"),
-            User(email="horner@test.com",name="Christian Horner"),
+            [
+                Team(name="Mercedes AMG"),
+                User(email="wolff@test.com",name="Toto Wolff"),
+
+                User(email="hamilton@test.com",name="Lewis Hamilton"),
+                User(email="russell@test.com",name="George Russell"),
+                User(email="schumacher@test.com",name="Mick Schumacher"),
+            ],
+
+            [
+                Team(name="Red Bull racing"),
+                User(email="horner@test.com",name="Christian Horner"),
+                
+                User(email="verstappen@test.com",name="Max Verstappen"),
+                User(email="perez@test.com",name="Sergio Perez"),
+                User(email="lawson@test.com",name="Liam Lawson"),
+            ],
+        ]
+
+
+        for userteam in userteam_populate:
+            team = userteam[0]
+            leader = userteam[1]
+            db.session.add(team)
+            leader.set_password_and_register(password)
+            db.session.add(leader)
+            db.session.commit()
+
+            db.session.refresh(team)
+            db.session.refresh(leader)
+            team.members.append(leader)
+            db.session.commit()
             
-            User(email="verstappen@test.com",name="Max Verstappen"),
-            User(email="perez@test.com",name="Sergio Perez"),
-            User(email="lawson@test.com",name="Liam Lawson"),
-        ],
-    ]
+            db.session.refresh(team)
+            db.session.refresh(leader)
+            team.leader = leader
 
+            for i in range(2,len(userteam)):
+                member = userteam[i]
+                member.set_password_and_register(password)
+                db.session.add(member)
+                team.members.append(member)
 
-    for userteam in userteam_populate:
-        team = userteam[0]
-        leader = userteam[1]
-        db.session.add(team)
-        leader.set_password_and_register(password)
-        db.session.add(leader)
-        db.session.commit()
-
-        db.session.refresh(team)
-        db.session.refresh(leader)
-        team.members.append(leader)
-        db.session.commit()
-        
-        db.session.refresh(team)
-        db.session.refresh(leader)
-        team.leader = leader
-
-        for i in range(2,len(userteam)):
-            member = userteam[i]
-            member.set_password_and_register(password)
-            db.session.add(member)
-            team.members.append(member)
-
-        db.session.commit()
+            db.session.commit()
 
 
 
