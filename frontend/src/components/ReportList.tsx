@@ -25,18 +25,23 @@ import {
   GridCellParams,
   GridColDef,
   GridValueGetterParams,
+  GridRenderCellParams, 
+  GridToolbar,
   MuiEvent,
 } from "@mui/x-data-grid";
 import TextField from "@mui/material/TextField";
 import Card from "@mui/material/Card";
 import IconButton from "@mui/material/IconButton";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import Link from '@mui/material/Link';
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { boolean, date } from "yup";
 import { useEffect, useState } from "react";
 import { API_CLIENT, API_ENDPOINT, API_TYPES } from "@/helpers/api";
 import { AxiosError, AxiosResponse } from "axios";
+import Grid from '@mui/material/Unstable_Grid2';
+import Box from '@mui/material/Box';
 
 const disableSelectBtns = (
   params: GridCellParams,
@@ -52,7 +57,7 @@ export interface UserReport {
   id: number;
   created_at: string;
   title: string;
-  creator: string;
+  owner: string;
   status: string;
   car_year: number;
 }
@@ -63,18 +68,44 @@ export interface Props {
   // showDelete: boolean;
 }
 
-export function selectCols(data: API_TYPES.REPORT.GET.RESPONSE[]) {
-  return data.map((e) => {
-    return {
-      id: e.id || -1,
-      title: e.title || "?",
-      created_at: e.created_at || "?",
-      status: "Open" || "?",
-      car_year: e.car_year || -1,
-      creator: e.creator.name || "?",
-    };
-  });
-}
+// Filtering can be done when the columns are defined, in case
+// columns need to be changed in the future
+//
+// export function selectCols(data: API_TYPES.REPORT.GET.RESPONSE[]) {
+//   console.log(data);
+//   return data.map((e) => {
+//     return {
+//       id: e.id || -1,
+//       title: e.title || "?",
+//       created_at: e.created_at || "?",
+//       status: "Open" || "?",
+//       car_year: e.car_year || -1,
+//       creator: e.creator.name || "?",
+//     };
+//   });
+// }
+
+// Function to show description as a column
+// function ExpandableCell({ value }: GridRenderCellParams) {
+//   const [expanded, setExpanded] = React.useState(false);
+
+//   return (
+//     <div>
+//       {expanded ? value : value.slice(0, 200)}&nbsp;
+//       {value.length > 200 && (
+//         // eslint-disable-next-line jsx-a11y/anchor-is-valid
+//         <Link
+//           type="button"
+//           component="button"
+//           sx={{ fontSize: 'inherit' }}
+//           onClick={() => setExpanded(!expanded)}
+//         >
+//           {expanded ? 'view less' : 'view more'}
+//         </Link>
+//       )}
+//     </div>
+//   );
+// }
 
 export default function ReportList({ rows, setRows /*, showDelete*/ }: Props) {
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -84,49 +115,151 @@ export default function ReportList({ rows, setRows /*, showDelete*/ }: Props) {
   >(undefined);
   const [showDelete, setShowDelete] = useState(false);
 
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+  };
+
+  const getObjectName = (e: Object) => {
+    if (e) {
+      if (e.name) {
+        return e.name
+      } else {
+        return ""
+      }
+    }
+    return ""
+  }
+
   const everyoneColumns: GridColDef[] = [
-    { field: "id", headerName: "ID", width: 70 },
-    { field: "title", headerName: "Report", flex: 1 },
+    //{ field: "id", headerName: "ID", width: 70 },
+    // {
+    //   field: "view",
+    //   headerName: "View",
+    //   flex: 0.15,
+    //   align: "center",
+    //   headerAlign: "center",
+    //   sortable: false,
+    //   filterable: false,
+    //   renderCell: (params) => (
+    //     <IconButton
+    //       color="primary"
+    //       aria-label="View"
+    //       href={`/viewreport/${params.row.id}`}
+    //     >
+    //       <VisibilityIcon />
+    //     </IconButton>
+    //   ),
+    // },
+    { field: "title", 
+      headerName: "Report",
+      minWidth: 200,
+      flex: 0.5,
+      filterable: false,
+      align: "left",
+      
+      renderCell: (params) => (
+        <Link href={`/viewreport/${params.row.id}`} 
+        sx={{ fontWeight: 'bold', whiteSpace: 'pre-wrap', overflowWrap: 'break-word'}}>
+          {params.row.title}
+        </Link>
+      ),
+     },
+     { field: "description", 
+      headerName: "Description",
+      minWidth: 150,
+      flex: 0.50,
+      filterable: false,
+      align: "left",
+      valueGetter: (params) => {
+        if (params.row.description){
+          return params.row.description
+        } else {
+          return "..."
+        }},
+      renderCell: (params) => (
+        <div style={{textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden'}}>
+        <i>{params.row.description || "..."}</i>
+        </div>
+      )
+     },
     { field: "created_at",
-    headerName: "Creation Date",
+    headerName: "Created At",
     type: 'date',
     valueGetter: ({ value }) => value && new Date(value),
     valueFormatter: ({ value }) => value.toLocaleDateString(),
-    flex: 0.35
+    width: 100,
+    //flex: 0.25,
     },
-    { field: "team.name", 
-    headerName: "Team", 
+    { field: "team", 
+    headerName: "Team (Subsystem)", 
     valueGetter: (params) => {
-      if (params.row.team){
+      if (params.row.team && params.row.subsystem){
+        return params.row.team.name + " / " + params.row.subsystem.name
+      } else if (params.row.team) {
         return params.row.team.name
       } else {
         return ""
       }},
-    flex: 0.5 },
-    { field: "subsystem.name", 
-    headerName: "Subsystem", 
-    valueGetter: (params) => {
-      if (params.row.subsystem){
-        return params.row.subsystem.name
-      } else {
-        return ""
-      }},
-    flex: 0.5 },
-    { field: "car_year", headerName: "Car year", flex: 1 },
+    renderCell: (params) => (
+      <div>
+      <b>{getObjectName(params.row.team) || "..."}</b><br/>{"↳ " + (getObjectName(params.row.subsystem) || "...")}
+      </div>
+    ),
+    
+    minWidth: 150,
+    flex: 0.5, 
+    },
+    // { field: "subsystem.name", 
+    // headerName: "Subsystem", 
+    // align: "center",
+    // headerAlign: "center",
+    // valueGetter: (params) => {
+    //   if (params.row.subsystem){
+    //     return params.row.subsystem.name
+    //   } else {
+    //     return ""
+    //   }},
+    // flex: 0.5 
+    // },
+    { 
+    field: "car_year", 
+    headerName: "Car Year", 
+    width: 70,
+    type: 'number',
+    valueGetter: ({ value }) => value && Number(value),
+    valueFormatter: ({ value }) => value.toString(),
+    },
     {
-      field: "owner.name",
+      field: "owner",
       headerName: "Owner",
-      flex: 0.5,
-      valueGetter: (params) => params.row.owner.name,
+      minWidth: 100,
+      flex: 0.35,
+      renderCell: (params) => (
+        <div>
+        {(getObjectName(params.row.owner) || getObjectName(params.row.creator)) || "..."}
+        </div>
+      ),
+    },
+    {
+      field: "creator",
+      headerName: "Creator",
+      minWidth: 100,
+      flex: 0.35,
+      renderCell: (params) => (
+        <div>
+        {getObjectName(params.row.creator) || "..."}
+        </div>
+      ),
     },
     {
       field: "edit",
       headerName: "Edit",
-      flex: 0.15,
+      width: 25,
       align: "center",
       headerAlign: "center",
       sortable: false,
       filterable: false,
+      disableColumnMenu: true,
       renderCell: (params) => (
         <IconButton
           color="primary"
@@ -137,35 +270,18 @@ export default function ReportList({ rows, setRows /*, showDelete*/ }: Props) {
         </IconButton>
       ),
     },
-    {
-      field: "view",
-      headerName: "View",
-      flex: 0.15,
-      align: "center",
-      headerAlign: "center",
-      sortable: false,
-      filterable: false,
-      renderCell: (params) => (
-        <IconButton
-          color="primary"
-          aria-label="View"
-          href={`/viewreport/${params.row.id}`}
-        >
-          <VisibilityIcon />
-        </IconButton>
-      ),
-    },
   ];
 
   const superColumns: GridColDef[] = [
     {
       field: "delete",
       headerName: "Delete",
-      width: 75,
+      width: 70,
       align: "center",
       headerAlign: "center",
       sortable: false,
       filterable: false,
+      disableColumnMenu: true,
       renderCell: (params) => (
         <IconButton
           color="primary"
@@ -200,15 +316,16 @@ export default function ReportList({ rows, setRows /*, showDelete*/ }: Props) {
     ? [...everyoneColumns, ...superColumns]
     : everyoneColumns;
 
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(event.target.value);
-  };
-
   const filteredRows = rows.filter((row) =>
-    Object.values(row).some((value) =>
-      value?.toString().toLowerCase().includes(searchTerm.toLowerCase())
+    Object.entries(row).some((value) =>
+      {if (typeof value[1] === 'object') {
+        return value[1]?.name.toString().toLowerCase().includes(searchTerm.toLowerCase());
+      } else if (value[0] != ("created_at" || "modified_at")) {
+        return value[1]?.toString().toLowerCase().includes(searchTerm.toLowerCase());
+      };}
     )
   );
+  //console.log(filteredRows)
 
   // Get user privileges
   useEffect(() => {
@@ -220,7 +337,6 @@ export default function ReportList({ rows, setRows /*, showDelete*/ }: Props) {
         >(API_ENDPOINT.USER + "/current", {})
           .then((response) => {
             if (response) {
-              console.log(response.data);
               if (response.data.leading != undefined) {
                 setShowDelete(true);
               }
@@ -238,7 +354,7 @@ export default function ReportList({ rows, setRows /*, showDelete*/ }: Props) {
   }, []);
 
   return (
-    <>
+    <Box sx={{ width: '100%' }}>
       <DeleteConfirmation
         open={showDeleteDialog}
         setOpen={setShowDeleteDialog}
@@ -247,28 +363,45 @@ export default function ReportList({ rows, setRows /*, showDelete*/ }: Props) {
       <Card
         style={{
           padding: 10,
-          maxWidth: "100%",
+          width: "100%",
           margin: "0 auto",
         }}
       >
-        <TextField
-          label="Search"
-          value={searchTerm}
-          onChange={handleSearchChange}
-          variant="outlined"
-          fullWidth
-          sx={{ marginBottom: 2 }}
-        />
+      <Grid container spacing={{ xs: 1, md: 2 }} marginBottom={{ xs: 1, md: 2 }} sx={{width: "100%"}}>
+        <Grid sx={{ width: "100%" }}>
+          <TextField
+            label="Search"
+            value={searchTerm}
+            onChange={handleSearchChange}
+            variant="outlined"
+            fullWidth
+          />
+        </Grid>
+        <Grid sx={{ width: "100%" }}>
         <DataGrid
+          initialState={{
+            columns: {
+              columnVisibilityModel: {
+                // Hide columns at initial mount
+                creator: false,
+              },
+            },
+          }}
           rows={filteredRows}
           columns={columns}
           pagination
           pageSizeOptions={[5, 25, 100]}
-          checkboxSelection
+          //checkboxSelection
           onCellClick={disableSelectBtns}
-          sortModel={[{ field: "created_at", sort: "desc" }]}
+          getEstimatedRowHeight={() => 120}
+          getRowHeight={() => 'auto'}
+          //sortModel={[{ field: "created_at", sort: "desc" }]}
+          autoHeight {...filteredRows}
+          sx={{ overflowX: 'scroll' }}
         />
+        </Grid>
+      </Grid>
       </Card>
-    </>
+    </Box>
   );
 }
