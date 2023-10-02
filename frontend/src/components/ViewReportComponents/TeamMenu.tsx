@@ -40,7 +40,7 @@ interface Props<T extends FieldValues> {
   id: string;
   label: string;
   teams: Team[];
-  // onSelectTeam: (teamId: string) => void;
+  onSelectTeam: (teamId: string) => void;
   control: Control<T> | undefined;
 }
 
@@ -52,7 +52,7 @@ function TeamMenu<T extends FieldValues>(props: Props<T>) {
     teams,
     name,
     id,
-    // onSelectTeam,
+    onSelectTeam,
     control,
   } = props;
   return (
@@ -69,6 +69,7 @@ function TeamMenu<T extends FieldValues>(props: Props<T>) {
             id={id}
             label={label}
             value={field.value}
+            //onChange={}
             fullWidth
           >
             {teams.map((team) => (

@@ -66,9 +66,9 @@ const steps = ["Record", "Analysis", "Correction"];
 
 const schema = yup.object().shape({
   title: yup.string().nullable(),
-  description: yup.string().nullable(), //.min
+  description: yup.string().nullable(),
   subsystem_name: yup.string().nullable(),
-  time_of_failure: yup.string().required(),
+  time_of_failure: yup.string(),
   impact: yup.string().nullable(),
   cause: yup.string().nullable(),
   mechanism: yup.string().nullable(),
@@ -94,6 +94,7 @@ export default function EditReport(props: Props) {
   const [activeStep, setActiveStep] = useState(0);
   const [teams, setTeams] = useState<API_TYPES.TEAM.GET.RESPONSE[]>([]);
   const router = useRouter();
+  const [canValidate, setCanValidate] = useState(false);
 
   const {
     register,
@@ -109,8 +110,33 @@ export default function EditReport(props: Props) {
   const [subsystems, setSubsystems] = useState<
     API_TYPES.SUBSYSTEM.GET.RESPONSE[]
   >([]);
+
   useEffect(() => {
     (async () => {
+      try {
+        setCanValidate(false);
+        const response = await API_CLIENT.get<
+          API_TYPES.NULLREQUEST_,
+          AxiosResponse<API_TYPES.REPORT.STATS.GET.RESPONSE[]>
+        >(API_ENDPOINT.USER + "/current", {})
+          .then((response) => {
+            if (response) {
+              console.log(response.data)
+              if (response.data.leading != undefined ||
+                  response.data.can_validate ||
+                  response.data.superuser) {
+                setCanValidate(true);
+              }
+            } else {
+              console.error("An error occurred");
+            }
+          })
+          .catch((error: AxiosError) => {
+            console.error("An error occurred " + error.message);
+          });
+
+        // Do something with the token (e.g., store it)
+      } catch (error: any) {}
       try {
         const response = await API_CLIENT.get<
           any,
@@ -229,7 +255,6 @@ export default function EditReport(props: Props) {
 
   return (
     <Box sx={{ width: "100%" }}>
-      <h1>{}</h1>
       <Stepper activeStep={activeStep}>
         {steps.map((label, index) => {
           const stepProps: { completed?: boolean } = {};
@@ -388,7 +413,7 @@ export default function EditReport(props: Props) {
                         <FormGroup>
                       <FormControlLabel
                         {...field}
-                        control={<Checkbox checked={field.value} />}
+                        control={<Checkbox disabled={canValidate} checked={field.value}/>}
                         label="Record Valid?"
                       />
                     </FormGroup>
@@ -473,7 +498,7 @@ export default function EditReport(props: Props) {
                         <FormGroup>
                       <FormControlLabel
                         {...field}
-                        control={<Checkbox checked={field.value} />}
+                        control={<Checkbox disabled={canValidate} checked={field.value} />}
                         label="Analysis Valid?"
                       />
                     </FormGroup>
@@ -504,10 +529,12 @@ export default function EditReport(props: Props) {
                           fullWidth
                           multiline
                           minRows={4}
+                          InputLabelProps={{ shrink: true }}
                         />
                       )}
                     />
                     <Divider sx={{ my: 3 }} />
+                    {true }
                     <Typography variant="h6" gutterBottom>
                       Validation
                     </Typography>
@@ -519,7 +546,7 @@ export default function EditReport(props: Props) {
                         <FormGroup>
                       <FormControlLabel
                         {...field}
-                        control={<Checkbox checked={Boolean(field.value)} />}
+                        control={<Checkbox disabled={canValidate} checked={Boolean(field.value)}/>}
                         label="Corrective Action Valid?"
                       />
                     </FormGroup>

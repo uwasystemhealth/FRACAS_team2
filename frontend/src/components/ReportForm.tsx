@@ -30,6 +30,7 @@ import {
   TextField,
 } from "@mui/material/";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import * as yup from "yup";
 
@@ -84,23 +85,27 @@ interface CurrentUser {
   team_id: number;
 }
 
-const defaultYear = new Date().getFullYear();
+const defaultYear = dayjs(new Date());
 const time_of_failure = dayjs(new Date());
 
+
 const schema = yup.object().shape({
-  title: yup.string(), //.required(),
-  description: yup.string(), //.min(5).required(),
-  subsystem_name: yup.string(), //.required(),
+  title: yup.string().required(),
+  description: yup.string().min(5).required(),
+  subsystem_name: yup.string(),
   time_of_failure: yup
     .string()
-    .default(time_of_failure.format(API_DATE_FORMAT).toString())
+    .default(time_of_failure.toString())
     .required(),
   impact: yup.string(),
   cause: yup.string(),
   mechanism: yup.string(),
   corrective_action_plan: yup.string(),
-  car_year: yup.number().default(defaultYear),
-  team_id: yup.number(), //.required(),
+  car_year: yup
+    .string()
+    .default(defaultYear.toString())
+    .required(),
+  team_id: yup.number(),
 });
 
 export type UserForm = yup.InferType<typeof schema>;
@@ -172,6 +177,7 @@ const ReportForm: React.FC = (props: Props) => {
     setSubmitted(true);
     //  Not efficient, but I cannot find out how to override the default date format, since react-hook-form abstracts away the string conversion so we can't use .format().
     data.time_of_failure = dayjs(data.time_of_failure).format(API_DATE_FORMAT);
+    data.car_year = dayjs(data.car_year).year().toString();
     (async () => {
       await API_CLIENT.post(API_ENDPOINT.RECORD, data)
         .then((response) => {
@@ -319,15 +325,14 @@ const ReportForm: React.FC = (props: Props) => {
                       name="car_year"
                       control={control}
                       render={({ field }) => (
-                        <TextField
+                        <LocalizationProvider dateAdapter={AdapterDayjs}>
+                          <DatePicker
                           {...field}
                           label="Car Year"
-                          variant="outlined"
-                          error={!!errors.title}
-                          helperText={errors.title ? errors.title?.message : ""}
                           defaultValue={defaultYear}
-                          fullWidth
-                        />
+                          views={['year']}
+                          />
+                        </LocalizationProvider>
                       )}
                     />
                   </Grid>

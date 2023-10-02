@@ -90,7 +90,6 @@ function SubsysMenu<T extends FieldValues>({
         if (response.status == 201) {
           fetchSubsystem();
           setSelectedSubsystem(response.data.name);
-          team_id = team_id
         } else {
         }
       })
