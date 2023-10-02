@@ -43,7 +43,7 @@ const columns: GridColDef[] = [
 ];
 
 const TeamTable: React.FC = () => {
-  const [selectedRowId, setSelectedRowId] = useState<number | null>(null);
+  const [selectedRowId, setSelectedRowId] = useState<string>('');
   const [ButtonsDisabled, setButtonsDisabled] = useState(true);
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
