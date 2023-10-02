@@ -131,7 +131,7 @@ def delete_user(user_id):
 @app.route("/api/v1/user/<int:user_id>", methods=["PUT"])
 @handle_exceptions
 @superuser_jwt_required
-def set_superuser(user_id):
+def update_user(user_id):
     user = User.query.get(user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404

@@ -57,9 +57,6 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [report, setReport] = useState<API_TYPES.REPORT.GET.RESPONSE>();
-  const toggleBookmark = () => {
-    setIsBookmarked(!isBookmarked);
-  };
 
   const fetchData = async () => {
     try {
@@ -76,6 +73,39 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
         });
     } catch (error) {
       setLoading(false);
+    }
+    try {
+      await API_CLIENT.get(API_ENDPOINT.BOOKMARK + `/${id}`)
+        .then((response) => {
+          if (response.data == true) {
+            setIsBookmarked(true)
+          } else {
+            setIsBookmarked(false)
+          }
+        })
+        .catch((error: AxiosError<API_TYPES.USER.RESPONSE>) => {
+        });
+    } catch (error) {
+    }
+  };
+
+  const toggleBookmark = async () => {
+    try {
+      await API_CLIENT.post(API_ENDPOINT.BOOKMARK + `/${id}`)
+        .then((response) => {
+          if (response.status == 200) {
+            if (response.data == true) {
+              setIsBookmarked(true)
+            } else {
+              setIsBookmarked(false)
+            }
+          } else {
+            console.error("Bookmark Failed!")
+          }
+        })
+        .catch((error: AxiosError<API_TYPES.USER.RESPONSE>) => {
+        });
+    } catch (error) {
     }
   };
 

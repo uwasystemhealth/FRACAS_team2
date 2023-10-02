@@ -20,7 +20,9 @@ export const API_ENDPOINT = {
   RECORD_STATS: `${BASE_API_PATH}/record/stats`,
   SUBSYSTEM: `${BASE_API_PATH}/subsystem`,
   USER: `${BASE_API_PATH}/user`,
-  TEAM: `${BASE_API_PATH}/team`, // TODO: add /lead
+  TEAM: `${BASE_API_PATH}/team`,
+  BOOKMARK: `${BASE_API_PATH}/bookmark`,
+  // TODO: add /lead
 };
 
 export namespace API_TYPES {

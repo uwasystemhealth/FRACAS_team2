@@ -19,7 +19,6 @@ from sqlalchemy_serializer import SerializerMixin
 from app import db
 from app.models.team import Team
 
-
 class Subsystem(db.Model, SerializerMixin):
     serialize_rules = (
         "-team.subsystems",
@@ -52,9 +51,11 @@ class Record(db.Model, SerializerMixin):
         "-creator.created_records",
         "-creator.owned_records",
         "-creator.team.records",
+        "-creator.bookmarked",
         "-owner.created_records",
         "-owner.owned_records",
         "-owner.team.records",
+        "-owner.bookmarked",
         "-subsystem.records",
         "-subsystem.team.records",
         "-team.records",

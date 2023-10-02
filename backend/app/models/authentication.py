@@ -22,6 +22,7 @@ from sqlalchemy import func
 from sqlalchemy.sql import expression
 from app import db, jwt
 from datetime import datetime
+from app.models.record import Record
 
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -30,7 +31,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 # delete a user for testing
 # db.session.delete(User.query.filter_by(email='').first())
 # db.session.commit()
-
 
 class User(db.Model, SerializerMixin):
     serialize_only = (
@@ -45,6 +45,7 @@ class User(db.Model, SerializerMixin):
         "team_id",
         "team",
         "leading",
+        "bookmarked.id",
     )
     serialize_rules = (
         "-password_hash",
@@ -98,6 +99,9 @@ class User(db.Model, SerializerMixin):
     owned_records = db.relationship(
         "Record", back_populates="owner", foreign_keys="Record.owner_id"
     )
+    bookmarked = db.relationship(
+        "Record", secondary='user_record'
+    )
 
     def __repr__(self):
         return f"<User {self.email} {'(UNREGISTERED)' if not self.registered else ''}>"
@@ -124,7 +128,10 @@ class User(db.Model, SerializerMixin):
         self.superuser = superuser
 
     def is_leading_team(self) -> bool:
-        return bool(self.team_leader)
+        if (self.leading):
+            return True
+        else:
+            return False
 
     def remove(self):
         if (self.created_records is None) & (self.created_records is None):
@@ -148,6 +155,11 @@ class TokenBlacklist(db.Model):
         server_default=func.now(),
         nullable=False,
     )
+
+user_record = db.Table("user_record",
+                db.Column("user_id", db.ForeignKey(User.id), primary_key=True),
+                db.Column("record_id", db.ForeignKey(Record.id), primary_key=True),
+                )
 
 
 @jwt.user_lookup_loader
