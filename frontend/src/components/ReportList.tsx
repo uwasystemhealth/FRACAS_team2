@@ -333,7 +333,7 @@ export default function ReportList({ rows, setRows /*, showDelete*/ }: Props) {
       try {
         const response = await API_CLIENT.get<
           API_TYPES.NULLREQUEST_,
-          AxiosResponse<API_TYPES.REPORT.STATS.GET.RESPONSE[]>
+          AxiosResponse<API_TYPES.USER.RESPONSE>
         >(API_ENDPOINT.USER + "/current", {})
           .then((response) => {
             if (response) {

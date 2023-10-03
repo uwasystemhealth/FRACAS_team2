@@ -71,7 +71,7 @@ export namespace API_TYPES {
       // teams: number[];
       team_id?: number;
       team?: TEAM.GET.RESPONSE;
-      leading_team?: TEAM.GET.RESPONSE;
+      leading?: TEAM.GET.RESPONSE;
     }
   }
 
