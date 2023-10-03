@@ -73,7 +73,7 @@ function TeamMenu<T extends FieldValues>(props: Props<T>) {
             fullWidth
           >
             {teams.map((team) => (
-              <MenuItem value={team.id}>{team.name}</MenuItem>
+              <MenuItem key={team.id} value={team.id}>{team.name}</MenuItem>
             ))}
           </Select>
           <FormHelperText>Select a team</FormHelperText>

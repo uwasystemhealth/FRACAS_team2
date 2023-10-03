@@ -17,7 +17,6 @@
  */
 
 import { Box } from "@mui/material";
-import { styled, useTheme, Theme, CSSObject } from "@mui/material/styles";
 import ThemeRegistry from "@/components/ThemeRegistry/ThemeRegistry";
 
 export default function RootLayout({

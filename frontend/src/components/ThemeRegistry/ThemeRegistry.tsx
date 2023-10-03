@@ -51,7 +51,6 @@ export default function ThemeRegistry({
   }, [isPrinting, checkTerribleMode()]);
 
   useEffect(() => {
-    console.log(isPrinting, lightMode);
   }, [isPrinting, lightMode]);
 
   return (

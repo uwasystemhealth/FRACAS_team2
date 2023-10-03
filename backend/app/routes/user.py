@@ -56,6 +56,18 @@ def list_users():
     users = User.query.filter_by(registered=True).all()
     return user_json(users), 200
 
+@app.route("/api/v1/user/can_validate", methods=["GET"])
+@handle_exceptions
+@user_jwt_required
+# Checks user validation permission
+def can_validate():
+    identity = get_jwt_identity()
+    user = User.query.filter_by(email=identity).first()
+    if (user.can_validate or user.leading or user.superuser):
+        return jsonify(True), 200
+    else:
+        return jsonify(False), 200
+
 
 @app.route("/api/v1/user/<int:user_id>", methods=["GET"])
 @handle_exceptions

@@ -111,73 +111,45 @@ export default function EditReport(props: Props) {
     API_TYPES.SUBSYSTEM.GET.RESPONSE[]
   >([]);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        setCanValidate(false);
-        const response = await API_CLIENT.get<
-          API_TYPES.NULLREQUEST_,
-          AxiosResponse<API_TYPES.REPORT.STATS.GET.RESPONSE[]>
-        >(API_ENDPOINT.USER + "/current", {})
-          .then((response) => {
-            if (response) {
-              console.log(response.data)
-              if (response.data.leading != undefined ||
-                  response.data.can_validate ||
-                  response.data.superuser) {
-                setCanValidate(true);
-              }
-            } else {
-              console.error("An error occurred");
-            }
-          })
-          .catch((error: AxiosError) => {
-            console.error("An error occurred " + error.message);
-          });
+  const checkCanValidate = async () => {
+    const response = await API_CLIENT.get(API_ENDPOINT.USER + "/can_validate")
+      .then((response) => {
+        if (response.data) {
+          setCanValidate(true);
+        } else {
+          console.error("An error occurred");
+        }
+      })
+      .catch((error: AxiosError) => {
+        console.error("An error occurred " + error.message);
+      });
+  }
 
-        // Do something with the token (e.g., store it)
-      } catch (error: any) {}
-      try {
-        const response = await API_CLIENT.get<
-          any,
-          AxiosResponse<API_TYPES.SUBSYSTEM.GET.RESPONSE[]>
-        >(API_ENDPOINT.SUBSYSTEM, {})
-          .then((response) => {
-            if (response) {
-              setSubsystems(response.data);
-            } else {
-              console.error("An error occurred");
-            }
-          })
-          .catch((error: AxiosError) => {
-            console.error("An error occurred " + error.message);
-          });
-      } catch (error: any) {}
-      try {
-        const response = await API_CLIENT.get<
-          any,
-          AxiosResponse<API_TYPES.TEAM.GET.RESPONSE[]>
-        >(API_ENDPOINT.TEAM, {})
-          .then((response) => {
-            if (response) {
-              setTeams(response.data);
-            } else {
-              console.error("An error occurred");
-            }
-          })
-          .catch((error: AxiosError) => {
-            console.error("An error occurred " + error.message);
-          });
-      } catch (error: any) {}
-      try {
-        const response = await API_CLIENT.get<
+  const fetchTeam = async () => {
+    const response = await API_CLIENT.get<
+      any,
+      AxiosResponse<API_TYPES.TEAM.GET.RESPONSE[]>
+    >(API_ENDPOINT.TEAM, {})
+      .then((response) => {
+        if (response) {
+          setTeams(response.data);
+        } else {
+          console.error("An error occurred");
+        }
+      })
+      .catch((error: AxiosError) => {
+        console.error("An error occurred " + error.message);
+      });
+  }
+
+  const fetchRecord = async () => {
+    const response = await API_CLIENT.get<
           any,
           AxiosResponse<API_TYPES.REPORT.GET.RESPONSE>
         >(API_ENDPOINT.RECORD + "/" + record_id)
           .then((response) => {
             if (response) {
               const report = response.data;
-              console.log(response.data);
               reset({
                 title: report.title,
                 description: report.description,
@@ -208,8 +180,12 @@ export default function EditReport(props: Props) {
             }
             console.error("An error occurred " + error.message);
           });
-      } catch (error: any) {}
-    })();
+  }
+  
+  useEffect(() => {
+    fetchTeam();
+    fetchRecord();
+    checkCanValidate();
   }, []);
 
   const handleNext = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -317,7 +293,7 @@ export default function EditReport(props: Props) {
                             value={field.value}
                           >
                             {teams.map((team) => (
-                              <MenuItem value={team.id}>{team.name}</MenuItem>
+                              <MenuItem key={team.id} value={team.id}>{team.name}</MenuItem>
                             ))}
                           </Select>
                         </FormControl>
@@ -413,7 +389,7 @@ export default function EditReport(props: Props) {
                         <FormGroup>
                       <FormControlLabel
                         {...field}
-                        control={<Checkbox disabled={canValidate} checked={field.value}/>}
+                        control={<Checkbox disabled={!canValidate} checked={field.value}/>}
                         label="Record Valid?"
                       />
                     </FormGroup>
@@ -498,7 +474,7 @@ export default function EditReport(props: Props) {
                         <FormGroup>
                       <FormControlLabel
                         {...field}
-                        control={<Checkbox disabled={canValidate} checked={field.value} />}
+                        control={<Checkbox disabled={!canValidate} checked={field.value} />}
                         label="Analysis Valid?"
                       />
                     </FormGroup>
@@ -546,7 +522,7 @@ export default function EditReport(props: Props) {
                         <FormGroup>
                       <FormControlLabel
                         {...field}
-                        control={<Checkbox disabled={canValidate} checked={Boolean(field.value)}/>}
+                        control={<Checkbox disabled={!canValidate} checked={Boolean(field.value)}/>}
                         label="Corrective Action Valid?"
                       />
                     </FormGroup>
