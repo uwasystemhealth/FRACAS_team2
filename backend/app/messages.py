@@ -19,12 +19,18 @@ MESSAGES = {
         "SUBJECT": "Welcome to Better FRACAS!",
         "BODY": """An administrator has invited you to Better FRACAS.
 To sign up, click the following link or paste it in your browser:
-{}""",
+{}
+
+This registration was requested from the IP address {}""",
     },
     "RECOVERY_MAIL": {
         "SUBJECT": "Better FRACAS password reset request",
-        "BODY": """An administrator has reset your Better FRACAS password.
+        "BODY": """Someone has requested a reset of your Better FRACAS password.
+If you did not request this reset, do not do anything.
+Do not share the link with anyone else.
 To set a new password, click the following link or paste it in your browser:
-{}""",
+{}
+
+This reset was requested from the IP address {}""",
     },
 }

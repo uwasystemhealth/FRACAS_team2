@@ -12,6 +12,8 @@ export const API_ENDPOINT = {
     LOGIN: `${BASE_API_PATH}/authentication/login`,
     SIGNUP_REQUEST: `${BASE_API_PATH}/authentication/signup_request`,
     SIGNUP: `${BASE_API_PATH}/authentication/signup`,
+    PASSWORD_RESET: `${BASE_API_PATH}/authentication/password_reset`,
+    PASSWORD_RESET_REQUEST: `${BASE_API_PATH}/authentication/password_reset_request`,
     REFRESH: `${BASE_API_PATH}/authentication/refresh`,
     LOGOUT: `${BASE_API_PATH}/authentication/logout`,
     TEST_LOGGED_IN: `${BASE_API_PATH}/authentication/test_logged_in`,

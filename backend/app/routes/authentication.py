@@ -53,7 +53,7 @@ def login():
             401,
         )
     user: User = User.query.filter_by(email=email).first()
-    if user is None or not user.check_password(password):
+    if user is None or not user.registered or not user.check_password(password):
         return (
             jsonify(
                 {
@@ -84,31 +84,35 @@ def logout():
 
 def send_signup_request_email(
     email: str,
+    ip_address: str,
     pwd_recovery: Literal["REGISTRATION_MAIL", "RECOVERY_MAIL"] = "REGISTRATION_MAIL",
 ) -> bool:
     start_time = time.time()
     serializer = URLSafeTimedSerializer(app.config["SECRET_KEY"])
     token = serializer.dumps(email, salt=app.config["SECURITY_PASSWORD_SALT"])
-    registration_link = f"{app.config['FRONTEND_URI']}/signup?token={token}"
+    path = {
+        "REGISTRATION_MAIL": "signup",  # --
+        "RECOVERY_MAIL": "password-reset",  # --
+    }[pwd_recovery]
+    registration_link = f"{app.config['FRONTEND_URI']}/{path}?token={token}"
     mail.send_message(
         MESSAGES[pwd_recovery]["SUBJECT"],
         sender=app.config["MAIL_USERNAME"],
         recipients=[email],
-        body=MESSAGES[pwd_recovery]["BODY"].format(registration_link),
+        body=MESSAGES[pwd_recovery]["BODY"].format(registration_link, ip_address),
     )
     app.logger.info(f"Sent email to {email} in {time.time() - start_time} seconds.")
     return True
 
 
 # TODO:UNTESTED
-@app.route("/api/v1/authentication/reset_password", methods=["POST"])
-@superuser_jwt_required
-def reset_password():
+@app.route("/api/v1/authentication/password_reset_request", methods=["POST"])
+def password_reset_request():
     email = request.json.get("email", None)
     if email is None:
         return jsonify({"err": "bad_request", "msg": "email is required"}), 400
     user: User = User.query.filter_by(email=email).first()
-    if user is None:
+    if user is None or not user.registered:
         return (
             jsonify(
                 {
@@ -119,7 +123,9 @@ def reset_password():
             404,
         )
     user.unregister()
-    send_signup_request_email(email)
+    send_signup_request_email(
+        email, request.remote_addr or "?", pwd_recovery="RECOVERY_MAIL"
+    )
     return jsonify({"msg": "recovery email sent"}), 200
 
 
@@ -159,11 +165,8 @@ def signup_request():
     return jsonify({"msg": "signup email sent"}), 200
 
 
-@app.route("/api/v1/authentication/signup", methods=["POST"])
-def signup():
+def password_managment(password, token, signup=True):
     serializer = URLSafeTimedSerializer(app.config["SECRET_KEY"])
-    password = request.json.get("password", None)
-    token = request.json.get("token", None)
     if token is None:
         return jsonify({"err": "bad_request", "msg": "token is required"}), 400
     if password is None:
@@ -172,7 +175,7 @@ def signup():
         # TODO: can set max_age as well for security
         email = serializer.loads(token, salt=app.config["SECURITY_PASSWORD_SALT"])
         user: User = User.query.filter_by(email=email).first()
-        if user is None:
+        if user is None or (not signup and not user.is_registered()):
             return (
                 jsonify(
                     {
@@ -182,7 +185,7 @@ def signup():
                 ),
                 404,
             )
-        if user.is_registered():
+        if signup and user.is_registered():
             return (
                 jsonify(
                     {
@@ -207,6 +210,20 @@ def signup():
         ),
         400,
     )
+
+
+@app.route("/api/v1/authentication/signup", methods=["POST"])
+def signup():
+    password = request.json.get("password", None)
+    token = request.json.get("token", None)
+    return password_managment(password, token, signup=True)
+
+
+@app.route("/api/v1/authentication/password_reset", methods=["POST"])
+def password_reset():
+    password = request.json.get("password", None)
+    token = request.json.get("token", None)
+    return password_managment(password, token, signup=False)
 
 
 @app.route("/api/v1/authentication/refresh", methods=["POST"])

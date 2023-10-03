@@ -21,6 +21,7 @@ from app.models.authentication import User
 from app.models.team import Team
 from app.utils import handle_exceptions, superuser_jwt_required, user_jwt_required
 from app.models.record import Record
+from app.routes.authentication import send_signup_request_email
 
 
 def get_teamname(user):
@@ -86,8 +87,11 @@ def get_current_user():
 def add_user():
     data = request.get_json()
     print(data)
+    print(data["team"])
 
-    user = User()
+    registered = False
+
+    user = User(registered=registered)
 
     if "name" in data:
         user.name = data["name"]
@@ -97,13 +101,15 @@ def add_user():
         user.email = data["email"]
     else:
         return jsonify({"error": "Email required"}), 400
+    # [!] YOU SHOULD NOT SET A PASSWORD AT THIS STAGE.
+    # API ONLY FOR TESTING PURPOSES!
+    # THIS WILL SET THE PASSWORD _AND_ REGISTER THE USER
     if "password" in data:
+        registered = True
         user.set_password_and_register(data["password"])
-    else:
-        return jsonify({"error": "Password required"}), 400
     if "team" in data:
         team_id = data["team"]
-        if Team.exists(team_id):
+        if Team.query.filter_by(id=team_id).first():
             user.team_id = team_id
         else:
             return jsonify({"error": "Team doesn't exist"}), 400
@@ -112,7 +118,20 @@ def add_user():
 
     db.session.add(user)
     db.session.commit()
-    return jsonify({"message": "User added successfully"}), 201
+
+    if not registered:
+        send_signup_request_email(user.email)
+        return (
+            jsonify(
+                {"message": "User added successfully. Validation email has been sent."}
+            ),
+            201,
+        )
+
+    return (
+        jsonify({"message": "User added successfully and registered."}),
+        201,
+    )
 
 
 @app.route("/api/v1/user/<int:user_id>", methods=["DELETE"])

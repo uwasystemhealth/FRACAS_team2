@@ -16,19 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import SignUpForm from "@/components/SignUpForm";
-import { API_ENDPOINT } from "@/helpers/api";
-import React from "react";
+import PasswordResetRequest from "@/components/PasswordResetRequest";
 
-const SignUp = () => (
-  <SignUpForm
-    title="Sign up"
-    description="Welcome to Better FRACAS! You have been invited by your team lead to
-join this organization. Please complete registration by setting your
-password."
-    endpoint={API_ENDPOINT.AUTHENTICATION.SIGNUP}
-    url_params="new_user=1"
-  />
-);
+const PasswordResetRequestPage = () => <PasswordResetRequest />;
 
-export default SignUp;
+export default PasswordResetRequestPage;

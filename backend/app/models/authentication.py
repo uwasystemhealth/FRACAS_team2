@@ -34,8 +34,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 class User(db.Model, SerializerMixin):
     serialize_only = (
-        # Commenting out for now, cause sending over password hash in get requests is extremely sus
-        #"password_hash",
         "registered",
         "id",
         "superuser",

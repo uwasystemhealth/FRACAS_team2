@@ -44,8 +44,8 @@ import "@/components/styles/viewreport.css";
 import { API_CLIENT, API_ENDPOINT, API_TYPES } from "@/helpers/api";
 import { AxiosError, AxiosResponse } from "axios";
 import { validateConfig } from "next/dist/server/config-shared";
-import { amber, green, orange, blue } from "@mui/material/colors";
-import { PrintingStateContext } from "./ThemeRegistry/ThemeRegistry";
+import { amber, green, orange, blue } from '@mui/material/colors';
+
 
 interface ViewReportProps {
   id: number;
@@ -205,8 +205,8 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
     fetchData();
   }, []);
 
-  const stringToDateTime = (input_date: string) => {
-    var date = new Date(input_date);
+  const stringToDateTime = (input_date?: string) => {
+    const date = input_date ? new Date(input_date) : new Date(0);
     return date.toLocaleString([], {
       year: "numeric",
       month: "numeric",
