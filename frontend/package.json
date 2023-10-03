@@ -28,6 +28,7 @@
     "react": "18.x",
     "react-dom": "18.x",
     "react-hook-form": "^7.46.1",
+    "react-to-print": "^2.14.13",
     "recharts": "^2.8.0",
     "yup": "^1.2.0"
   },

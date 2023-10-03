@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, { FC, useState, useEffect } from "react";
+import React, { FC, useState, useEffect, useContext } from "react";
 import { Box } from "@mui/material";
 
 import Button from "@mui/material/Button";
@@ -29,22 +29,23 @@ import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import BookmarkAddIcon from "@mui/icons-material/BookmarkAdd";
 import BookmarkAddedIcon from "@mui/icons-material/BookmarkAdded";
+import PrintIcon from "@mui/icons-material/Print";
 import EditIcon from "@mui/icons-material/Edit";
 import Checkbox from "@mui/material/Checkbox";
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
-import GradingIcon from '@mui/icons-material/Grading';
-import TroubleshootIcon from '@mui/icons-material/Troubleshoot';
-import BuildIcon from '@mui/icons-material/Build';
-import PendingActionsOutlinedIcon from '@mui/icons-material/PendingActionsOutlined';
-import DoneOutlineIcon from '@mui/icons-material/DoneOutline';
-import Alert from '@mui/material/Alert'
+import GradingIcon from "@mui/icons-material/Grading";
+import TroubleshootIcon from "@mui/icons-material/Troubleshoot";
+import BuildIcon from "@mui/icons-material/Build";
+import PendingActionsOutlinedIcon from "@mui/icons-material/PendingActionsOutlined";
+import DoneOutlineIcon from "@mui/icons-material/DoneOutline";
+import Alert from "@mui/material/Alert";
 import "@/components/styles/viewreport.css";
 import { API_CLIENT, API_ENDPOINT, API_TYPES } from "@/helpers/api";
 import { AxiosError, AxiosResponse } from "axios";
 import { validateConfig } from "next/dist/server/config-shared";
-import { amber, green, orange, blue } from '@mui/material/colors';
-
+import { amber, green, orange, blue } from "@mui/material/colors";
+import { PrintingStateContext } from "./ThemeRegistry/ThemeRegistry";
 
 interface ViewReportProps {
   id: number;
@@ -58,6 +59,95 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
   const [loading, setLoading] = useState(true);
   const [report, setReport] = useState<API_TYPES.REPORT.GET.RESPONSE>();
 
+  // PRINT HACK
+  // PRINT HACK
+  // PRINT HACK
+  // (Reasons from https://github.com/uwasystemhealth/fracas_team2/issues/53)
+  // This works but with compromises to force the print to export in light mode
+  // (for printing)
+  // * I have to force it to spawn the page in a popup, since dynamically changing
+  // the style has a lot of issues since 1) the print event handlers work
+  // differently on different browsers (chromium and firefox have different
+  // concepts of when the print ends) causing inconsistent results when printing
+  // through window.print() vs CTRL+P 2) dynamically changing the style causes
+  // some elements such as text to not be changed, only the background,
+  // resulting in poor contrast, and this is dependent on the previous point.
+  // * This also adds a rudimentary light mode, using ?light=1.
+  // * If you use ?print=1, the page will automatically print on load. This is
+  // what is being used for the popups
+
+  const [printDialogSpawned, setPrintDialogSpawned] = useState(false);
+
+  // You may want to use this variable in the future to hide the elements fully
+  // if ?print=1, for example if I want to export the page as HTML instead of a
+  // PDF.
+  const [printOnLoad, setPrintOnLoad] = useState(false);
+
+  const printHack = () => {
+    // Open the page in a popup window
+    const next_url = new URL(window.location.href);
+    next_url.searchParams.set("print", "1");
+    next_url.searchParams.set("light", "1");
+    const popup = window.open(
+      next_url.toString(),
+      "_blank",
+      "width=960,height=1080"
+    );
+  };
+
+  const overrideCtrlP = (event: KeyboardEvent) => {
+    if ((event.ctrlKey || event.metaKey) && event.key === "p") {
+      event.preventDefault();
+      printHack();
+    }
+  };
+
+  const overridePrintDialog = (e) => {
+    console.log("TESTTEST");
+    e.preventDefault();
+    printHack();
+  };
+
+  useEffect(() => {
+    document.addEventListener("keydown", overrideCtrlP);
+
+    if (typeof window === "object") {
+      const url = new URL(window.location.href);
+      const params = new URLSearchParams(url.search);
+      if ((params.get("print") || "0") === "1") {
+        setPrintOnLoad(true);
+      } else {
+        window.print = printHack;
+      }
+    }
+
+    return () => {
+      document.removeEventListener("keydown", overrideCtrlP);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!printOnLoad) {
+      window.addEventListener("beforeprint", overridePrintDialog);
+    } else {
+      window.removeEventListener("beforeprint", overridePrintDialog);
+    }
+
+    return () => window.removeEventListener("beforeprint", overridePrintDialog);
+  }, [printOnLoad]);
+
+  // CHECK IF PRINT PARAMETER IS PASSED - IF SO, OPEN THE PRINT DIALOG
+  useEffect(() => {
+    if (!loading && !printDialogSpawned && printOnLoad) {
+      setPrintDialogSpawned(true);
+      window.print();
+      window.close();
+    }
+  }, [loading, printOnLoad, printDialogSpawned]);
+  // END PRINT HACK
+  // END PRINT HACK
+  // END PRINT HACK
+
   const fetchData = async () => {
     try {
       await API_CLIENT.get<
@@ -66,6 +156,7 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
       >(API_ENDPOINT.RECORD + `/${id}`)
         .then((response) => {
           setReport(response.data);
+          document.title = response.data?.title || `Untitled report ${id}`;
           setLoading(false);
         })
         .catch((error: AxiosError<API_TYPES.USER.RESPONSE>) => {
@@ -115,69 +206,93 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
   }, []);
 
   const stringToDateTime = (input_date: string) => {
-    var date = new Date(input_date)
-    return date.toLocaleString([], {year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'})
-  }
+    var date = new Date(input_date);
+    return date.toLocaleString([], {
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   const validationSection = (status: boolean, type: string) => {
-    var icon = <GradingIcon fontSize="inherit" />
+    var icon = <GradingIcon fontSize="inherit" />;
     if (type == "Record") {
-      icon = <GradingIcon fontSize="inherit" />
+      icon = <GradingIcon fontSize="inherit" />;
     } else if (type == "Analysis") {
-      icon = <TroubleshootIcon fontSize="inherit" />
+      icon = <TroubleshootIcon fontSize="inherit" />;
     } else if (type == "Corrective Action") {
-      icon = <BuildIcon fontSize="inherit" />
+      icon = <BuildIcon fontSize="inherit" />;
     }
     if (status) {
-      return <Alert icon={icon} color="success">{type} Validated</Alert>
+      return (
+        <Alert icon={icon} color="success">
+          {type} Validated
+        </Alert>
+      );
     } else {
-      return <Alert icon={icon} color="warning">{type} Validation Pending</Alert>
+      return (
+        <Alert icon={icon} color="warning">
+          {type} Validation Pending
+        </Alert>
+      );
     }
-  }
+  };
 
   const reportStatus = () => {
     if (!report?.record_valid) {
-      return <Typography
-        variant="body2"
-        style={{ fontWeight: "bold" }}
-        color={orange[500]}
+      return (
+        <Typography
+          variant="body2"
+          style={{ fontWeight: "bold" }}
+          color={orange[500]}
         >
-        PENDING REPORT VALIDATION
-      </Typography>
+          PENDING REPORT VALIDATION
+        </Typography>
+      );
     } else if (!report.analysis_valid) {
-      return <Typography
-        variant="body2"
-        style={{ fontWeight: "bold" }}
-        color={amber[500]}
+      return (
+        <Typography
+          variant="body2"
+          style={{ fontWeight: "bold" }}
+          color={amber[500]}
         >
-        PENDING ANALYSIS VALIDATION
-      </Typography>
+          PENDING ANALYSIS VALIDATION
+        </Typography>
+      );
     } else if (!report.corrective_valid) {
-      return <Typography
-        variant="body2"
-        style={{ fontWeight: "bold" }}
-        color={amber[500]}
+      return (
+        <Typography
+          variant="body2"
+          style={{ fontWeight: "bold" }}
+          color={amber[500]}
         >
-        PENDING CORRECTIVE ACTION VALIDATION
-      </Typography>
+          PENDING CORRECTIVE ACTION VALIDATION
+        </Typography>
+      );
     } else if (!report.time_resolved) {
-      return <Typography
-        variant="body2"
-        style={{ fontWeight: "bold" }}
-        color={blue[500]}
+      return (
+        <Typography
+          variant="body2"
+          style={{ fontWeight: "bold" }}
+          color={blue[500]}
         >
-        MONITORING CORRECTIVE ACTION
-      </Typography>
+          MONITORING CORRECTIVE ACTION
+        </Typography>
+      );
     } else {
-      return <Typography
-        variant="body2"
-        style={{ fontWeight: "bold" }}
-        color={green[500]}
+      return (
+        <Typography
+          variant="body2"
+          style={{ fontWeight: "bold" }}
+          color={green[500]}
         >
-        RESOLVED
-      </Typography>
+          RESOLVED
+        </Typography>
+      );
     }
-  }
+  };
 
   return (
     <Box sx={{ width: "100%" }}>
@@ -192,7 +307,12 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
             {report?.title}
           </Typography>
         </Grid>
-        <Grid xs={6} container justifyContent="flex-end">
+        <Grid
+          xs={6}
+          container
+          justifyContent="flex-end"
+          sx={{ displayPrint: "none", gap: 1 }}
+        >
           <Button
             className="bookmarkButton"
             size="small"
@@ -203,6 +323,16 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
             ) : (
               <BookmarkAddIcon className="bookmarkIcon" />
             )}
+          </Button>
+          <Button
+            className="bookmarkButton"
+            size="small"
+            onClick={() => {
+              printHack();
+            }}
+          >
+            <PrintIcon />
+            Export Report
           </Button>
           <Button
             className="editButton"
@@ -221,7 +351,7 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
       <Grid container spacing={2}>
         <Grid xs={3}>
           <Typography variant="body2">
-            <b>Date Created:</b> {stringToDateTime(report?.created_at)}
+            <b>Date Created:</b> {stringToDateTime(report?.created_at || "?")}
           </Typography>
         </Grid>
         <Grid xs={3}>
@@ -254,7 +384,7 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
       <Typography variant="body1" className="sectionText">
         {report?.description}
       </Typography>
-      {validationSection(report?.record_valid, "Record")}
+      {validationSection(report?.record_valid || false, "Record")}
       <Divider
         variant="fullWidth"
         style={{ margin: "1rem 0", borderColor: "lightblue" }}
@@ -289,7 +419,7 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
       <Typography variant="body1" className="sectionText">
         {report?.mechanism}
       </Typography>
-      {validationSection(report?.analysis_valid, "Analysis")}
+      {validationSection(report?.analysis_valid || false, "Analysis")}
       <Divider
         variant="fullWidth"
         style={{ margin: "1rem 0", borderColor: "lightblue" }}
@@ -304,7 +434,10 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
       <Typography variant="body1" className="sectionText">
         {report?.corrective_action_plan}
       </Typography>
-      {validationSection(report?.corrective_valid, "Corrective Action")}
+      {validationSection(
+        report?.corrective_valid || false,
+        "Corrective Action"
+      )}
       <Divider
         variant="fullWidth"
         style={{ margin: "1rem 0", borderColor: "lightblue" }}
@@ -329,7 +462,8 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
             </Grid>
             <Grid xs={3}>
               <Typography variant="body2">
-                <b>Time of Failure:</b> {stringToDateTime(report?.time_of_failure)}
+                <b>Time of Failure:</b>{" "}
+                {stringToDateTime(report?.time_of_failure || "?")}
               </Typography>
             </Grid>
             <Grid xs={3}>

@@ -241,7 +241,12 @@ export default function RootLayout({
         <Box sx={{ display: "flex" }}>
           <ThemeRegistry>
             <AppBar position="fixed" open={open}>
-              <Toolbar sx={{ backgroundColor: "background.paper" }}>
+              <Toolbar
+                sx={{
+                  backgroundColor: "background.paper",
+                  displayPrint: "none",
+                }}
+              >
                 <IconButton
                   aria-label="open drawer"
                   onClick={handleDrawerOpen}
@@ -257,15 +262,19 @@ export default function RootLayout({
                   UWAM FRACAS
                 </Typography>
                 <Image
-                src={LogoSVG}
-                alt="Logo"
-                width={130}
-                height={65}
-                style={{display:"flex", marginLeft:"15px"}}
+                  src={LogoSVG}
+                  alt="Logo"
+                  width={130}
+                  height={65}
+                  style={{ display: "flex", marginLeft: "15px" }}
                 />
               </Toolbar>
             </AppBar>
-            <Drawer variant="permanent" open={open}>
+            <Drawer
+              variant="permanent"
+              open={open}
+              sx={{ displayPrint: "none" }}
+            >
               <DrawerHeader>
                 <IconButton onClick={handleDrawerClose}>
                   {theme.direction === "rtl" ? (
@@ -324,7 +333,7 @@ export default function RootLayout({
                 bgcolor: "background.default",
               }}
             >
-              <DrawerHeader />
+              <DrawerHeader sx={{ displayPrint: "none" }} />
               {children}
             </Box>
           </ThemeRegistry>
