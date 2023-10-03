@@ -17,6 +17,8 @@
  */
 
 import { Box } from "@mui/material";
+import { styled, useTheme, Theme, CSSObject } from "@mui/material/styles";
+import ThemeRegistry from "@/components/ThemeRegistry/ThemeRegistry";
 
 export default function RootLayout({
   children,
@@ -26,6 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en" style={{ margin: 0 }}>
       <body style={{ margin: 0 }}>
+      <ThemeRegistry>
         <Box
           top={0}
           display="flex"
@@ -35,6 +38,7 @@ export default function RootLayout({
         >
           {children}
         </Box>
+        </ThemeRegistry>
       </body>
     </html>
   );
