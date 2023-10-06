@@ -19,7 +19,7 @@
  */
 
 import React, { FC } from "react";
-import { TextField } from "@mui/material/";
+import { TextField, useMediaQuery } from "@mui/material/";
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
@@ -67,6 +67,13 @@ const schema = yup.object().shape({
 });
 
 export default function CreateReport() {
+
+  const isMobile = useMediaQuery("(max-width: 768px)");
+
+  const smallerInputLabel = {
+    fontSize: isMobile ? "13px" : "inherit", 
+  };
+
   const [team, setTeam] = React.useState("");
   const [subsystem, setSubsystem] = React.useState("");
 
@@ -162,7 +169,7 @@ export default function CreateReport() {
                         control={control}
                         render={({ field }) => (
                           <FormControl fullWidth>
-                            <InputLabel id="team">Team</InputLabel>
+                            <InputLabel id="team" sx={isMobile ? smallerInputLabel : undefined}>Team</InputLabel>
                             <Select
                               {...field}
                               labelId="team"
@@ -184,7 +191,7 @@ export default function CreateReport() {
                         control={control}
                         render={({ field }) => (
                           <FormControl fullWidth>
-                            <InputLabel id="subsystem">Subsystem</InputLabel>
+                            <InputLabel id="subsystem" sx={isMobile ? smallerInputLabel : undefined}>Subsystem</InputLabel>
                             <Select
                               {...field}
                               labelId="subsystem"
@@ -217,6 +224,8 @@ export default function CreateReport() {
                                 : ""
                             }
                             fullWidth
+                            inputProps={isMobile ? { style: { fontSize: 12 } } : {}}
+                            InputLabelProps={isMobile ? { style: { fontSize: 12 } } : {}}
                           />
                         )}
                       />
@@ -237,6 +246,8 @@ export default function CreateReport() {
                                 : ""
                             }
                             fullWidth
+                            inputProps={isMobile ? { style: { fontSize: 12 } } : {}}
+                            InputLabelProps={isMobile ? { style: { fontSize: 12 } } : {}}
                           />
                         )}
                       />
@@ -259,6 +270,8 @@ export default function CreateReport() {
                             fullWidth
                             multiline
                             minRows={4}
+                            inputProps={isMobile ? { style: { fontSize: 12 } } : {}}
+                            InputLabelProps={isMobile ? { style: { fontSize: 12 } } : {}}
                           />
                         )}
                       />

@@ -18,13 +18,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { DataGrid } from '@mui/x-data-grid';
-import {Container,Paper,Grid, TextField} from "@mui/material";
+import {Container,Paper,Grid, TextField, useMediaQuery} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
 import IconButton from '@mui/material/IconButton';
+import PieChartIcon from '@mui/icons-material/PieChart';
+import MinimizeIcon from '@mui/icons-material/Minimize';
 
 import {
   Tooltip,
@@ -38,6 +40,33 @@ import {
 
 const Dashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const isMobile = useMediaQuery("(max-width: 768px)");
+  const [showPieChart, setShowPieChart] = useState(!isMobile);
+  const [chartDimensions, setChartDimensions] = useState({ width: 300, height: 250 });
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (isMobile) {
+        const chartWidth = window.innerWidth - 32;
+        const chartHeight = 200;
+        setChartDimensions({ width: window.innerWidth - 32, height: 200 });
+        setShowPieChart(false);
+      } else {
+        setChartDimensions({ width: 300, height: 250 });
+        setShowPieChart(true);
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [isMobile]);  
+
+  const togglePieChart = () => {
+    setShowPieChart(!showPieChart);
+  };
 
   const upcomingTasks = [
     {
@@ -79,13 +108,13 @@ const Dashboard = () => {
 
   const taskColumns = [
     {field: "id", headerName: "ID", width: 80},
-    {field: "reportName", headerName: "Report Name", flex: 1},
-    {field: "date", headerName: "Date Created", flex: 1},
-    {field: "status", headerName: "Status", width: 120},
+    {field: "reportName", headerName: "Report Name", flex: isMobile ? 1 : 2} ,
+    {field: "date", headerName: "Date Created", flex: isMobile ? 1 : 2 },
+    {field: "status", headerName: "Status", flex: isMobile ? 1 : 2 },
     {
       field: "view",
       headerName: "View",
-      width: 100,
+      flex: isMobile ? 1 : 2 ,
       renderCell: (params) => (
         <IconButton color="primary" aria-label="View" href = "/viewreport">
           <VisibilityIcon />
@@ -95,16 +124,16 @@ const Dashboard = () => {
   ];
 
   const reportColumns = [
-    { field: "id", headerName: "ID", width: 60 },
-    { field: "date", headerName: "Creation Date", width: 170 },
-    { field: "ReportName", headerName: "Report name", width: 350 },
-    { field: "carYear", headerName: "Car year", width: 100 },
-    { field: "creatorName", headerName: "Creator name", width: 130 },
-    { field: "status", headerName: "Status", width: 100 },
+    { field: "id", headerName: "ID", width: 60},
+    { field: "ReportName", headerName: "Report name", flex: isMobile ? 1 : 2  },
+    { field: "date", headerName: "Creation Date", flex: isMobile ? 1 : 2  },
+    { field: "carYear", headerName: "Car year", flex: isMobile ? 1 : 2 },
+    { field: "creatorName", headerName: "Creator name", flex: isMobile ? 1 : 2},
+    { field: "status", headerName: "Status", flex: isMobile ? 1 : 2 },
     {
       field: "edit",
       headerName: "Edit",
-      width: 100,
+      flex: isMobile ? 1 : 2 ,
       renderCell: (params) => (
         <IconButton color="primary" aria-label="Edit" href = '/editreport'>
           <EditIcon />
@@ -114,7 +143,7 @@ const Dashboard = () => {
     {
       field: "view",
       headerName: "View",
-      width: 100,
+      flex: isMobile ? 1 : 2 ,
       renderCell: (params) => (
         <IconButton color="primary" aria-label="View" href = "/viewreport">
           <VisibilityIcon />
@@ -179,66 +208,85 @@ const Dashboard = () => {
     { name: "Electrical", value: 30 },
     { name: "Subsytem", value: 45 },
     { name: "Mechanical", value: 20 },
-    // Add more sample data...
   ];
 
   return (
     <div style={{ display: "flex" }}>
       <Container component="main" maxWidth="lg" sx={{ flexGrow: 1, p: 1, marginTop: "0px", marginLeft: "0px", marginRight: "0px" }}>
         <Grid container spacing={4} rowSpacing={1}>
-          <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, margin:0, boxShadow: 5, border: "1px solid lightblue" }}>
-              <Typography variant="h6" gutterBottom sx={{ fontSize: 16 }} color={"white"}>
-                Open Reports By Team
-              </Typography>
-              <PieChart width={300} height={250}>
-                <Pie
-                  data={sampleData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {sampleData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={pieChartColors[index % pieChartColors.length]}
-                    />
-                  ))}
-                  <LabelList dataKey="value" position="inside" fill="#fff" />
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </Paper>
-          </Grid>
-
-          {/* Upcoming Tasks DataGrid */}
+          {showPieChart ? (
+            <Grid item xs={12} md={4}>
+              <Paper sx={{ p: 2, margin:0, boxShadow: 5, border: "1px solid lightblue", width: '100%'}}>
+                <Typography variant="h6" gutterBottom sx={{ fontSize: 16 }} color={"white"}>
+                  Open Reports By Team
+                </Typography>
+                <PieChart width={chartDimensions.width} height={chartDimensions.height}>
+                  <Pie
+                    data={sampleData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {sampleData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={pieChartColors[index % pieChartColors.length]}
+                      />
+                    ))}
+                    <LabelList dataKey="value" position="inside" fill="#fff" />
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+                <IconButton onClick={togglePieChart}>
+                  <MinimizeIcon />
+                </IconButton>
+              </Paper>
+            </Grid>
+          ) : (
+            <Grid item xs={12} md={4}>
+              <IconButton onClick={togglePieChart}>
+                <PieChartIcon />
+              </IconButton>
+            </Grid>
+        )}
+          {/* Bookmarked Reports DataGrid */}
           <Grid item xs={12} md={8}>
             <Paper
               sx={{
                 p: 2,
                 height: "100%",
+                width: '100%',
                 display: "flex",
                 flexDirection: "column",
                 boxShadow: 5,
                 border: "1px solid lightblue"
               }}
             >
-              <Typography variant="subtitle1" color={"white"}>
+              <Typography variant="subtitle1" color="primary">
                 Bookmarked Reports
               </Typography>
               <div style={{ height: 237, width: "100%", marginTop: 16 }}>
-              <DataGrid rows={upcomingTasks} columns={taskColumns} props hideFooter={true}/>
+              {isMobile ? (
+                <DataGrid
+                  rows={upcomingTasks}
+                  columns={taskColumns.filter(col => col.field !== 'id')}
+                  props
+                  hideFooter={true}
+                />
+              ) : (
+                <DataGrid rows={upcomingTasks} columns={taskColumns} props hideFooter={true} />
+              )}
               </div>
             </Paper>
           </Grid>
 
           {/* Recent Reports DataGrid */}
           <Grid item xs={12} md={12} >
-            <Paper sx={{ p: 2, marginTop: 3, boxShadow: 5, border: "1px solid lightblue"}}>
-              <Typography variant="h5" color="primary" gutterBottom>
+            <Paper sx={{ p: 2, marginTop: 3, boxShadow: 5, border: "1px solid lightblue", width: '100%'}}>
+              <Typography variant="subtitle1" color="primary" gutterBottom>
                 Your Reports
               </Typography>
               <div style={{ height: 75, width: "100%", marginTop: 16 }}>
@@ -251,7 +299,11 @@ const Dashboard = () => {
                   sx={{ marginBottom: 2 }}
                 />
               </div>
-              <DataGrid rows={filteredReports} columns={reportColumns} />
+              {isMobile ? (
+            <DataGrid rows={filteredReports} columns={reportColumns.filter(col => col.field !== 'carYear' && col.field !== 'creatorName' && col.field !== 'edit' && col.field !== 'id')} autoHeight />
+          ) : (
+            <DataGrid rows={filteredReports} columns={reportColumns} autoHeight />
+          )}
             </Paper>
           </Grid>
         </Grid>
