@@ -224,8 +224,8 @@ export default function CreateReport() {
                                 : ""
                             }
                             fullWidth
-                            inputProps={isMobile ? { style: { fontSize: 12 } } : {}}
-                            InputLabelProps={isMobile ? { style: { fontSize: 12 } } : {}}
+                            inputProps={isMobile ? { style: { fontSize: 13 } } : {}}
+                            InputLabelProps={isMobile ? { style: { fontSize: 13 } } : {}}
                           />
                         )}
                       />
@@ -246,8 +246,8 @@ export default function CreateReport() {
                                 : ""
                             }
                             fullWidth
-                            inputProps={isMobile ? { style: { fontSize: 12 } } : {}}
-                            InputLabelProps={isMobile ? { style: { fontSize: 12 } } : {}}
+                            inputProps={isMobile ? { style: { fontSize: 13 } } : {}}
+                            InputLabelProps={isMobile ? { style: { fontSize: 13 } } : {}}
                           />
                         )}
                       />
@@ -270,8 +270,8 @@ export default function CreateReport() {
                             fullWidth
                             multiline
                             minRows={4}
-                            inputProps={isMobile ? { style: { fontSize: 12 } } : {}}
-                            InputLabelProps={isMobile ? { style: { fontSize: 12 } } : {}}
+                            inputProps={isMobile ? { style: { fontSize: 13 } } : {}}
+                            InputLabelProps={isMobile ? { style: { fontSize: 13 } } : {}}
                           />
                         )}
                       />
@@ -298,6 +298,8 @@ export default function CreateReport() {
                             fullWidth
                             multiline
                             minRows={4}
+                            inputProps={isMobile ? { style: { fontSize: 13 } } : {}}
+                            InputLabelProps={isMobile ? { style: { fontSize: 13 } } : {}}
                           />
                         )}
                       />
@@ -316,6 +318,8 @@ export default function CreateReport() {
                             fullWidth
                             multiline
                             minRows={4}
+                            inputProps={isMobile ? { style: { fontSize: 13 } } : {}}
+                            InputLabelProps={isMobile ? { style: { fontSize: 13 } } : {}}
                           />
                         )}
                       />
@@ -336,6 +340,8 @@ export default function CreateReport() {
                             fullWidth
                             multiline
                             minRows={4}
+                            inputProps={isMobile ? { style: { fontSize: 13 } } : {}}
+                            InputLabelProps={isMobile ? { style: { fontSize: 13 } } : {}}
                           />
                         )}
                       />
@@ -358,6 +364,8 @@ export default function CreateReport() {
                             fullWidth
                             multiline
                             minRows={4}
+                            inputProps={isMobile ? { style: { fontSize: 13 } } : {}}
+                            InputLabelProps={isMobile ? { style: { fontSize: 13 } } : {}}
                           />
                         )}
                       />
