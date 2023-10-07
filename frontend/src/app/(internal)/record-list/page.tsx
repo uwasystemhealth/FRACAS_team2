@@ -136,7 +136,7 @@ export default function DataTable() {
   const selectedColumns = isMobile
   ? columns.filter(
       (col) =>
-        col.field !== "id" && col.field !== "creatorName" && col.field !== "carYear"
+        col.field !== "id" && col.field !== "creatorName" && col.field !== "carYear" && col.field !== "status" && col.field !== "date"
     )
   : columns;
 

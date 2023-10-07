@@ -142,7 +142,7 @@ export default function CreateReport() {
               {(activeStep === 0 || activeStep === 2) && (
                 <Box sx={{ flexGrow: 1, py: 2 }}>
                   <Grid container spacing={2}>
-                    <Grid xs={10}>
+                    <Grid xs={12} md={10}>
                       <Controller
                         name="failure_title"
                         control={control}
@@ -163,7 +163,7 @@ export default function CreateReport() {
                         )}
                       />
                     </Grid>
-                    <Grid xs={3}>
+                    <Grid xs={6} md={3}>
                       <Controller
                         name="team_id"
                         control={control}
@@ -185,7 +185,7 @@ export default function CreateReport() {
                         )}
                       />
                     </Grid>
-                    <Grid xs={3}>
+                    <Grid xs={6} md={3}>
                       <Controller
                         name="subsystem"
                         control={control}
@@ -208,7 +208,7 @@ export default function CreateReport() {
                       />
                     </Grid>
                     <Divider orientation="vertical" flexItem></Divider>
-                    <Grid xs={2}>
+                    <Grid xs={12} md={2}>
                       <Controller
                         name="car_year"
                         control={control}
@@ -230,7 +230,7 @@ export default function CreateReport() {
                         )}
                       />
                     </Grid>
-                    <Grid xs={2}>
+                    <Grid xs={12} md={3}>
                       <Controller
                         name="failure_time"
                         control={control}
