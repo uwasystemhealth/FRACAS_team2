@@ -1,16 +1,22 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // hack
-  // # https://github.com/vercel/next.js/issues/36774
-  // # Hot reload dont work when you use docker #36774
-  webpackDevMiddleware: (config) => {
-    config.watchOptions = {
-      poll: 800,
-      aggregateTimeout: 300,
-    };
-    return config;
+  reactStrictMode: true,
+  swcMinify: true,
+  modularizeImports: {
+    "@mui/icons-material": {
+      transform: "@mui/icons-material/{{member}}",
+    },
   },
-  // end hack
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "source.unsplash.com",
+        port: "",
+        pathname: "/random",
+      },
+    ],
+  },
 };
 
 module.exports = nextConfig;
