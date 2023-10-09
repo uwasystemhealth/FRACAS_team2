@@ -31,20 +31,14 @@ import BookmarkAddIcon from "@mui/icons-material/BookmarkAdd";
 import BookmarkAddedIcon from "@mui/icons-material/BookmarkAdded";
 import PrintIcon from "@mui/icons-material/Print";
 import EditIcon from "@mui/icons-material/Edit";
-import Checkbox from "@mui/material/Checkbox";
-import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
-import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import GradingIcon from "@mui/icons-material/Grading";
 import TroubleshootIcon from "@mui/icons-material/Troubleshoot";
 import BuildIcon from "@mui/icons-material/Build";
-import PendingActionsOutlinedIcon from "@mui/icons-material/PendingActionsOutlined";
-import DoneOutlineIcon from "@mui/icons-material/DoneOutline";
 import Alert from "@mui/material/Alert";
 import "@/components/styles/viewreport.css";
 import { API_CLIENT, API_ENDPOINT, API_TYPES } from "@/helpers/api";
 import { AxiosError, AxiosResponse } from "axios";
-import { validateConfig } from "next/dist/server/config-shared";
-import { amber, green, orange, blue } from '@mui/material/colors';
+import ReportStatusMessage from "@/components/ReportStatusMessage";
 
 
 interface ViewReportProps {
@@ -103,7 +97,6 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
   };
 
   const overridePrintDialog = (e) => {
-    console.log("TESTTEST");
     e.preventDefault();
     printHack();
   };
@@ -216,6 +209,15 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
     });
   };
 
+  const stringToDate = (input_date?: string) => {
+    const date = input_date ? new Date(input_date) : new Date(0);
+    return date.toLocaleString([], {
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+    });
+  };
+
   const validationSection = (status: boolean, type: string) => {
     var icon = <GradingIcon fontSize="inherit" />;
     if (type == "Record") {
@@ -240,65 +242,11 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
     }
   };
 
-  const reportStatus = () => {
-    if (!report?.record_valid) {
-      return (
-        <Typography
-          variant="body2"
-          style={{ fontWeight: "bold" }}
-          color={orange[500]}
-        >
-          PENDING REPORT VALIDATION
-        </Typography>
-      );
-    } else if (!report.analysis_valid) {
-      return (
-        <Typography
-          variant="body2"
-          style={{ fontWeight: "bold" }}
-          color={amber[500]}
-        >
-          PENDING ANALYSIS VALIDATION
-        </Typography>
-      );
-    } else if (!report.corrective_valid) {
-      return (
-        <Typography
-          variant="body2"
-          style={{ fontWeight: "bold" }}
-          color={amber[500]}
-        >
-          PENDING CORRECTIVE ACTION VALIDATION
-        </Typography>
-      );
-    } else if (!report.time_resolved) {
-      return (
-        <Typography
-          variant="body2"
-          style={{ fontWeight: "bold" }}
-          color={blue[500]}
-        >
-          MONITORING CORRECTIVE ACTION
-        </Typography>
-      );
-    } else {
-      return (
-        <Typography
-          variant="body2"
-          style={{ fontWeight: "bold" }}
-          color={green[500]}
-        >
-          RESOLVED
-        </Typography>
-      );
-    }
-  };
-
   return (
     <Box sx={{ width: "100%" }}>
-      {reportStatus()}
-      <Grid container alignItems="center">
-        <Grid xs={6}>
+      <ReportStatusMessage status={report?.stage} messageOnly={true}/>
+      <Grid container rowSpacing={2} >
+        <Grid xs={12} md={6}>
           <Typography
             variant="h5"
             className="title"
@@ -308,9 +256,11 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
           </Typography>
         </Grid>
         <Grid
-          xs={6}
+          xs={12}
+          md={6}
+          direction="row"
           container
-          justifyContent="flex-end"
+          justifyContent={{xs: "normal", md: "flex-end"}}
           sx={{ displayPrint: "none", gap: 1 }}
         >
           <Button
@@ -325,22 +275,22 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
             )}
           </Button>
           <Button
-            className="bookmarkButton"
+            className="printButton"
             size="small"
             onClick={() => {
               printHack();
             }}
           >
             <PrintIcon />
-            Export Report
           </Button>
           <Button
             className="editButton"
             size="small"
             href={`/editreport/${report?.id}`}
+            variant="text"
           >
             <EditIcon className="editIcon" />
-            Edit Report
+            Update
           </Button>
         </Grid>
       </Grid>
@@ -349,22 +299,22 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
         style={{ margin: "1rem 0", borderColor: "lightblue" }}
       />
       <Grid container spacing={2}>
-        <Grid xs={3}>
+        <Grid xs={6} md={3}>
           <Typography variant="body2">
             <b>Date Created:</b> {stringToDateTime(report?.created_at || "?")}
           </Typography>
         </Grid>
-        <Grid xs={3}>
+        <Grid xs={6} md={3}>
           <Typography variant="body2">
             <b>Team:</b> {report?.team?.name}
           </Typography>
         </Grid>
-        <Grid xs={3}>
+        <Grid xs={6} md={3}>
           <Typography variant="body2">
             <b>Subsystem:</b> {report?.subsystem?.name}
           </Typography>
         </Grid>
-        <Grid xs={3}>
+        <Grid xs={6} md={3}>
           <Typography variant="body2">
             <b>Car Year:</b> {report?.car_year}
           </Typography>
@@ -442,49 +392,48 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
         variant="fullWidth"
         style={{ margin: "1rem 0", borderColor: "lightblue" }}
       />
+      
       <Card className="infoCard">
         <CardContent>
           <Grid container spacing={1}>
-            <Grid xs={3}>
+            <Grid xs={6} md={3}>
               <Typography variant="body2">
                 <b>Created By:</b> {report?.creator.name}
               </Typography>
             </Grid>
-            <Grid xs={3}>
+            <Grid xs={6} md={3}>
               <Typography variant="body2">
                 <b>Owned By:</b> {report?.owner?.name}
               </Typography>
             </Grid>
-            <Grid xs={3}>
+            <Grid xs={6} md={3}>
               <Typography variant="body2">
                 <b>Report Team Lead:</b> {report?.team?.leader?.name}
               </Typography>
             </Grid>
-            <Grid xs={3}>
+            <Grid xs={6} md={3}>
               <Typography variant="body2">
-                <b>Time of Failure:</b>{" "}
-                {stringToDateTime(report?.time_of_failure || "?")}
+                <b>Time of Failure:</b> {stringToDateTime(report?.time_of_failure || "?")}
               </Typography>
             </Grid>
-            <Grid xs={3}>
+            <Grid xs={6} md={3}>
               <Typography variant="body2">
                 <b>Creator Contact:</b> {report?.creator.email}
               </Typography>
             </Grid>
-            <Grid xs={3}>
+            <Grid xs={6} md={3}>
               <Typography variant="body2">
                 <b>Owner Contact:</b> {report?.owner?.email}
               </Typography>
             </Grid>
-            <Grid xs={3}>
+            <Grid xs={6} md={3}>
               <Typography variant="body2">
                 <b>Report Team Lead Contact:</b> {report?.team?.leader?.email}
               </Typography>
             </Grid>
-            <Grid xs={3}>
+            <Grid xs={6} md={3}>
               <Typography variant="body2">
-                {/* TODO:  */}
-                <b>Time Resolved:</b> Yet to be resolved
+              <b>Date Resolved:</b> {stringToDate(report?.time_resolved || "Pending")}
               </Typography>
             </Grid>
           </Grid>

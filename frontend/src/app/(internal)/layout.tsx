@@ -23,9 +23,9 @@ import { redirect, useRouter } from "next/navigation";
 import { API_CLIENT, API_ENDPOINT, API_TYPES, TOKEN } from "@/helpers/api";
 import { styled, useTheme, Theme, CSSObject } from "@mui/material/styles";
 import Link from "next/link";
-import MuiAppBar, { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar";
+import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
-import MuiDrawer from "@mui/material/Drawer";
+import Drawer from "@mui/material/Drawer";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import Image from "next/image";
@@ -42,86 +42,15 @@ import CreateIcon from "@mui/icons-material/Create";
 import ThemeRegistry from "@/components/ThemeRegistry/ThemeRegistry";
 import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ListIcon from "@mui/icons-material/List";
-import ArticleIcon from "@mui/icons-material/Article";
 import axios, { AxiosError } from "axios";
 import { useEffect, useState } from "react";
 import CheckLogin, { PAGE_TYPE } from "@/components/CheckLogin";
 import LogoSVG from "@/public/UWAM Logo 2023 (colour).svg";
-import { borderRight } from "@mui/system";
+import useWindowDimensions from "@/components/WindowSize";
+import Grid from "@mui/material/Unstable_Grid2"
 
-const drawerWidth = 240;
-
-const openedMixin = (theme: Theme): CSSObject => ({
-  width: drawerWidth,
-  transition: theme.transitions.create("width", {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.enteringScreen,
-  }),
-  overflowX: "hidden",
-});
-
-const closedMixin = (theme: Theme): CSSObject => ({
-  transition: theme.transitions.create("width", {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen,
-  }),
-  overflowX: "hidden",
-  width: `calc(${theme.spacing(7)} + 1px)`,
-  [theme.breakpoints.up("sm")]: {
-    width: `calc(${theme.spacing(8)} + 1px)`,
-  },
-});
-
-const DrawerHeader = styled("div")(({ theme }) => ({
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "flex-end",
-  padding: theme.spacing(0, 1),
-  // necessary for content to be below app bar
-  ...theme.mixins.toolbar,
-}));
-
-interface AppBarProps extends MuiAppBarProps {
-  open?: boolean;
-}
-
-const AppBar = styled(MuiAppBar, {
-  shouldForwardProp: (prop) => prop !== "open",
-})<AppBarProps>(({ theme, open }) => ({
-  zIndex: theme.zIndex.drawer + 1,
-  transition: theme.transitions.create(["width", "margin"], {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen,
-  }),
-  ...(open && {
-    marginLeft: drawerWidth,
-    width: `calc(100% - ${drawerWidth}px)`,
-    transition: theme.transitions.create(["width", "margin"], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
-  }),
-}));
-
-const Drawer = styled(MuiDrawer, {
-  shouldForwardProp: (prop) => prop !== "open",
-})(({ theme, open }) => ({
-  width: drawerWidth,
-  flexShrink: 0,
-  whiteSpace: "nowrap",
-  boxSizing: "border-box",
-  ...(open && {
-    ...openedMixin(theme),
-    "& .MuiDrawer-paper": openedMixin(theme),
-  }),
-  ...(!open && {
-    ...closedMixin(theme),
-    "& .MuiDrawer-paper": closedMixin(theme),
-  }),
-}));
+const drawerWidth = 220;
 
 const TOP_LINKS = [
   { text: "Dashboard", href: "/", icon: HomeIcon, superuserOnly: false },
@@ -149,14 +78,15 @@ const BOTTOM_LINKS = [
   //{ text: 'Logout', href: '/access', icon: LogoutIcon, superuserOnly: false },
 ];
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({children}: {children: React.ReactNode;}) 
+{
   const router = useRouter();
 
   const [isSuperuser, setIsSuperuser] = useState(false);
+
+  const { height, width } = useWindowDimensions();
+
+  const [mobileOpen, setMobileOpen] = React.useState(false);
 
   useEffect(() => {
     (async () => {
@@ -226,119 +156,138 @@ export default function RootLayout({
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
 
-  const handleDrawerOpen = () => {
-    setOpen(true);
+  const toggleDrawer = () => {
+      setOpen(!open);
   };
 
-  const handleDrawerClose = () => {
-    setOpen(false);
-  };
+  const drawer = (
+        <div>
+          <Grid container spacing={2}>
+            <Grid xs={12}>
+            <Link href="/">
+            <Image
+              src={LogoSVG}
+              alt="Logo"
+              width={200}
+              style={{ display: "flex", margin: "10px" }}
+            />
+            </Link>
+            <Divider />
+            <List>
+            {TOP_LINKS.map(
+              ({ text, href, icon: Icon, superuserOnly }) =>
+                (!superuserOnly || isSuperuser) && (
+                  <ListItem key={href} disablePadding>
+                    <ListItemButton component={Link} href={href}>
+                      <ListItemIcon>
+                        <Icon />
+                      </ListItemIcon>
+                      <ListItemText primary={text} />
+                    </ListItemButton>
+                  </ListItem>
+                )
+            )}
+          </List>
+          <Divider sx={{ mt: "auto" }} />
+          <List>
+            {BOTTOM_LINKS.map(
+              ({ text, href, icon: Icon, superuserOnly }) =>
+                (!superuserOnly || isSuperuser) && (
+                  <ListItem key={href} disablePadding>
+                    <ListItemButton component={Link} href={href}>
+                      <ListItemIcon>
+                        <Icon />
+                      </ListItemIcon>
+                      <ListItemText primary={text} />
+                    </ListItemButton>
+                  </ListItem>
+                )
+            )}
+            <ListItem disablePadding>
+              <ListItemButton onClick={logout}>
+                <ListItemIcon>
+                  <LogoutIcon />
+                </ListItemIcon>
+                <ListItemText primary="Logout" />
+              </ListItemButton>
+            </ListItem>
+          </List>
+            </Grid>
+          </Grid>
+          <Divider />
+        </div>
+  );
 
   return (
-    <html lang="en">
+    <Box sx={{ display: "flex"}}>
       <CheckLogin pageType={PAGE_TYPE.INTERNAL} />
-      <body>
-        <Box sx={{ display: "flex" }}>
-          <ThemeRegistry>
-            <AppBar position="fixed" open={open}>
-              <Toolbar
-                sx={{
-                  backgroundColor: "background.paper",
-                  displayPrint: "none",
-                }}
-              >
-                <IconButton
-                  aria-label="open drawer"
-                  onClick={handleDrawerOpen}
-                  edge="start"
-                  sx={{
-                    marginRight: 5,
-                    ...(open && { display: "none" }),
-                  }}
-                >
-                  <MenuIcon />
-                </IconButton>
-                <Typography variant="h6" noWrap component="div" color="white">
-                  UWAM FRACAS
-                </Typography>
-                <Image
-                  src={LogoSVG}
-                  alt="Logo"
-                  width={130}
-                  height={65}
-                  style={{ display: "flex", marginLeft: "15px" }}
-                />
-              </Toolbar>
-            </AppBar>
-            <Drawer
-              variant="permanent"
-              open={open}
-              sx={{ displayPrint: "none" }}
+      <ThemeRegistry>
+        <AppBar position="fixed"
+        sx={{
+          width: { sm: `calc(100% - ${drawerWidth}px)` },
+          ml: { sm: `${drawerWidth}px` },
+        }}>
+          <Toolbar
+            sx={{
+              backgroundColor: "background.paper",
+              displayPrint: "none",
+            }}
+          >
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              edge="start"
+              onClick={toggleDrawer}
+              sx={{ mr: 2, display: { sm: 'none' } }}
             >
-              <DrawerHeader>
-                <IconButton onClick={handleDrawerClose}>
-                  {theme.direction === "rtl" ? (
-                    <ChevronRightIcon />
-                  ) : (
-                    <ChevronLeftIcon />
-                  )}
-                </IconButton>
-              </DrawerHeader>
-              <Divider />
-              <List>
-                {TOP_LINKS.map(
-                  ({ text, href, icon: Icon, superuserOnly }) =>
-                    (!superuserOnly || isSuperuser) && (
-                      <ListItem key={href} disablePadding>
-                        <ListItemButton component={Link} href={href}>
-                          <ListItemIcon>
-                            <Icon />
-                          </ListItemIcon>
-                          <ListItemText primary={text} />
-                        </ListItemButton>
-                      </ListItem>
-                    )
-                )}
-              </List>
-              <Divider sx={{ mt: "auto" }} />
-              <List>
-                {BOTTOM_LINKS.map(
-                  ({ text, href, icon: Icon, superuserOnly }) =>
-                    (!superuserOnly || isSuperuser) && (
-                      <ListItem key={href} disablePadding>
-                        <ListItemButton component={Link} href={href}>
-                          <ListItemIcon>
-                            <Icon />
-                          </ListItemIcon>
-                          <ListItemText primary={text} />
-                        </ListItemButton>
-                      </ListItem>
-                    )
-                )}
-                <ListItem disablePadding>
-                  <ListItemButton onClick={logout}>
-                    <ListItemIcon>
-                      <LogoutIcon />
-                    </ListItemIcon>
-                    <ListItemText primary="Logout" />
-                  </ListItemButton>
-                </ListItem>
-              </List>
-            </Drawer>
-            <Box
-              component="main"
-              sx={{
-                flexGrow: 1,
-                p: 3,
-                bgcolor: "background.default",
-              }}
-            >
-              <DrawerHeader sx={{ displayPrint: "none" }} />
-              {children}
-            </Box>
-          </ThemeRegistry>
+              <MenuIcon />
+            </IconButton>
+            <Typography variant="h6" noWrap component="div" color="white">
+              FRACAS
+            </Typography>
+          </Toolbar>
+        </AppBar>
+        <Box
+        component="nav"
+        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+      >
+        <Drawer
+          variant="permanent"
+          open={open}
+          sx={{
+            displayPrint: "none",
+            display: { xs: 'none', sm: 'block' },
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+          }}
+        >
+          {drawer}
+        </Drawer>
+        <Drawer
+          variant="temporary"
+          onClose={toggleDrawer}
+          open={open}
+          ModalProps={{
+            keepMounted: true, // Better open performance on mobile.
+          }}
+          sx={{
+            displayPrint: "none",
+            display: { xs: 'block', sm: 'none' },
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+          }}
+        >
+          {drawer}
+        </Drawer>
         </Box>
-      </body>
-    </html>
+        <Box
+          component="main"
+          sx={{
+            bgcolor: "background.default", 
+            flexGrow: 1, p: { xs: 2, sm: 3 }, width: { xs: "100%", sm: `calc(100% - ${drawerWidth}px)` } }}
+      >
+        <Toolbar />
+          {children}
+        </Box>
+      </ThemeRegistry>
+    </Box>
   );
 }

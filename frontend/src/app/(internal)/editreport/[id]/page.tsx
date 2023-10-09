@@ -48,7 +48,7 @@ import { AxiosError, AxiosResponse } from "axios";
 import { useRouter } from "next/navigation";
 
 import { get_client_tz } from "@/helpers/client_utils";
-import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { DatePicker, DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
@@ -75,9 +75,12 @@ const schema = yup.object().shape({
   corrective_action_plan: yup.string().nullable(),
   car_year: yup.number().nullable(),
   team_id: yup.number().nullable(),
+  owner_id: yup.number(),
   record_valid: yup.boolean().nullable(),
   analysis_valid: yup.boolean().nullable(),
   corrective_valid: yup.boolean().nullable(),
+  time_resolved: yup.string().nullable(),
+  notes: yup.string().nullable(),
 });
 export type UserForm = yup.InferType<typeof schema>;
 
@@ -93,6 +96,7 @@ export default function EditReport(props: Props) {
   const [submitted, setSubmitted] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [teams, setTeams] = useState<API_TYPES.TEAM.GET.RESPONSE[]>([]);
+  const [users, setUsers] = useState<API_TYPES.USER.RESPONSE[]>([]);
   const router = useRouter();
   const [canValidate, setCanValidate] = useState(false);
 
@@ -142,6 +146,23 @@ export default function EditReport(props: Props) {
       });
   }
 
+  const fetchUsers = async () => {
+    const response = await API_CLIENT.get<
+      any,
+      AxiosResponse<API_TYPES.USER.RESPONSE[]>
+    >(API_ENDPOINT.USER, {})
+      .then((response) => {
+        if (response) {
+          setUsers(response.data);
+        } else {
+          console.error("An error occurred");
+        }
+      })
+      .catch((error: AxiosError) => {
+        console.error("An error occurred " + error.message);
+      });
+  }
+
   const fetchRecord = async () => {
     const response = await API_CLIENT.get<
           any,
@@ -155,6 +176,7 @@ export default function EditReport(props: Props) {
                 description: report.description,
                 subsystem_name: report.subsystem?.name,
                 team_id: report.team?.id,
+                owner_id: report.owner?.id,
                 // @ts-ignore: dayjs object is not a string but we can't use
                 // dayjs objects in yup date
                 time_of_failure: dayjs.utc(
@@ -168,7 +190,12 @@ export default function EditReport(props: Props) {
                 car_year: report.car_year,
                 record_valid: report.record_valid,
                 analysis_valid: report.analysis_valid,
-                corrective_valid: report.corrective_valid
+                corrective_valid: report.corrective_valid,
+                time_resolved: dayjs.utc(
+                  report.time_resolved,
+                  "YYYY-MM-DD HH:mm:ss"
+                ),
+                notes: report.notes,
               });
             } else {
               console.error("An error occurred");
@@ -185,6 +212,7 @@ export default function EditReport(props: Props) {
   useEffect(() => {
     fetchTeam();
     fetchRecord();
+    fetchUsers();
     checkCanValidate();
   }, []);
 
@@ -204,6 +232,9 @@ export default function EditReport(props: Props) {
     console.log("data submitted: ", data);
     //  Not efficient, but I cannot find out how to override the default date format, since react-hook-form abstracts away the string conversion so we can't use .format().
     data.time_of_failure = dayjs(data.time_of_failure).format(API_DATE_FORMAT);
+    if (data.time_resolved) {
+      data.time_resolved = dayjs(data.time_resolved).format(API_DATE_FORMAT);
+    }
     (async () => {
       await API_CLIENT.patch(API_ENDPOINT.RECORD + "/" + record_id, data)
         .then((response) => {
@@ -259,7 +290,7 @@ export default function EditReport(props: Props) {
             {activeStep === 0 && (
               <Box sx={{ flexGrow: 1, py: 2 }}>
                 <Grid container spacing={2}>
-                  <Grid xs={10}>
+                  <Grid xs={12} md={10}>
                     <Controller
                       name="title"
                       control={control}
@@ -277,7 +308,30 @@ export default function EditReport(props: Props) {
                       )}
                     />
                   </Grid>
-                  <Grid xs={3}>
+                  <Grid xs={12} md={10}>
+                    <Controller
+                      name="owner_id"
+                      control={control}
+                      defaultValue={0}
+                      render={({ field }) => (
+                        <FormControl fullWidth>
+                          <InputLabel id="owner">Owner</InputLabel>
+                          <Select
+                            {...field}
+                            labelId="owner"
+                            id="owner"
+                            label="Owner"
+                            value={field.value}
+                          >
+                            {users.map((user) => (
+                              <MenuItem key={user.id} value={user.id}>{user.name}</MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      )}
+                    />
+                  </Grid>
+                  <Grid xs={12} md={3}>
                     <Controller
                       name="team_id"
                       control={control}
@@ -300,7 +354,7 @@ export default function EditReport(props: Props) {
                       )}
                     />
                   </Grid>
-                  <Grid xs={3}>
+                  <Grid xs={12} md={3}>
                     <Controller
                       name="subsystem_name"
                       defaultValue={""}
@@ -314,8 +368,8 @@ export default function EditReport(props: Props) {
                       )}
                     />
                   </Grid>
-                  <Divider orientation="vertical" flexItem></Divider>
-                  <Grid xs={2}>
+
+                  <Grid xs={4} md={2}>
                     <Controller
                       name="car_year"
                       control={control}
@@ -332,7 +386,7 @@ export default function EditReport(props: Props) {
                       )}
                     />
                   </Grid>
-                  <Grid xs={2}>
+                  <Grid xs={12} md={3}>
                     <Controller
                       name="time_of_failure"
                       control={control}
@@ -510,7 +564,8 @@ export default function EditReport(props: Props) {
                       )}
                     />
                     <Divider sx={{ my: 3 }} />
-                    {true }
+                  </Grid>
+                  <Grid xs={12} md={9}>
                     <Typography variant="h6" gutterBottom>
                       Validation
                     </Typography>
@@ -520,12 +575,41 @@ export default function EditReport(props: Props) {
                       defaultValue={false}
                       render={({ field }) => (
                         <FormGroup>
-                      <FormControlLabel
-                        {...field}
-                        control={<Checkbox disabled={!canValidate} checked={Boolean(field.value)}/>}
-                        label="Corrective Action Valid?"
-                      />
-                    </FormGroup>
+                          <FormControlLabel
+                            {...field}
+                            control={<Checkbox disabled={!canValidate} checked={Boolean(field.value)}/>}
+                            label="Corrective Action Valid?"
+                          />
+                        </FormGroup>
+                      )}
+                    />
+                  </Grid>
+                  <Grid xs={12} md={3}>
+                    <Controller
+                      name="time_resolved"
+                      control={control}
+                      render={({ field }) => (
+                        <LocalizationProvider
+                          // localeText={
+                          //   enUS.components.MuiLocalizationProvider.defaultProps
+                          //     .localeText
+                          // }
+                          dateAdapter={AdapterDayjs} adapterLocale="en-au"
+                        >
+                          <DatePicker
+                            {...field}
+                            label="Time Resolved"
+                            // error={!!errors.title}
+                            timezone={get_client_tz()}
+                            disableFuture={true} // time travellers beware...
+                            slotProps={{
+                              textField: {
+                                helperText: 'Once set, report will be marked as Resolved',
+                              },
+                            }}
+
+                          />
+                        </LocalizationProvider>
                       )}
                     />
                   </Grid>

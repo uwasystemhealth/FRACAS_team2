@@ -25,9 +25,6 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" style={{ margin: 0 }}>
-      <body style={{ margin: 0 }}>
-      <ThemeRegistry>
         <Box
           top={0}
           display="flex"
@@ -35,10 +32,9 @@ export default function RootLayout({
           alignItems="center"
           minHeight="100vh"
         >
+          <ThemeRegistry>
           {children}
+          </ThemeRegistry>
         </Box>
-        </ThemeRegistry>
-      </body>
-    </html>
   );
 }

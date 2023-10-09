@@ -38,9 +38,10 @@ import { API_CLIENT, API_DATE_FORMAT, API_ENDPOINT } from "@/helpers/api";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
-import Step from "@mui/material/Step";
-import StepLabel from "@mui/material/StepLabel";
-import Stepper from "@mui/material/Stepper";
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Typography from "@mui/material/Typography";
 import Grid from "@mui/material/Unstable_Grid2";
 import { LocalizationProvider } from "@mui/x-date-pickers";
@@ -120,11 +121,7 @@ const ReportForm: React.FC = (props: Props) => {
   const router = useRouter();
 
   const [submitted, setSubmitted] = useState(false);
-  const [activeStep, setActiveStep] = useState(0);
   const [subsystems, setSubsystems] = useState([]);
-  const [helperTextLinkClicked, setHelperTextLinkClicked] = useState(false);
-  const [isTextFieldOpen, setIsTextFieldOpen] = useState(false);
-  const [textFieldValue, setTextFieldValue] = useState("");
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarSeverity, setSnackbarSeverity] = useState<
     "success" | "error" | "warning" | "info"
@@ -136,16 +133,6 @@ const ReportForm: React.FC = (props: Props) => {
   const [teams, setTeams] = useState<Team[]>([]);
   const [currentUser, setCurrentUser] = useState<CurrentUser[]>([]);
   const [selectedTeamId, setSelectedTeamId] = useState<number | undefined>(); // State to keep track of selected team ID
-
-  const handleNext = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    e.preventDefault();
-    setActiveStep((prevActiveStep) => prevActiveStep + 1);
-  };
-
-  const handleBack = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    e.preventDefault();
-    setActiveStep((prevActiveStep) => prevActiveStep - 1);
-  };
 
   const handleSnackbarOpen = () => {
     setOpenSnackbar(true);
@@ -251,33 +238,10 @@ const ReportForm: React.FC = (props: Props) => {
 
   return (
     <Box sx={{ width: "100%" }}>
-      <Stepper activeStep={activeStep}>
-        {steps.map((label, index) => {
-          const stepProps: { completed?: boolean } = {};
-          const labelProps: {
-            optional?: React.ReactNode;
-          } = {};
-          return (
-            <Step key={label} {...stepProps}>
-              <StepLabel {...labelProps}>{label}</StepLabel>
-            </Step>
-          );
-        })}
-      </Stepper>
-      {activeStep === steps.length ? (
-        <React.Fragment>
-          <Typography sx={{ mt: 2, mb: 1 }}>
-            All steps completed - you&apos;re finished
-          </Typography>
-          <Box sx={{ display: "flex", flexDirection: "row", pt: 2 }}>
-            <Box sx={{ flex: "1 1 auto" }} />
-          </Box>
-        </React.Fragment>
-      ) : (
-        <React.Fragment>
+      <React.Fragment>
           <form onSubmit={handleSubmit(onValid)}>
-            {(activeStep === 0 || activeStep === 2) && (
-              <Box sx={{ flexGrow: 1, py: 2 }}>
+          <Box sx={{ flexGrow: 1, py: 2 }}>
+            <Typography variant="h6" gutterBottom>Create Report</Typography>
                 <Grid container spacing={2}>
                   <Grid xs={10}>
                     <Controller
@@ -296,7 +260,7 @@ const ReportForm: React.FC = (props: Props) => {
                       )}
                     />
                   </Grid>
-                  <Grid xs={3}>
+                  <Grid xs={12} md={3}>
                     <TeamMenu<UserForm>
                       control={control}
                       teams={teams}
@@ -305,7 +269,7 @@ const ReportForm: React.FC = (props: Props) => {
                       id="team"
                     />
                   </Grid>
-                  <Grid xs={3}>
+                  <Grid xs={12} md={3}>
                     <Controller
                       name="subsystem_name"
                       defaultValue={""}
@@ -319,8 +283,7 @@ const ReportForm: React.FC = (props: Props) => {
                       )}
                     />
                   </Grid>
-                  <Divider orientation="vertical" flexItem></Divider>
-                  <Grid xs={2}>
+                  <Grid xs={4} md={2}>
                     <Controller
                       name="car_year"
                       control={control}
@@ -336,7 +299,7 @@ const ReportForm: React.FC = (props: Props) => {
                       )}
                     />
                   </Grid>
-                  <Grid xs={3}>
+                  <Grid xs={8} md={3}>
                     <Controller
                       name="time_of_failure"
                       control={control}
@@ -383,121 +346,108 @@ const ReportForm: React.FC = (props: Props) => {
                       )}
                     />
                   </Grid>
+                  <Grid xs={12}>
+                  <Accordion>
+                    <AccordionSummary
+                      expandIcon={<ExpandMoreIcon />}
+                      aria-controls="panel1a-content"
+                      id="panel1a-header"
+                    >
+                      <Typography>Analysis & Corrective</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <Grid container spacing={2}>
+                        <Grid xs={12}>
+                          <Controller
+                            name="impact"
+                            control={control}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                label="Impact"
+                                variant="outlined"
+                                error={!!errors.impact}
+                                helperText={
+                                  errors.impact ? errors.impact?.message : ""
+                                }
+                                fullWidth
+                                multiline
+                                minRows={4}
+                              />
+                            )}
+                          />
+                        </Grid>
+                        <Grid xs={12}>
+                          <Controller
+                            name="cause"
+                            control={control}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                label="Cause"
+                                variant="outlined"
+                                error={!!errors.cause}
+                                helperText={errors.cause ? errors.cause?.message : ""}
+                                fullWidth
+                                multiline
+                                minRows={4}
+                              />
+                            )}
+                          />
+                        </Grid>
+                        <Grid xs={12}>
+                          <Controller
+                            name="mechanism"
+                            control={control}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                label="Mechanism"
+                                variant="outlined"
+                                error={!!errors.mechanism}
+                                helperText={
+                                  errors.mechanism ? errors.mechanism?.message : ""
+                                }
+                                fullWidth
+                                multiline
+                                minRows={4}
+                              />
+                            )}
+                          />
+                        </Grid>
+                        <Grid xs={12}>
+                          <Controller
+                            name="corrective_action_plan"
+                            control={control}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                label="Corrective Action Plan"
+                                variant="outlined"
+                                error={!!errors.corrective_action_plan}
+                                helperText={
+                                  errors.corrective_action_plan
+                                    ? errors.corrective_action_plan?.message
+                                    : ""
+                                }
+                                fullWidth
+                                multiline
+                                minRows={4}
+                              />
+                            )}
+                          />
+                        </Grid>
+                      </Grid>
+                    </AccordionDetails>
+                  </Accordion>
+                </Grid>
                 </Grid>
               </Box>
-            )}
-            {(activeStep === 1 || activeStep === 2) && (
-              <Box sx={{ flexGrow: 1, py: 4 }}>
-                <Grid container spacing={2}>
-                  <Grid xs={12}>
-                    <Controller
-                      name="impact"
-                      control={control}
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          label="Impact"
-                          variant="outlined"
-                          error={!!errors.impact}
-                          helperText={
-                            errors.impact ? errors.impact?.message : ""
-                          }
-                          fullWidth
-                          multiline
-                          minRows={4}
-                        />
-                      )}
-                    />
-                  </Grid>
-                  <Grid xs={12}>
-                    <Controller
-                      name="cause"
-                      control={control}
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          label="Cause"
-                          variant="outlined"
-                          error={!!errors.cause}
-                          helperText={errors.cause ? errors.cause?.message : ""}
-                          fullWidth
-                          multiline
-                          minRows={4}
-                        />
-                      )}
-                    />
-                  </Grid>
-                  <Grid xs={12}>
-                    <Controller
-                      name="mechanism"
-                      control={control}
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          label="Mechanism"
-                          variant="outlined"
-                          error={!!errors.mechanism}
-                          helperText={
-                            errors.mechanism ? errors.mechanism?.message : ""
-                          }
-                          fullWidth
-                          multiline
-                          minRows={4}
-                        />
-                      )}
-                    />
-                  </Grid>
-                  <Grid xs={12}>
-                    <Controller
-                      name="corrective_action_plan"
-                      control={control}
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          label="Corrective Action Plan"
-                          variant="outlined"
-                          error={!!errors.corrective_action_plan}
-                          helperText={
-                            errors.corrective_action_plan
-                              ? errors.corrective_action_plan?.message
-                              : ""
-                          }
-                          fullWidth
-                          multiline
-                          minRows={4}
-                        />
-                      )}
-                    />
-                  </Grid>
-                </Grid>
-              </Box>
-            )}
-            <Box sx={{ display: "flex", flexDirection: "row", pt: 2 }}>
-              <Button
-                color="inherit"
-                type="button"
-                disabled={activeStep === 0}
-                onClick={handleBack}
-                sx={{ mr: 1 }}
-              >
-                Back
-              </Button>
-              <Box sx={{ flex: "1 1 auto" }} />
-              {activeStep === steps.length - 1 ? (
-                <Button type="submit">Submit</Button>
-              ) : (
-                <Button
-                  onClick={handleNext}
-                  type="button"
-                  disabled={activeStep === steps.length - 1}
-                >
-                  Next
-                </Button>
-              )}
+            <Box sx={{ display: "flex", justifyContent: "right", pt: 2 }}>
+              <Button variant="contained" type="submit">Submit</Button>
             </Box>
           </form>
         </React.Fragment>
-      )}
     </Box>
   );
 };

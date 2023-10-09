@@ -107,7 +107,6 @@ function SubsysMenu<T extends FieldValues>({
         <Select
         {...field}
         label={label}
-        fullWidth
         >
           {subsystems.map((system) => (
             // TODO: change this from key={subsystem.name} to key={subsystem.id}

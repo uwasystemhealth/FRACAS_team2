@@ -24,24 +24,21 @@ import {
   DataGrid,
   GridCellParams,
   GridColDef,
-  GridValueGetterParams,
-  GridRenderCellParams, 
-  GridToolbar,
   MuiEvent,
 } from "@mui/x-data-grid";
 import TextField from "@mui/material/TextField";
 import Card from "@mui/material/Card";
 import IconButton from "@mui/material/IconButton";
-import VisibilityIcon from "@mui/icons-material/Visibility";
 import Link from '@mui/material/Link';
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { boolean, date } from "yup";
 import { useEffect, useState } from "react";
 import { API_CLIENT, API_ENDPOINT, API_TYPES } from "@/helpers/api";
 import { AxiosError, AxiosResponse } from "axios";
 import Grid from '@mui/material/Unstable_Grid2';
-import Box from '@mui/material/Box';
+import ReportStatusMessage from "@/components/ReportStatusMessage";
+import useWindowDimensions from "@/components/WindowSize";
+import { GridInitialStateCommunity } from "@mui/x-data-grid/models/gridStateCommunity";
 
 const disableSelectBtns = (
   params: GridCellParams,
@@ -65,7 +62,18 @@ export interface UserReport {
 export interface Props {
   rows: UserReport[];
   setRows: React.Dispatch<React.SetStateAction<UserReport[]>>;
+  initialstate?: GridInitialStateCommunity;
+  search?: Boolean
+  width_subtract?: number
   // showDelete: boolean;
+}
+
+const defaultstate: GridInitialStateCommunity = {
+    columns: {
+      columnVisibilityModel: {
+        creator: false,
+      },
+    },
 }
 
 // Filtering can be done when the columns are defined, in case
@@ -107,13 +115,25 @@ export interface Props {
 //   );
 // }
 
-export default function ReportList({ rows, setRows /*, showDelete*/ }: Props) {
+
+const ReportList: React.FC<Props> = ({ rows, setRows, initialstate, search, width_subtract }) => {
+  if (initialstate === undefined) {
+    initialstate = defaultstate;
+  }
+  if (search === undefined) {
+    search = true;
+  }
+  if (width_subtract === undefined) {
+    width_subtract = 0;
+  }
   const [searchTerm, setSearchTerm] = React.useState("");
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
   const [deleteFunction, setDeleteFunction] = useState<
     React.MouseEventHandler<HTMLButtonElement> | undefined
   >(undefined);
   const [showDelete, setShowDelete] = useState(false);
+
+  const { height, width } = useWindowDimensions();
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
@@ -159,29 +179,29 @@ export default function ReportList({ rows, setRows /*, showDelete*/ }: Props) {
       
       renderCell: (params) => (
         <Link href={`/viewreport/${params.row.id}`} 
-        sx={{ fontWeight: 'bold', whiteSpace: 'pre-wrap', overflowWrap: 'break-word'}}>
+        sx={{ fontWeight: 'bold', whiteSpace: 'pre-wrap', overflowWrap: 'break-word', marginY: 1}}>
           {params.row.title}
         </Link>
       ),
      },
-     { field: "description", 
-      headerName: "Description",
-      minWidth: 150,
-      flex: 0.50,
-      filterable: false,
-      align: "left",
-      valueGetter: (params) => {
-        if (params.row.description){
-          return params.row.description
-        } else {
-          return "..."
-        }},
-      renderCell: (params) => (
-        <div style={{textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden'}}>
-        <i>{params.row.description || "..."}</i>
-        </div>
-      )
-     },
+    //  { field: "description", 
+    //   headerName: "Description",
+    //   minWidth: 150,
+    //   flex: 0.50,
+    //   filterable: false,
+    //   align: "left",
+    //   valueGetter: (params) => {
+    //     if (params.row.description){
+    //       return params.row.description
+    //     } else {
+    //       return "..."
+    //     }},
+    //   renderCell: (params) => (
+    //     <div style={{textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden'}}>
+    //     <i>{params.row.description || "..."}</i>
+    //     </div>
+    //   )
+    //  },
     { field: "created_at",
     headerName: "Created At",
     type: 'date',
@@ -252,6 +272,15 @@ export default function ReportList({ rows, setRows /*, showDelete*/ }: Props) {
       ),
     },
     {
+      field: "stage",
+      headerName: "Stage",
+      minWidth: 100,
+      flex: 0.35,
+      renderCell: (params) => (
+          <ReportStatusMessage status={params.row.stage} messageOnly={false}/>
+      )
+    },
+    {
       field: "edit",
       headerName: "Edit",
       width: 25,
@@ -319,7 +348,7 @@ export default function ReportList({ rows, setRows /*, showDelete*/ }: Props) {
   const filteredRows = rows.filter((row) =>
     Object.entries(row).some((value) =>
       {if (typeof value[1] === 'object') {
-        return value[1]?.name.toString().toLowerCase().includes(searchTerm.toLowerCase());
+        return getObjectName(value).toString().toLowerCase().includes(searchTerm.toLowerCase());
       } else if (value[0] != ("created_at" || "modified_at")) {
         return value[1]?.toString().toLowerCase().includes(searchTerm.toLowerCase());
       };}
@@ -354,54 +383,45 @@ export default function ReportList({ rows, setRows /*, showDelete*/ }: Props) {
   }, []);
 
   return (
-    <Box sx={{ width: '100%' }}>
+      <Grid 
+      container spacing={{ xs: 1, md: 2 }} 
+      marginBottom={{ xs: 1, md: 2 }} 
+      width={{xs: "inherit", sm: "100%"}}
+      >
       <DeleteConfirmation
         open={showDeleteDialog}
         setOpen={setShowDeleteDialog}
         onDelete={deleteFunction}
-      />
-      <Card
-        style={{
-          padding: 10,
-          width: "100%",
-          margin: "0 auto",
-        }}
-      >
-      <Grid container spacing={{ xs: 1, md: 2 }} marginBottom={{ xs: 1, md: 2 }} sx={{width: "100%"}}>
-        <Grid sx={{ width: "100%" }}>
-          <TextField
-            label="Search"
-            value={searchTerm}
-            onChange={handleSearchChange}
-            variant="outlined"
-            fullWidth
-          />
-        </Grid>
-        <Grid sx={{ width: "100%" }}>
+      />{search ? (
+          <Grid xs={12}>
+            <TextField
+              label="Search"
+              value={searchTerm}
+              onChange={handleSearchChange}
+              variant="outlined"
+              fullWidth
+            />
+          </Grid>
+        ) : (<></>)}
+        <Grid xs={12}>
         <DataGrid
-          initialState={{
-            columns: {
-              columnVisibilityModel: {
-                // Hide columns at initial mount
-                creator: false,
-              },
-            },
-          }}
+          initialState={initialstate}
           rows={filteredRows}
           columns={columns}
           pagination
           pageSizeOptions={[5, 25, 100]}
           //checkboxSelection
           onCellClick={disableSelectBtns}
-          getEstimatedRowHeight={() => 120}
           getRowHeight={() => 'auto'}
+          getEstimatedRowHeight={() => 200}
+          density="standard"
           //sortModel={[{ field: "created_at", sort: "desc" }]}
           autoHeight {...filteredRows}
-          sx={{ overflowX: 'scroll' }}
+          sx={{overflowX: "scroll"}}
         />
         </Grid>
       </Grid>
-      </Card>
-    </Box>
   );
 }
+
+export default ReportList;
