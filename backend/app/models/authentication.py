@@ -38,6 +38,7 @@ class User(db.Model, SerializerMixin):
         "id",
         "superuser",
         "name",
+        "email",
         "created_at",
         "can_validate",
         "team_id",
@@ -98,8 +99,9 @@ class User(db.Model, SerializerMixin):
         "Record", back_populates="owner", foreign_keys="Record.owner_id"
     )
     bookmarked = db.relationship(
-        "Record", secondary='user_record'
+        "Record", secondary='user_record', backref='users'
     )
+    comments = db.relationship("Comment")
 
     def __repr__(self):
         return f"<User {self.email} {'(UNREGISTERED)' if not self.registered else ''}>"

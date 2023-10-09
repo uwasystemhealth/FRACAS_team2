@@ -14,38 +14,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from flask import jsonify, request
+from flask import jsonify
 from app import app, db
 from app.models.authentication import User
 from app.models.record import Record
-from app.utils import superuser_jwt_required, user_jwt_required
-from app.models.team import Team
+from app.utils import user_jwt_required
 from app.utils import handle_exceptions
 from flask_jwt_extended import get_jwt_identity
 
-
-def get_username(user_id):
-    if user_id is None:
-        return None
-    user = User.query.get(user_id)
-    return user.name
-
-
-def team_json(teams):
-    team_json = [
-        {
-            "id": team.id,
-            "name": team.name,
-            "leader_id": team.leader_id,
-            "leader_name": get_username(team.leader_id),
-        }
-        for team in teams
-    ]
-    return jsonify(team_json)
-
-
-# Add Bookmark
-# curl -X POST localhost:5000/api/v1/team -H 'Content-Type:application/json' --data '{"name": "test team"}'
+# Add/Remove Bookmark
 @app.route("/api/v1/bookmark/<int:record_id>", methods=["POST"])
 @handle_exceptions
 @user_jwt_required
@@ -81,11 +58,11 @@ def get_bookmarks():
     bookmarks = user.bookmarked.all()
     return jsonify(bookmarks), 201
 
-# Get Bookmark
+# Check if record is Bookmarked
 @app.route("/api/v1/bookmark/<int:record_id>", methods=["GET"])
 @handle_exceptions
 @user_jwt_required
-def get_bookmark(record_id):
+def check_bookmark(record_id):
     identity = get_jwt_identity()
     user = User.query.filter_by(email=identity).first()
     if not user:

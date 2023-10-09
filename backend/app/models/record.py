@@ -45,6 +45,18 @@ class Subsystem(db.Model, SerializerMixin):
         subsystems = Subsystem.query.filter_by(team_id=team_id).all()
         return subsystems
 
+# Comment section for a given record
+class Comment(db.Model, SerializerMixin):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
+    record_id = db.Column(db.Integer, db.ForeignKey("record.id"), nullable=True)
+    content = db.Column(db.String(1000), unique=True, nullable=False)
+    created_at = db.Column(
+        db.DateTime,
+        server_default=func.now(),
+        nullable=False,
+    )
+
 
 class Record(db.Model, SerializerMixin):
     serialize_rules = (
@@ -91,6 +103,7 @@ class Record(db.Model, SerializerMixin):
     cause = db.Column(db.Text, nullable=True)
     mechanism = db.Column(db.Text, nullable=True)
     corrective_action_plan = db.Column(db.Text, nullable=True)
+    notes = db.Column(db.Text, nullable=True)
     # Auto filled fields:
     # Creation Date (time when pressed submit, may be changed later)
     time_of_failure = db.Column(
@@ -134,3 +147,4 @@ class Record(db.Model, SerializerMixin):
     record_valid = db.Column(db.Boolean, nullable=True)
     analysis_valid = db.Column(db.Boolean, nullable=True)
     corrective_valid = db.Column(db.Boolean, nullable=True)
+    comments = db.relationship("Comment")

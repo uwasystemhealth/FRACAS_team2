@@ -30,7 +30,6 @@ from app.utils import user_jwt_required
 SUBSYSTEM
 """
 
-
 def subystem_json(subsystems):
     subsystem_json = [
         {
@@ -212,7 +211,7 @@ def serialize_record(record_id):
     record: Record = Record.query.get(record_id)
     if not record or record.marked_for_deletion:
         return jsonify({"error": "Record not found"}), 404
-    return record.to_dict(), 200
+    return append_stage_and_return_dict(record), 200
 
 
 # Serialize all record (Should use pagination but whatever)
@@ -221,18 +220,25 @@ def serialize_record(record_id):
 @user_jwt_required
 def serialize_all_record():
     reports = []
+    identity = get_jwt_identity()
 
     filter_owner = request.args.get("filter_owner", "") == "true"
+    filter_bookmarks = request.args.get("filter_bookmarks", "") == "true"
     if filter_owner:
-        identity = get_jwt_identity()
-        user: User = User.query.filter_by(email=identity).first()
+        user = User.query.filter_by(email=identity).first()
         reports: List[Record] = Record.query.filter_by(
-            owner=user, marked_for_deletion=False
+            owner_id=user.id, marked_for_deletion=False
         )
+    elif filter_bookmarks:
+        user = User.query.filter_by(email=identity).first()
+        reports: List[Record] = [
+            report for report in user.bookmarked 
+            if not report.marked_for_deletion
+            ]
     else:
         reports: List[Record] = Record.query.filter_by(marked_for_deletion=False)
 
-    return jsonify([r.to_dict() for r in reports]), 200
+    return jsonify([append_stage_and_return_dict(r) for r in reports]), 200
 
 
 # TODO: USE DATABASE INDICES INSTEAD OF A COUNT(*) GROUP BY TEAM_ID.
@@ -245,7 +251,7 @@ def record_statistics():
             Team.name.label("team_name"),
             func.count().label("record_count"),
         )
-        .filter_by(marked_for_deletion=False)
+        .filter_by(marked_for_deletion=False, time_resolved=None)
         .join(
             Team, Record.team_id == Team.id, isouter=True
         )  # Join Record with Team using team_id
@@ -266,6 +272,10 @@ def record_statistics():
         200,
     )
 
+
+#
+# HELPER FUNCTIONS
+#
 
 def get_teamname(team_id):
     team = Team.query.get(team_id)
@@ -293,3 +303,22 @@ def get_email(user_id):
     if user is None:
         return "N/A"
     return user.email
+
+def append_stage_and_return_dict(report: User):
+    key = "stage"
+    if (report.record_valid is not True):
+        val = "record"
+    elif (report.analysis_valid is not True):
+        val = "analysis"
+    elif (report.corrective_valid is not True):
+        val = "corrective"
+    elif (report.time_resolved is None):
+        val = "monitoring"
+    else:
+        val = "resolved"
+
+    report_dict = report.to_dict()
+    report_dict[key] = val
+    
+    return report_dict
+    

@@ -107,9 +107,12 @@ export namespace API_TYPES {
         mechanism: string;
         corrective_action_plan: string;
         time_of_failure: string;
+        time_resolved: string;
         car_year: string;
         creator_id: number;
         creator: string;
+        notes: string;
+        status: string;
       }
       export interface RESPONSE {
         msg: string;
@@ -148,10 +151,12 @@ export namespace API_TYPES {
         owner?: API_TYPES.USER.RESPONSE;
         draft?: boolean;
         marked_for_deletion?: boolean;
-        time_resolved?: boolean;
+        time_resolved?: string;
         record_valid?: boolean;
         analysis_valid?: boolean;
         corrective_valid?: boolean;
+        status?: string;
+        notes?: string;
       }
     }
     export namespace STATS {
