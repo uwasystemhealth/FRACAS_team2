@@ -77,12 +77,12 @@ const TeamTable: React.FC = () => {
     setOpenChangeLeaderDialog(false);
   };
 
-  const handleRowSelection = (ids) => {
+  const handleRowSelection = (ids: any) => {
     if (ids) {
       setSelectedRowId(ids[0]);
       setButtonsDisabled(false);
     } else {
-      setSelectedRowId(null);
+      setSelectedRowId("");
       setButtonsDisabled(true);
     }
   };
@@ -231,7 +231,6 @@ const TeamTable: React.FC = () => {
         </ButtonGroup>
       </Stack>
       <ChangeLeaderDialog
-        src={selectedRowId}
         input_id={selectedRowId}
         open={openChangeLeaderDialog}
         onClose={handleCloseChangeLeaderDialog}

@@ -47,13 +47,20 @@ import axios, { AxiosError } from "axios";
 import { useEffect, useState } from "react";
 import CheckLogin, { PAGE_TYPE } from "@/components/CheckLogin";
 import LogoSVG from "@/public/UWAM Logo 2023 (colour).svg";
-import useWindowDimensions from "@/components/WindowSize";
 import Grid from "@mui/material/Unstable_Grid2"
+import { usePathname } from 'next/navigation';
+
+interface CurrentUser {
+  name: string;
+  id: string;
+  team_id: number;
+  superuser: boolean;
+}
 
 const drawerWidth = 220;
 
 const TOP_LINKS = [
-  { text: "Dashboard", href: "/", icon: HomeIcon, superuserOnly: false },
+  { text: "Dashboard", href: "/dashboard", icon: HomeIcon, superuserOnly: false },
   {
     text: "Create Report",
     href: "/createreport",
@@ -82,33 +89,57 @@ export default function RootLayout({children}: {children: React.ReactNode;})
 {
   const router = useRouter();
 
-  const [isSuperuser, setIsSuperuser] = useState(false);
+  const [currentUser, setCurrentUser] = useState<CurrentUser>();
+  const [isSuperuser, setSuperuser] = useState(false);
+  const [name, setName] = useState("");
 
-  const { height, width } = useWindowDimensions();
-
-  const [mobileOpen, setMobileOpen] = React.useState(false);
+  const fetchCurrentUser = async () => {
+    API_CLIENT.get(API_ENDPOINT.AUTHENTICATION.TEST_LOGGED_IN)
+      .then((response) => {
+        if (response.status == 200) {
+          setCurrentUser(response.data);
+          setSuperuser(response.data.superuser)
+          setName(response.data.name);
+        } else {
+          router.push("/login");
+          console.error(response.statusText)
+        }
+      })
+      .catch(
+        (
+          error: AxiosError<API_TYPES.AUTHENTICATION.TEST_LOGGED_IN.RESPONSE>
+        ) => {
+          router.push("/login");
+        }
+      );
+  }
 
   useEffect(() => {
-    (async () => {
-      try {
-        await API_CLIENT.get<API_TYPES.AUTHENTICATION.TEST_LOGGED_IN.RESPONSE>(
-          API_ENDPOINT.AUTHENTICATION.TEST_LOGGED_IN
-        )
-          .then((response) => {
-            setIsSuperuser(response.data.superuser);
-          })
-          .catch(
-            (
-              error: AxiosError<API_TYPES.AUTHENTICATION.TEST_LOGGED_IN.RESPONSE>
-            ) => {
-              router.push("/login");
-            }
-          );
-      } catch (error) {
-        router.push("/login");
-      }
-    })();
+    fetchCurrentUser();
   }, []);
+
+  const HeaderTitle = () => {
+    let title = usePathname()
+    if (title === "/dashboard") {
+      return "Welcome " + name;
+    }
+    else if (title === "/createreport") {
+      return "Create Report";
+    }
+    else if (title === "/record-list") {
+      return "Report Database";
+    }
+    else if (title.startsWith("/editreport")) {
+      return "Edit Report";
+    }
+    else if (title.startsWith("/viewreport")) {
+      return "Report";
+    }
+    else if (title === "/admin-dash") {
+      return "Admin Page";
+    }
+
+  }
 
   const logout = async () => {
     // delete refresh_token
@@ -164,7 +195,7 @@ export default function RootLayout({children}: {children: React.ReactNode;})
         <div>
           <Grid container spacing={2}>
             <Grid xs={12}>
-            <Link href="/">
+            <Link href="/dashboard">
             <Image
               src={LogoSVG}
               alt="Logo"
@@ -176,6 +207,7 @@ export default function RootLayout({children}: {children: React.ReactNode;})
             <List>
             {TOP_LINKS.map(
               ({ text, href, icon: Icon, superuserOnly }) =>
+              // @ts-ignore
                 (!superuserOnly || isSuperuser) && (
                   <ListItem key={href} disablePadding>
                     <ListItemButton component={Link} href={href}>
@@ -192,6 +224,7 @@ export default function RootLayout({children}: {children: React.ReactNode;})
           <List>
             {BOTTOM_LINKS.map(
               ({ text, href, icon: Icon, superuserOnly }) =>
+              // @ts-ignore
                 (!superuserOnly || isSuperuser) && (
                   <ListItem key={href} disablePadding>
                     <ListItemButton component={Link} href={href}>
@@ -220,12 +253,12 @@ export default function RootLayout({children}: {children: React.ReactNode;})
 
   return (
     <Box sx={{ display: "flex"}}>
-      <CheckLogin pageType={PAGE_TYPE.INTERNAL} />
       <ThemeRegistry>
         <AppBar position="fixed"
         sx={{
           width: { sm: `calc(100% - ${drawerWidth}px)` },
           ml: { sm: `${drawerWidth}px` },
+          displayPrint: "none"
         }}>
           <Toolbar
             sx={{
@@ -243,13 +276,13 @@ export default function RootLayout({children}: {children: React.ReactNode;})
               <MenuIcon />
             </IconButton>
             <Typography variant="h6" noWrap component="div" color="white">
-              FRACAS
+              {HeaderTitle()}
             </Typography>
           </Toolbar>
         </AppBar>
         <Box
         component="nav"
-        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 }, displayPrint: "none" }}
       >
         <Drawer
           variant="permanent"

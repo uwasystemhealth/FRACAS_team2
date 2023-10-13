@@ -31,7 +31,7 @@ class Config(object):
         "http://localhost:3000",
         "http://localhost:3001",
         "http://localhost:3002",
-        "https://example.com",
+        "https://uwam-fracas.xyz",
     ]
 
     # python -c 'import secrets; secrets.token_urlsafe()'

@@ -48,11 +48,14 @@ interface PieChart {
 }
 
 const BookmarkDataGridState: GridInitialStateCommunity = {
+  sorting: {
+    sortModel: [{ field: 'modified_at', sort: 'desc' }]
+  },
   columns: {
     columnVisibilityModel: {
       creator: false,
       created_at: false,
-      team: false,
+      description: false,
       car_year: false,
       owner: false,
       edit: false,
@@ -93,6 +96,7 @@ const Dashboard = () => {
       >(API_ENDPOINT.RECORD, { params: {filter_owner: true } })
         .then((response) => {
           if (response) {
+            // @ts-ignore
             setOwnedReports(response.data);
           } else {
             console.error("An error occurred");
@@ -105,6 +109,7 @@ const Dashboard = () => {
       // Do something with the token (e.g., store it)
     } catch (error: any) {}
   }
+  
   const fetchBookmarkedReports = async () => {
     try {
       const response = await API_CLIENT.get<
@@ -113,6 +118,7 @@ const Dashboard = () => {
       >(API_ENDPOINT.RECORD, { params: {filter_bookmarks: true } })
         .then((response) => {
           if (response) {
+            // @ts-ignore
             setBookmarkedReports(response.data);
           } else {
             console.error("An error occurred");

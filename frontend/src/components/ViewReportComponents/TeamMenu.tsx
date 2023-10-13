@@ -40,7 +40,7 @@ interface Props<T extends FieldValues> {
   id: string;
   label: string;
   teams: Team[];
-  onSelectTeam: (teamId: string) => void;
+  //onSelectTeam: (teamId: string) => void;
   control: Control<T> | undefined;
 }
 
@@ -52,12 +52,14 @@ function TeamMenu<T extends FieldValues>(props: Props<T>) {
     teams,
     name,
     id,
-    onSelectTeam,
+    // onSelectTeam,
     control,
   } = props;
   return (
     <Controller
+      // @ts-ignore
       name={name}
+      // @ts-ignore
       defaultValue={0}
       control={control}
       render={({ field }) => (

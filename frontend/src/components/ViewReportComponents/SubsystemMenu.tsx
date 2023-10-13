@@ -35,7 +35,7 @@ interface Subsystem {
 }
 
 interface Props<T extends FieldValues> {
-  team_id: number;
+  team_id: number | null | undefined;
   field: any;
   label: string;
 }

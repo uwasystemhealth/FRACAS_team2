@@ -35,7 +35,6 @@ def toggle_bookmark(record_id):
     if not record:
         return jsonify({"error": "Record not found"}), 404
     postToggle = False
-    print(user.bookmarked)
     if (record in user.bookmarked):
         user.bookmarked.remove(record)
         postToggle = False
@@ -43,7 +42,6 @@ def toggle_bookmark(record_id):
         user.bookmarked.append(record)
         postToggle = True
     db.session.commit()
-    print(postToggle)
     return jsonify(postToggle), 200
 
 # Get Bookmarks

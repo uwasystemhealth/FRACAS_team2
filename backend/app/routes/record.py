@@ -125,7 +125,8 @@ def update_record_kv(record: Record, data: Dict[str, Union[str, int]]) -> int:
         # CHECK KEYS AGAIN FOR SAFETY
         if hasattr(record, key) and key not in Record.PROTECTED_FIELDS:
             if key in Record.TIME_FIELDS:
-                value = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%fZ")
+                if value is not None:
+                    value = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%fZ")
             if getattr(record, key) != value:
                 updated += 1
                 setattr(record, key, value)

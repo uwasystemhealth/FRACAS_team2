@@ -24,6 +24,7 @@ import React, { useEffect } from "react";
 export enum PAGE_TYPE {
   INTERNAL,
   EXTERNAL,
+  LANDING
 }
 
 interface props {
@@ -40,13 +41,13 @@ const CheckLogin = (props: props) => {
           API_ENDPOINT.AUTHENTICATION.TEST_LOGGED_IN
         )
           .then((response) => {
-            if (pageType === PAGE_TYPE.EXTERNAL) router.push("/");
+            if (pageType === PAGE_TYPE.EXTERNAL) router.push("/dashboard");
           })
           .catch(
             (
               error: AxiosError<API_TYPES.AUTHENTICATION.TEST_LOGGED_IN.RESPONSE>
             ) => {
-              if (pageType === PAGE_TYPE.INTERNAL) router.push("/login");
+              router.push("/login");
             }
           );
       } catch (error) {

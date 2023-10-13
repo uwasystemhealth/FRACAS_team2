@@ -122,7 +122,10 @@ class User(db.Model, SerializerMixin):
         return self.registered
 
     def is_superuser(self) -> bool:
-        return self.superuser
+        if (self.superuser):
+            return True
+        else:
+            return False
 
     def set_superuser(self, superuser: bool) -> None:
         self.superuser = superuser

@@ -131,7 +131,7 @@ export namespace API_TYPES {
       }
       export interface RESPONSE {
         id: number;
-        title?: string;
+        title: string;
         subsystem_id?: number;
         subsystem?: API_TYPES.SUBSYSTEM.GET.RESPONSE;
         description?: string;
@@ -155,8 +155,8 @@ export namespace API_TYPES {
         record_valid?: boolean;
         analysis_valid?: boolean;
         corrective_valid?: boolean;
-        status?: string;
         notes?: string;
+        stage?: string;
       }
     }
     export namespace STATS {

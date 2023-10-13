@@ -9,7 +9,7 @@ import DoneIcon from '@mui/icons-material/Done';
 import Chip from '@mui/material/Chip';
 
 interface Props {
-  status: String
+  status: String | undefined
   messageOnly: Boolean
 }
 

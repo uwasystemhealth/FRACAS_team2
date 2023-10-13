@@ -39,6 +39,7 @@ import "@/components/styles/viewreport.css";
 import { API_CLIENT, API_ENDPOINT, API_TYPES } from "@/helpers/api";
 import { AxiosError, AxiosResponse } from "axios";
 import ReportStatusMessage from "@/components/ReportStatusMessage";
+import { element } from "prop-types";
 
 
 interface ViewReportProps {
@@ -46,9 +47,6 @@ interface ViewReportProps {
 }
 
 const viewReport: React.FC<ViewReportProps> = ({ id }) => {
-  const [isChecked1, setIsChecked1] = useState(false);
-  const [isChecked2, setIsChecked2] = useState(false);
-  const [isChecked3, setIsChecked3] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [report, setReport] = useState<API_TYPES.REPORT.GET.RESPONSE>();
@@ -96,7 +94,7 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
     }
   };
 
-  const overridePrintDialog = (e) => {
+  const overridePrintDialog = (e: any) => {
     e.preventDefault();
     printHack();
   };
@@ -149,6 +147,7 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
       >(API_ENDPOINT.RECORD + `/${id}`)
         .then((response) => {
           setReport(response.data);
+          console.log(response.data.created_at)
           document.title = response.data?.title || `Untitled report ${id}`;
           setLoading(false);
         })
@@ -180,8 +179,10 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
           if (response.status == 200) {
             if (response.data == true) {
               setIsBookmarked(true)
+              window.alert("Report Bookmarked!")
             } else {
               setIsBookmarked(false)
+              window.alert("Bookmark Removed!")
             }
           } else {
             console.error("Bookmark Failed!")
@@ -199,7 +200,10 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
   }, []);
 
   const stringToDateTime = (input_date?: string) => {
-    const date = input_date ? new Date(input_date) : new Date(0);
+    if (!input_date) {
+      return false;
+    }
+    const date = input_date ? new Date(input_date + "Z") : new Date(0);
     return date.toLocaleString([], {
       year: "numeric",
       month: "numeric",
@@ -210,7 +214,10 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
   };
 
   const stringToDate = (input_date?: string) => {
-    const date = input_date ? new Date(input_date) : new Date(0);
+    if (!input_date) {
+      return false;
+    }
+    const date = input_date ? new Date(input_date + "Z") : new Date(0);
     return date.toLocaleString([], {
       year: "numeric",
       month: "numeric",
@@ -301,22 +308,22 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
       <Grid container spacing={2}>
         <Grid xs={6} md={3}>
           <Typography variant="body2">
-            <b>Date Created:</b> {stringToDateTime(report?.created_at || "?")}
+            <b>Date Created:</b> {stringToDateTime(report?.created_at) || <i>Pending</i>}
           </Typography>
         </Grid>
         <Grid xs={6} md={3}>
           <Typography variant="body2">
-            <b>Team:</b> {report?.team?.name}
+            <b>Team:</b> {report?.team?.name || <i>Pending</i>}
           </Typography>
         </Grid>
         <Grid xs={6} md={3}>
           <Typography variant="body2">
-            <b>Subsystem:</b> {report?.subsystem?.name}
+            <b>Subsystem:</b> {report?.subsystem?.name || <i>Pending</i>}
           </Typography>
         </Grid>
         <Grid xs={6} md={3}>
           <Typography variant="body2">
-            <b>Car Year:</b> {report?.car_year}
+            <b>Car Year:</b> {report?.car_year || <i>Pending</i>}
           </Typography>
         </Grid>
       </Grid>
@@ -332,7 +339,7 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
         Description:
       </Typography>
       <Typography variant="body1" className="sectionText">
-        {report?.description}
+        {report?.description || <i>Pending</i>}
       </Typography>
       {validationSection(report?.record_valid || false, "Record")}
       <Divider
@@ -347,7 +354,7 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
         Impact:
       </Typography>
       <Typography variant="body1" className="sectionText">
-        {report?.impact}
+        {report?.impact || <i>Pending</i>}
       </Typography>
       <Typography
         variant="body1"
@@ -357,7 +364,7 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
         Cause:
       </Typography>
       <Typography variant="body1" className="sectionText">
-        {report?.cause}
+        {report?.cause || <i>Pending</i>}
       </Typography>
       <Typography
         variant="body1"
@@ -367,7 +374,7 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
         Mechanism:
       </Typography>
       <Typography variant="body1" className="sectionText">
-        {report?.mechanism}
+        {report?.mechanism || <i>Pending</i>}
       </Typography>
       {validationSection(report?.analysis_valid || false, "Analysis")}
       <Divider
@@ -382,7 +389,7 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
         Corrective Action Plan:
       </Typography>
       <Typography variant="body1" className="sectionText">
-        {report?.corrective_action_plan}
+        {report?.corrective_action_plan || <i>Pending</i>}
       </Typography>
       {validationSection(
         report?.corrective_valid || false,
@@ -392,7 +399,16 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
         variant="fullWidth"
         style={{ margin: "1rem 0", borderColor: "lightblue" }}
       />
-      
+      <Typography
+        variant="body1"
+        className="sectionTitle"
+        style={{ fontWeight: "bold" }}
+      >
+        Additional Info:
+      </Typography>
+      <Typography variant="body1" className="sectionText">
+        {report?.notes || ""}
+      </Typography>
       <Card className="infoCard">
         <CardContent>
           <Grid container spacing={1}>
@@ -413,7 +429,7 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
             </Grid>
             <Grid xs={6} md={3}>
               <Typography variant="body2">
-                <b>Time of Failure:</b> {stringToDateTime(report?.time_of_failure || "?")}
+                <b>Time of Failure:</b> {stringToDateTime(report?.time_of_failure) || <i>Pending</i>}
               </Typography>
             </Grid>
             <Grid xs={6} md={3}>
@@ -433,7 +449,7 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
             </Grid>
             <Grid xs={6} md={3}>
               <Typography variant="body2">
-              <b>Date Resolved:</b> {stringToDate(report?.time_resolved || "Pending")}
+              <b>Date Resolved:</b> {stringToDate(report?.time_resolved) || <i>Pending</i>}
               </Typography>
             </Grid>
           </Grid>

@@ -37,7 +37,6 @@ import * as yup from "yup";
 import { API_CLIENT, API_DATE_FORMAT, API_ENDPOINT } from "@/helpers/api";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Divider from "@mui/material/Divider";
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
@@ -89,7 +88,6 @@ interface CurrentUser {
 const defaultYear = dayjs(new Date());
 const time_of_failure = dayjs(new Date());
 
-
 const schema = yup.object().shape({
   title: yup.string().required(),
   description: yup.string().min(5).required(),
@@ -132,7 +130,7 @@ const ReportForm: React.FC = (props: Props) => {
 
   const [teams, setTeams] = useState<Team[]>([]);
   const [currentUser, setCurrentUser] = useState<CurrentUser[]>([]);
-  const [selectedTeamId, setSelectedTeamId] = useState<number | undefined>(); // State to keep track of selected team ID
+  const [selectedTeamId, setSelectedTeamId] = useState<string | number | undefined>(); // State to keep track of selected team ID
 
   const handleSnackbarOpen = () => {
     setOpenSnackbar(true);
@@ -163,7 +161,7 @@ const ReportForm: React.FC = (props: Props) => {
     if (submitted) return;
     setSubmitted(true);
     //  Not efficient, but I cannot find out how to override the default date format, since react-hook-form abstracts away the string conversion so we can't use .format().
-    data.time_of_failure = dayjs(data.time_of_failure).format(API_DATE_FORMAT);
+    data.time_of_failure = dayjs(data.time_of_failure).toISOString();
     data.car_year = dayjs(data.car_year).year().toString();
     (async () => {
       await API_CLIENT.post(API_ENDPOINT.RECORD, data)
@@ -176,6 +174,7 @@ const ReportForm: React.FC = (props: Props) => {
                 response.data.message
             );
           }
+          window.alert("Report Created")
           router.push(URLS.RECORD_LIST);
         })
         .catch((error: AxiosError) => {
@@ -185,6 +184,7 @@ const ReportForm: React.FC = (props: Props) => {
               // @ts-ignore: TODO: Add types for generic error response
               error.response?.data["message"]
           );
+          window.alert("Sorry, something went wrong.")
         });
       console.log("data submitted: ", data);
     })();
@@ -240,8 +240,7 @@ const ReportForm: React.FC = (props: Props) => {
     <Box sx={{ width: "100%" }}>
       <React.Fragment>
           <form onSubmit={handleSubmit(onValid)}>
-          <Box sx={{ flexGrow: 1, py: 2 }}>
-            <Typography variant="h6" gutterBottom>Create Report</Typography>
+          <Box sx={{ flexGrow: 1, py: 1 }}>
                 <Grid container spacing={2}>
                   <Grid xs={10}>
                     <Controller
@@ -276,6 +275,7 @@ const ReportForm: React.FC = (props: Props) => {
                       control={control}
                       render={({ field }) => (
                         <SubsysMenu<UserForm>
+                          //@ts-ignore
                           team_id={watch("team_id")}
                           field={field}
                           label="Subsystem"

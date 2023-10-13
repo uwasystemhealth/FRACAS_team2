@@ -72,7 +72,7 @@ const ChangeTeamDialog: React.FC<ChangeTeamDialogProps> = ({ open, onClose, onSu
           onChange={(event) => setSelectedTeamId(event.target.value as number)}
           fullWidth
         >
-          {teams.map((team) => (
+          {teams.map((team: { id: number, name: string }) => (
             <MenuItem key={team.id} value={team.id}>
               {team.name}
             </MenuItem>

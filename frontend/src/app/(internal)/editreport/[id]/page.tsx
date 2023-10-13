@@ -171,6 +171,10 @@ export default function EditReport(props: Props) {
           .then((response) => {
             if (response) {
               const report = response.data;
+              let new_tm = null
+              if (report.time_resolved) {
+                new_tm = dayjs.utc(report.time_resolved).toString()
+              } 
               reset({
                 title: report.title,
                 description: report.description,
@@ -179,10 +183,7 @@ export default function EditReport(props: Props) {
                 owner_id: report.owner?.id,
                 // @ts-ignore: dayjs object is not a string but we can't use
                 // dayjs objects in yup date
-                time_of_failure: dayjs.utc(
-                  report.time_of_failure,
-                  "YYYY-MM-DD HH:mm:ss"
-                ),
+                time_of_failure: dayjs.utc(report.time_of_failure).toString(),
                 impact: report.impact,
                 cause: report.cause,
                 mechanism: report.mechanism,
@@ -191,10 +192,7 @@ export default function EditReport(props: Props) {
                 record_valid: report.record_valid,
                 analysis_valid: report.analysis_valid,
                 corrective_valid: report.corrective_valid,
-                time_resolved: dayjs.utc(
-                  report.time_resolved,
-                  "YYYY-MM-DD HH:mm:ss"
-                ),
+                time_resolved: new_tm,
                 notes: report.notes,
               });
             } else {
@@ -216,6 +214,18 @@ export default function EditReport(props: Props) {
     checkCanValidate();
   }, []);
 
+  const TimeResolvedFieldHandler = (input: string | null | undefined) => {
+    if (!input) {
+      return null
+    } else {
+      return dayjs(input)
+    }
+  }
+
+  const TimeResolvedDateReset = () => {
+    reset({ time_resolved: null })
+  }
+
   const handleNext = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
@@ -230,10 +240,11 @@ export default function EditReport(props: Props) {
     if (submitted) return;
     setSubmitted(true);
     console.log("data submitted: ", data);
-    //  Not efficient, but I cannot find out how to override the default date format, since react-hook-form abstracts away the string conversion so we can't use .format().
-    data.time_of_failure = dayjs(data.time_of_failure).format(API_DATE_FORMAT);
+    //  Not efficient, but I cannot find out how to override the default date format, 
+    // since react-hook-form abstracts away the string conversion so we can't use .format().
+    data.time_of_failure = dayjs(data.time_of_failure).toISOString();
     if (data.time_resolved) {
-      data.time_resolved = dayjs(data.time_resolved).format(API_DATE_FORMAT);
+      data.time_resolved = dayjs(data.time_resolved).toISOString();
     }
     (async () => {
       await API_CLIENT.patch(API_ENDPOINT.RECORD + "/" + record_id, data)
@@ -245,7 +256,12 @@ export default function EditReport(props: Props) {
                 " " +
                 response.data.message
             );
+            window.alert("An error occurred " +
+            response.status +
+            " " +
+            response.data.message)
           }
+          window.alert("Report successfully updated.")
           router.push(URLS.VIEW_REPORT + "/" + record_id);
         })
         .catch((error: AxiosError) => {
@@ -255,6 +271,10 @@ export default function EditReport(props: Props) {
               // @ts-ignore: TODO: Add types for generic error response
               error.response?.data["message"]
           );
+          window.alert("An error occurred " +
+          error.message +
+          // @ts-ignore: TODO: Add types for generic error response
+          error.response?.data["message"])
         });
       console.log("data submitted: ", data);
     })();
@@ -361,6 +381,7 @@ export default function EditReport(props: Props) {
                       control={control}
                       render={({ field }) => (
                         <SubsysMenu<UserForm>
+                          // @ts-ignore
                           team_id={watch("team_id")}
                           field={field}
                           label="Subsystem"
@@ -404,6 +425,7 @@ export default function EditReport(props: Props) {
                             // error={!!errors.title}
                             timezone={get_client_tz()}
                             disableFuture={true} // time travellers beware...
+                            value={dayjs(field.value)}
                           />
                         </LocalizationProvider>
                       )}
@@ -443,7 +465,7 @@ export default function EditReport(props: Props) {
                         <FormGroup>
                       <FormControlLabel
                         {...field}
-                        control={<Checkbox disabled={!canValidate} checked={field.value}/>}
+                        control={<Checkbox disabled={!canValidate} checked={Boolean(field.value)}/>}
                         label="Record Valid?"
                       />
                     </FormGroup>
@@ -528,7 +550,7 @@ export default function EditReport(props: Props) {
                         <FormGroup>
                       <FormControlLabel
                         {...field}
-                        control={<Checkbox disabled={!canValidate} checked={field.value} />}
+                        control={<Checkbox disabled={!canValidate} checked={Boolean(field.value)} />}
                         label="Analysis Valid?"
                       />
                     </FormGroup>
@@ -602,14 +624,47 @@ export default function EditReport(props: Props) {
                             // error={!!errors.title}
                             timezone={get_client_tz()}
                             disableFuture={true} // time travellers beware...
+                            value={TimeResolvedFieldHandler(field.value)}
                             slotProps={{
                               textField: {
-                                helperText: 'Once set, report will be marked as Resolved',
+                                helperText: errors.time_resolved
+                                ? errors.time_resolved?.message
+                                : 'Once set, report will be marked as Resolved',
+                                error: !!errors.time_resolved,
                               },
                             }}
 
                           />
                         </LocalizationProvider>
+                      )}
+                    />
+                    <Button
+                      type="button"
+                      color="inherit"
+                      onClick={TimeResolvedDateReset}
+                      size='small'
+                    >
+                      Reset Date
+                    </Button>
+                  </Grid>
+                  <Grid xs={12}>
+                  <Controller
+                      name="notes"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Additional Info"
+                          variant="outlined"
+                          error={!!errors.notes}
+                          helperText={
+                            errors.notes ? errors.notes?.message : ""
+                          }
+                          fullWidth
+                          multiline
+                          minRows={4}
+                          InputLabelProps={{ shrink: true }}
+                        />
                       )}
                     />
                   </Grid>

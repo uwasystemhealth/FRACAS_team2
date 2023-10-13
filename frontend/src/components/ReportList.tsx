@@ -37,7 +37,6 @@ import { API_CLIENT, API_ENDPOINT, API_TYPES } from "@/helpers/api";
 import { AxiosError, AxiosResponse } from "axios";
 import Grid from '@mui/material/Unstable_Grid2';
 import ReportStatusMessage from "@/components/ReportStatusMessage";
-import useWindowDimensions from "@/components/WindowSize";
 import { GridInitialStateCommunity } from "@mui/x-data-grid/models/gridStateCommunity";
 
 const disableSelectBtns = (
@@ -55,7 +54,6 @@ export interface UserReport {
   created_at: string;
   title: string;
   owner: string;
-  status: string;
   car_year: number;
 }
 
@@ -69,9 +67,14 @@ export interface Props {
 }
 
 const defaultstate: GridInitialStateCommunity = {
+  sorting: {
+    sortModel: [{ field: 'modified_at', sort: 'desc' }]
+  },
     columns: {
       columnVisibilityModel: {
         creator: false,
+        created_at: false,
+        description: false
       },
     },
 }
@@ -132,8 +135,7 @@ const ReportList: React.FC<Props> = ({ rows, setRows, initialstate, search, widt
     React.MouseEventHandler<HTMLButtonElement> | undefined
   >(undefined);
   const [showDelete, setShowDelete] = useState(false);
-
-  const { height, width } = useWindowDimensions();
+  const [isBookmarked, setIsBookmarked] = useState(false);
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
@@ -141,7 +143,9 @@ const ReportList: React.FC<Props> = ({ rows, setRows, initialstate, search, widt
 
   const getObjectName = (e: Object) => {
     if (e) {
+      // @ts-ignore
       if (e.name) {
+        // @ts-ignore
         return e.name
       } else {
         return ""
@@ -151,25 +155,6 @@ const ReportList: React.FC<Props> = ({ rows, setRows, initialstate, search, widt
   }
 
   const everyoneColumns: GridColDef[] = [
-    //{ field: "id", headerName: "ID", width: 70 },
-    // {
-    //   field: "view",
-    //   headerName: "View",
-    //   flex: 0.15,
-    //   align: "center",
-    //   headerAlign: "center",
-    //   sortable: false,
-    //   filterable: false,
-    //   renderCell: (params) => (
-    //     <IconButton
-    //       color="primary"
-    //       aria-label="View"
-    //       href={`/viewreport/${params.row.id}`}
-    //     >
-    //       <VisibilityIcon />
-    //     </IconButton>
-    //   ),
-    // },
     { field: "title", 
       headerName: "Report",
       minWidth: 200,
@@ -184,30 +169,38 @@ const ReportList: React.FC<Props> = ({ rows, setRows, initialstate, search, widt
         </Link>
       ),
      },
-    //  { field: "description", 
-    //   headerName: "Description",
-    //   minWidth: 150,
-    //   flex: 0.50,
-    //   filterable: false,
-    //   align: "left",
-    //   valueGetter: (params) => {
-    //     if (params.row.description){
-    //       return params.row.description
-    //     } else {
-    //       return "..."
-    //     }},
-    //   renderCell: (params) => (
-    //     <div style={{textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden'}}>
-    //     <i>{params.row.description || "..."}</i>
-    //     </div>
-    //   )
-    //  },
+     { field: "description", 
+      headerName: "Description",
+      minWidth: 150,
+      flex: 0.50,
+      filterable: false,
+      align: "left",
+      valueGetter: (params) => {
+        if (params.row.description){
+          return params.row.description
+        } else {
+          return "..."
+        }},
+      renderCell: (params) => (
+        <div style={{textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden'}}>
+        <i>{params.row.description || "..."}</i>
+        </div>
+      )
+     },
     { field: "created_at",
     headerName: "Created At",
     type: 'date',
-    valueGetter: ({ value }) => value && new Date(value),
+    valueGetter: ({ value }) => value && new Date(value + "Z"),
     valueFormatter: ({ value }) => value.toLocaleDateString(),
-    width: 100,
+    width: 120,
+    //flex: 0.25,
+    },
+    { field: "modified_at",
+    headerName: "Last Modified",
+    type: 'date',
+    valueGetter: ({ value }) => value && new Date(value + "Z"),
+    valueFormatter: ({ value }) => value.toLocaleDateString(),
+    width: 135,
     //flex: 0.25,
     },
     { field: "team", 
@@ -229,18 +222,6 @@ const ReportList: React.FC<Props> = ({ rows, setRows, initialstate, search, widt
     minWidth: 150,
     flex: 0.5, 
     },
-    // { field: "subsystem.name", 
-    // headerName: "Subsystem", 
-    // align: "center",
-    // headerAlign: "center",
-    // valueGetter: (params) => {
-    //   if (params.row.subsystem){
-    //     return params.row.subsystem.name
-    //   } else {
-    //     return ""
-    //   }},
-    // flex: 0.5 
-    // },
     { 
     field: "car_year", 
     headerName: "Car Year", 
@@ -274,8 +255,8 @@ const ReportList: React.FC<Props> = ({ rows, setRows, initialstate, search, widt
     {
       field: "stage",
       headerName: "Stage",
-      minWidth: 100,
-      flex: 0.35,
+      minWidth: 130,
+      //flex: 0.35,
       renderCell: (params) => (
           <ReportStatusMessage status={params.row.stage} messageOnly={false}/>
       )

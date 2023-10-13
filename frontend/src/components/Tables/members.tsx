@@ -143,7 +143,7 @@ const UserTable: React.FC = () => {
     }
   };
 
-  const handleRowSelection = (ids) => {
+  const handleRowSelection = (ids: any) => {
     if (ids) {
       setSelectedRowId(ids[0]);
       setButtonsDisabled(false);
@@ -163,22 +163,17 @@ const UserTable: React.FC = () => {
             setLoading(false);
           } else {
             setLoading(false);
-            setSnackbarMessage('Unable to fetch user list');
-            setSnackbarSeverity('error');
-            handleSnackbarOpen();
+            window.alert("Unable to get users list: " + response.data.message);
           }
         })
         .catch((error: AxiosError) => {
           setLoading(false);
-          setSnackbarMessage('Unable to fetch user list');
-          setSnackbarSeverity('error');
-          handleSnackbarOpen();
+          window.alert("Unable to get users list: " + error.message);
         })
     } catch (error: any) {
       setLoading(false);
-        setSnackbarMessage('Something went wrong internally');
-        setSnackbarSeverity('error');
-        handleSnackbarOpen();}
+        window.alert("Unable to get users list: " + error.message);
+      }
   };
   
   // Runs fetchData() when page is initally loaded
@@ -197,40 +192,28 @@ const UserTable: React.FC = () => {
         .then((response) => {
           if (response.status == 200) {
             handleRefresh();
-            setSnackbarMessage(response.data.message);
-            setSnackbarSeverity('success');
-            handleSnackbarOpen();
+            window.alert("User deleted.");
           } else {
-            setSnackbarMessage(response.data.message);
-            setSnackbarSeverity('error');
-            handleSnackbarOpen();
+            window.alert("Error: " + response.data.message);
           }
         })
         .catch((error: AxiosError) => {
-          setSnackbarMessage(error.message);
-          setSnackbarSeverity('error');
-          handleSnackbarOpen();
+          window.alert("Error: " + error.message);
         })
   };
 
-  const handleCreateUser = async (newUser: { name: string; email: string; password: string }) => {
+  const handleCreateUser = async (newUser: { name: string; email: string; }) => {
       await API_CLIENT.post(API_ENDPOINT.USER, newUser)
         .then((response) => {
           if (response.status == 200) {
+            window.alert("User invite sent.")
             handleRefresh();
-            setSnackbarMessage(response.data.message);
-            setSnackbarSeverity('success');
-            handleSnackbarOpen();
           } else {
-            setSnackbarMessage(response.data.message);
-            setSnackbarSeverity('error');
-            handleSnackbarOpen();
+            window.alert("Error: " + response.data.message);
           }
         })
         .catch((error: AxiosError) => {
-          setSnackbarMessage(error.message);
-          setSnackbarSeverity('error');
-          handleSnackbarOpen();
+          window.alert("Error: " + error.message);
         })
   };
   
@@ -238,20 +221,14 @@ const UserTable: React.FC = () => {
     await API_CLIENT.put(API_ENDPOINT.USER + `/${selectedRowId}`, {team_id: newTeamId})
         .then((response) => {
           if (response.status == 200) {
+            window.alert("Team change successful.")
             handleRefresh();
-            setSnackbarMessage(response.data.message);
-            setSnackbarSeverity('success');
-            handleSnackbarOpen();
           } else {
-            setSnackbarMessage(response.data.message);
-            setSnackbarSeverity('error');
-            handleSnackbarOpen();
+            window.alert("Error: " + response.data.message);
           }
         })
         .catch((error: AxiosError) => {
-          setSnackbarMessage(error.message);
-          setSnackbarSeverity('error');
-          handleSnackbarOpen();
+          window.alert("Error: " + error.message);
         })
   };
 
