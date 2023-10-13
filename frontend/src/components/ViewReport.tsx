@@ -40,15 +40,28 @@ import BuildIcon from "@mui/icons-material/Build";
 import PendingActionsOutlinedIcon from "@mui/icons-material/PendingActionsOutlined";
 import DoneOutlineIcon from "@mui/icons-material/DoneOutline";
 import Alert from "@mui/material/Alert";
+import { TextField} from "@mui/material/";
 import "@/components/styles/viewreport.css";
 import { API_CLIENT, API_ENDPOINT, API_TYPES } from "@/helpers/api";
 import { AxiosError, AxiosResponse } from "axios";
 import { validateConfig } from "next/dist/server/config-shared";
 import { amber, green, orange, blue } from '@mui/material/colors';
+import { string } from "prop-types";
 
 
 interface ViewReportProps {
   id: number;
+}
+
+function formatCurrentDate(): string {
+  const currentDate = new Date();
+  const day = String(currentDate.getDate()).padStart(2, '0');
+  const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+  const year = currentDate.getFullYear();
+  const hours = String(currentDate.getHours()).padStart(2, '0');
+  const minutes = String(currentDate.getMinutes()).padStart(2, '0');
+
+  return `${day}/${month}/${year}, ${hours}:${minutes}`;
 }
 
 const viewReport: React.FC<ViewReportProps> = ({ id }) => {
@@ -58,6 +71,7 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [report, setReport] = useState<API_TYPES.REPORT.GET.RESPONSE>();
+  const [currentUser, setCurrentUser] = useState<string>('');
 
   // PRINT HACK
   // PRINT HACK
@@ -178,6 +192,17 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
         });
     } catch (error) {
     }
+    try {
+      await API_CLIENT.get(API_ENDPOINT.USER + `/current`)
+        .then((response) => {
+          if (response.status == 200) {
+            setCurrentUser(response.data.id);
+          }
+        })
+        .catch((error: AxiosError) => {
+        });
+    } catch (error) {
+    }
   };
 
   const toggleBookmark = async () => {
@@ -294,8 +319,32 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
     }
   };
 
+  const [inputValue, setInputValue] = useState<string>('');
+  const [dataArray, setDataArray] = useState<string[]>([]);
+
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(event.target.value);
+  };
+
+  // fetch currently logged in user and add username before formatted Date in line 83 below
+  const handleButtonClick = () => {
+
+    if (inputValue.trim() !== '') {
+      const formattedDate = formatCurrentDate();
+      setDataArray(prevArray => [...prevArray, "User " + currentUser + ", " + formattedDate + " : " + inputValue]);
+      setInputValue('');
+    }
+  };
+
+  const handleInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      handleButtonClick();
+    }
+  };
+
   return (
-    <Box sx={{ width: "100%" }}>
+    <Card style={{padding:10}}>
       {reportStatus()}
       <Grid container alignItems="center">
         <Grid xs={6}>
@@ -490,7 +539,44 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
           </Grid>
         </CardContent>
       </Card>
-    </Box>
+      <Divider variant="fullWidth" style={{ margin: '1rem 0', borderColor: 'lightblue' }} />
+      <Card style={{padding:10}}>
+        <Card className="infoCard">
+          <CardContent>
+            <Button className="statusButton" size="large">
+              Comments -
+            </Button>
+            <Grid container spacing={1}>
+              <Typography variant="body2">
+                {dataArray.map((item, index) => (<li key={index}>{item}<br /><br /></li>))}
+              </Typography>
+            </Grid>
+          </CardContent>
+        </Card>
+        <Divider variant="fullWidth" style={{ margin: '1rem 0', borderColor: 'lightblue' }} />
+        <Grid xs={12}>
+          <TextField
+            label="Add a comment"
+            variant="outlined"
+            value={inputValue}
+            onChange={handleInputChange}
+            onKeyDown={handleInputKeyDown}
+            fullWidth
+            multiline
+            minRows={4}
+          />
+          <Divider variant="fullWidth" style={{ margin: '1rem 0', borderColor: 'lightblue' }} />
+          <Grid xs={6} container justifyContent="flex-end">
+            <Button className="editButton" size="small" onClick={handleButtonClick}>
+              <div className="buttonContent">
+                <EditIcon className="commentIcon" />
+                Comment
+              </div>
+            </Button>
+          </Grid>
+        </Grid>
+      </Card>
+    </Card>
   );
 };
 export default viewReport;
