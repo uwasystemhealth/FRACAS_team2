@@ -11,7 +11,8 @@ from app.add_test_records import add_test_records
 from app import app, db
 
 
-app.config.update({"TESTING" : True,})
+app.config.update(TESTING=True)
+app.config.update(SECRET_KEY=os.environ.get('SECRET_KEY'))
 
 @pytest.fixture()
 def client(autouse=True):
