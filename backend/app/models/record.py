@@ -48,9 +48,7 @@ class Subsystem(db.Model, SerializerMixin):
 
 
 class Comment(db.Model, SerializerMixin):
-    serialize_rules = (
-        "-record",
-    )
+    serialize_rules = ("-record",)
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     text = db.Column(db.Text, nullable=True)
     created_at = db.Column(
@@ -122,6 +120,7 @@ class Record(db.Model, SerializerMixin):
     cause = db.Column(db.Text, nullable=True)
     mechanism = db.Column(db.Text, nullable=True)
     corrective_action_plan = db.Column(db.Text, nullable=True)
+    # notes = db.Column(db.Text, nullable=True)
     # Auto filled fields:
     # Creation Date (time when pressed submit, may be changed later)
     time_of_failure = db.Column(

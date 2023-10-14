@@ -243,9 +243,11 @@ def test_logged_in():
         jsonify(
             {
                 "msg": "Logged in!",
+                "name": user.name,
                 "email": user.email,
                 "superuser": user.is_superuser(),
                 "id": user.id,
+                "team_id": user.team_id
             }
         ),
         200,

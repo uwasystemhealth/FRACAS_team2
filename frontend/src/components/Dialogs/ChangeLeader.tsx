@@ -38,14 +38,13 @@ const ChangeLeaderDialog: React.FC<ChangeLeaderDialogProps> = ({ input_id, open,
   const [users, setUsers] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState<number | undefined>(undefined);
   
-  const fetchData = async () => {
+  const fetchData = async (id: string) => {
     try {
       await API_CLIENT.get(API_ENDPOINT.USER)
         .then((response) => {
-          console.log(input_id)
           var team_list = response.data;
-          var team_filtered = team_list.filter(user =>
-            user.team_id === input_id
+          var team_filtered = team_list.filter((user: { team_id: string; }) =>
+            user.team_id === id
           );
           setUsers(team_filtered);
         })
@@ -55,8 +54,8 @@ const ChangeLeaderDialog: React.FC<ChangeLeaderDialogProps> = ({ input_id, open,
 
   // Runs fetchData() when page is initally loaded
   useEffect(() => {
-    fetchData();
-  }, []);
+    fetchData(input_id);
+  }, [input_id]);
 
 
   const handleLeaderChange = () => {
@@ -71,14 +70,14 @@ const ChangeLeaderDialog: React.FC<ChangeLeaderDialogProps> = ({ input_id, open,
       <DialogTitle>Change Team</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          Select a team to switch to:
+          Select a new leader from within team.
         </DialogContentText>
         <Select
           value={selectedUserId}
           onChange={(event) => setSelectedUserId(event.target.value as number)}
           fullWidth
         >
-          {users.map((user) => (
+          {users.map((user: { id: number, name: string }) => (
             <MenuItem key={user.id} value={user.id}>
               {user.name}
             </MenuItem>

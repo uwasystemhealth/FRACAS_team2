@@ -157,7 +157,7 @@ const NewUser: React.FC<NewUserDialogProps> = ({ open, onClose, onSubmit }) => {
             onChange={handleSelectChange}
           >
             {teams.map((team) => (
-              <MenuItem value={team.id}>{team.name}</MenuItem>
+              <MenuItem key={team.id} value={team.id}>{team.name}</MenuItem>
             ))}
           </Select>
         </FormControl>

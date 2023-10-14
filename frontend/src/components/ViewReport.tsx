@@ -31,14 +31,9 @@ import BookmarkAddIcon from "@mui/icons-material/BookmarkAdd";
 import BookmarkAddedIcon from "@mui/icons-material/BookmarkAdded";
 import PrintIcon from "@mui/icons-material/Print";
 import EditIcon from "@mui/icons-material/Edit";
-import Checkbox from "@mui/material/Checkbox";
-import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
-import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import GradingIcon from "@mui/icons-material/Grading";
 import TroubleshootIcon from "@mui/icons-material/Troubleshoot";
 import BuildIcon from "@mui/icons-material/Build";
-import PendingActionsOutlinedIcon from "@mui/icons-material/PendingActionsOutlined";
-import DoneOutlineIcon from "@mui/icons-material/DoneOutline";
 import Alert from "@mui/material/Alert";
 import { TextField } from "@mui/material/";
 import "@/components/styles/viewreport.css";
@@ -48,6 +43,8 @@ import { validateConfig } from "next/dist/server/config-shared";
 import { amber, green, orange, blue } from "@mui/material/colors";
 import { string } from "prop-types";
 import Comments from "./ViewReportComponents/Comments";
+import ReportStatusMessage from "@/components/ReportStatusMessage";
+import { element } from "prop-types";
 
 interface ViewReportProps {
   id: number;
@@ -65,9 +62,6 @@ function formatCurrentDate(): string {
 }
 
 const viewReport: React.FC<ViewReportProps> = ({ id }) => {
-  const [isChecked1, setIsChecked1] = useState(false);
-  const [isChecked2, setIsChecked2] = useState(false);
-  const [isChecked3, setIsChecked3] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [report, setReport] = useState<API_TYPES.REPORT.GET.RESPONSE>();
@@ -169,6 +163,7 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
       >(API_ENDPOINT.RECORD + `/${id}`)
         .then((response) => {
           setReport(response.data);
+          console.log(response.data.created_at);
           document.title = response.data?.title || `Untitled report ${id}`;
           setLoading(false);
         })
@@ -207,8 +202,10 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
           if (response.status == 200) {
             if (response.data == true) {
               setIsBookmarked(true);
+              window.alert("Report Bookmarked!");
             } else {
               setIsBookmarked(false);
+              window.alert("Bookmark Removed!");
             }
           } else {
             console.error("Bookmark Failed!");
@@ -224,13 +221,28 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
   }, []);
 
   const stringToDateTime = (input_date?: string) => {
-    const date = input_date ? new Date(input_date) : new Date(0);
+    if (!input_date) {
+      return false;
+    }
+    const date = input_date ? new Date(input_date + "Z") : new Date(0);
     return date.toLocaleString([], {
       year: "numeric",
       month: "numeric",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
+    });
+  };
+
+  const stringToDate = (input_date?: string) => {
+    if (!input_date) {
+      return false;
+    }
+    const date = input_date ? new Date(input_date + "Z") : new Date(0);
+    return date.toLocaleString([], {
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
     });
   };
 
@@ -258,65 +270,11 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
     }
   };
 
-  const reportStatus = () => {
-    if (!report?.record_valid) {
-      return (
-        <Typography
-          variant="body2"
-          style={{ fontWeight: "bold" }}
-          color={orange[500]}
-        >
-          PENDING REPORT VALIDATION
-        </Typography>
-      );
-    } else if (!report.analysis_valid) {
-      return (
-        <Typography
-          variant="body2"
-          style={{ fontWeight: "bold" }}
-          color={amber[500]}
-        >
-          PENDING ANALYSIS VALIDATION
-        </Typography>
-      );
-    } else if (!report.corrective_valid) {
-      return (
-        <Typography
-          variant="body2"
-          style={{ fontWeight: "bold" }}
-          color={amber[500]}
-        >
-          PENDING CORRECTIVE ACTION VALIDATION
-        </Typography>
-      );
-    } else if (!report.time_resolved) {
-      return (
-        <Typography
-          variant="body2"
-          style={{ fontWeight: "bold" }}
-          color={blue[500]}
-        >
-          MONITORING CORRECTIVE ACTION
-        </Typography>
-      );
-    } else {
-      return (
-        <Typography
-          variant="body2"
-          style={{ fontWeight: "bold" }}
-          color={green[500]}
-        >
-          RESOLVED
-        </Typography>
-      );
-    }
-  };
-
   return (
-    <Card style={{ padding: 10 }}>
-      {reportStatus()}
-      <Grid container alignItems="center">
-        <Grid xs={6}>
+    <Box sx={{ width: "100%" }}>
+      <ReportStatusMessage status={report?.stage} messageOnly={true} />
+      <Grid container rowSpacing={2}>
+        <Grid xs={12} md={6}>
           <Typography
             variant="h5"
             className="title"
@@ -326,9 +284,11 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
           </Typography>
         </Grid>
         <Grid
-          xs={6}
+          xs={12}
+          md={6}
+          direction="row"
           container
-          justifyContent="flex-end"
+          justifyContent={{ xs: "normal", md: "flex-end" }}
           sx={{ displayPrint: "none", gap: 1 }}
         >
           <Button
@@ -343,22 +303,22 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
             )}
           </Button>
           <Button
-            className="bookmarkButton"
+            className="printButton"
             size="small"
             onClick={() => {
               printHack();
             }}
           >
             <PrintIcon />
-            Export Report
           </Button>
           <Button
             className="editButton"
             size="small"
             href={`/editreport/${report?.id}`}
+            variant="text"
           >
             <EditIcon className="editIcon" />
-            Edit Report
+            Update
           </Button>
         </Grid>
       </Grid>
@@ -367,24 +327,25 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
         style={{ margin: "1rem 0", borderColor: "lightblue" }}
       />
       <Grid container spacing={2}>
-        <Grid xs={3}>
+        <Grid xs={6} md={3}>
           <Typography variant="body2">
-            <b>Date Created:</b> {stringToDateTime(report?.created_at || "?")}
+            <b>Date Created:</b>{" "}
+            {stringToDateTime(report?.created_at) || <i>Pending</i>}
           </Typography>
         </Grid>
-        <Grid xs={3}>
+        <Grid xs={6} md={3}>
           <Typography variant="body2">
-            <b>Team:</b> {report?.team?.name}
+            <b>Team:</b> {report?.team?.name || <i>Pending</i>}
           </Typography>
         </Grid>
-        <Grid xs={3}>
+        <Grid xs={6} md={3}>
           <Typography variant="body2">
-            <b>Subsystem:</b> {report?.subsystem?.name}
+            <b>Subsystem:</b> {report?.subsystem?.name || <i>Pending</i>}
           </Typography>
         </Grid>
-        <Grid xs={3}>
+        <Grid xs={6} md={3}>
           <Typography variant="body2">
-            <b>Car Year:</b> {report?.car_year}
+            <b>Car Year:</b> {report?.car_year || <i>Pending</i>}
           </Typography>
         </Grid>
       </Grid>
@@ -400,7 +361,7 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
         Description:
       </Typography>
       <Typography variant="body1" className="sectionText">
-        {report?.description}
+        {report?.description || <i>Pending</i>}
       </Typography>
       {validationSection(report?.record_valid || false, "Record")}
       <Divider
@@ -415,7 +376,7 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
         Impact:
       </Typography>
       <Typography variant="body1" className="sectionText">
-        {report?.impact}
+        {report?.impact || <i>Pending</i>}
       </Typography>
       <Typography
         variant="body1"
@@ -425,7 +386,7 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
         Cause:
       </Typography>
       <Typography variant="body1" className="sectionText">
-        {report?.cause}
+        {report?.cause || <i>Pending</i>}
       </Typography>
       <Typography
         variant="body1"
@@ -435,7 +396,7 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
         Mechanism:
       </Typography>
       <Typography variant="body1" className="sectionText">
-        {report?.mechanism}
+        {report?.mechanism || <i>Pending</i>}
       </Typography>
       {validationSection(report?.analysis_valid || false, "Analysis")}
       <Divider
@@ -450,7 +411,7 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
         Corrective Action Plan:
       </Typography>
       <Typography variant="body1" className="sectionText">
-        {report?.corrective_action_plan}
+        {report?.corrective_action_plan || <i>Pending</i>}
       </Typography>
       {validationSection(
         report?.corrective_valid || false,
@@ -460,49 +421,59 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
         variant="fullWidth"
         style={{ margin: "1rem 0", borderColor: "lightblue" }}
       />
+      <Typography
+        variant="body1"
+        className="sectionTitle"
+        style={{ fontWeight: "bold" }}
+      >
+        Additional Info:
+      </Typography>
+      {/* <Typography variant="body1" className="sectionText">
+        {report?.notes || ""}
+      </Typography> */}
       <Card className="infoCard">
         <CardContent>
           <Grid container spacing={1}>
-            <Grid xs={3}>
+            <Grid xs={6} md={3}>
               <Typography variant="body2">
                 <b>Created By:</b> {report?.creator.name}
               </Typography>
             </Grid>
-            <Grid xs={3}>
+            <Grid xs={6} md={3}>
               <Typography variant="body2">
                 <b>Owned By:</b> {report?.owner?.name}
               </Typography>
             </Grid>
-            <Grid xs={3}>
+            <Grid xs={6} md={3}>
               <Typography variant="body2">
                 <b>Report Team Lead:</b> {report?.team?.leader?.name}
               </Typography>
             </Grid>
-            <Grid xs={3}>
+            <Grid xs={6} md={3}>
               <Typography variant="body2">
                 <b>Time of Failure:</b>{" "}
-                {stringToDateTime(report?.time_of_failure || "?")}
+                {stringToDateTime(report?.time_of_failure) || <i>Pending</i>}
               </Typography>
             </Grid>
-            <Grid xs={3}>
+            <Grid xs={6} md={3}>
               <Typography variant="body2">
                 <b>Creator Contact:</b> {report?.creator.email}
               </Typography>
             </Grid>
-            <Grid xs={3}>
+            <Grid xs={6} md={3}>
               <Typography variant="body2">
                 <b>Owner Contact:</b> {report?.owner?.email}
               </Typography>
             </Grid>
-            <Grid xs={3}>
+            <Grid xs={6} md={3}>
               <Typography variant="body2">
                 <b>Report Team Lead Contact:</b> {report?.team?.leader?.email}
               </Typography>
             </Grid>
-            <Grid xs={3}>
+            <Grid xs={6} md={3}>
               <Typography variant="body2">
-                {/* TODO:  */}
-                <b>Time Resolved:</b> Yet to be resolved
+                <b>Date Resolved:</b>{" "}
+                {stringToDate(report?.time_resolved) || <i>Pending</i>}
               </Typography>
             </Grid>
           </Grid>
@@ -513,7 +484,7 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
         style={{ margin: "1rem 0", borderColor: "lightblue" }}
       />
       <Comments id={id} />
-    </Card>
+    </Box>
   );
 };
 export default viewReport;

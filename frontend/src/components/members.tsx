@@ -94,7 +94,7 @@ const UserTable: React.FC = () => {
   };
 
 
-  const handleRowSelection = (ids) => {
+  const handleRowSelection = (ids: any) => {
     if (ids) {
       console.log(ids[0])
       setSelectedRowId(ids[0]);
@@ -155,7 +155,7 @@ const UserTable: React.FC = () => {
     }
   };
 
-  const handleCreateUser = (newUser: { name: string; email: string; password: string }) => {
+  const handleCreateUser = (newUser: { name: string; email: string; }) => {
     // Make an API call to add the new user in via Axios
     API_CLIENT
     .post(`/api/v1/user`, newUser)

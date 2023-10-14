@@ -38,9 +38,6 @@ const Admin: React.FC = () => {
   return (
     <Box sx={{ width: "100%", }}>
       <CheckSuperuser />
-      <Typography variant="h5" gutterBottom>
-        Admin
-      </Typography>
       <Accordion defaultExpanded expanded={expandedAccordion === 'panel1'} onChange={handleAccordionChange('panel1')}>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}

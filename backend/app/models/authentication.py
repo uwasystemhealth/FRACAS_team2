@@ -33,6 +33,7 @@ class User(db.Model, SerializerMixin):
         "id",
         "superuser",
         "name",
+        "email",
         "created_at",
         "can_validate",
         "team_id",
@@ -94,10 +95,11 @@ class User(db.Model, SerializerMixin):
     owned_records = db.relationship(
         "Record", back_populates="owner", foreign_keys="Record.owner_id"
     )
-    bookmarked = db.relationship("Record", secondary="user_record")
     comments = db.relationship(
         "Comment", back_populates="user", foreign_keys="Comment.user_id"
     )
+    bookmarked = db.relationship("Record", secondary="user_record", backref="users")
+    comments = db.relationship("Comment")
 
     def __repr__(self):
         return f"<User {self.email} {'(UNREGISTERED)' if not self.registered else ''}>"
@@ -118,7 +120,10 @@ class User(db.Model, SerializerMixin):
         return self.registered
 
     def is_superuser(self) -> bool:
-        return self.superuser
+        if self.superuser:
+            return True
+        else:
+            return False
 
     def set_superuser(self, superuser: bool) -> None:
         self.superuser = superuser

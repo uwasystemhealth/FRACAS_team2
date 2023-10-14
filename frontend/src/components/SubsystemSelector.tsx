@@ -58,7 +58,7 @@ const SubsystemSelector = (props: Props) => {
             // spammed with warnings.
           >
             {subsystems.map((system) => (
-              <MenuItem value={system.id}>{system.subsystem}</MenuItem>
+              <MenuItem key={system.id} value={system.id}>{system.name}</MenuItem>
             ))}
             <MenuItem value="addNew">+ Add New Subsystem</MenuItem>
           </Select>

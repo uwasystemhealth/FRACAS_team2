@@ -88,7 +88,6 @@ def get_user(user_id):
 def get_current_user():
     identity = get_jwt_identity()
     user = User.query.filter_by(email=identity).first()
-    print(user.id, user.team_id)
     if user is None:
         return jsonify({"err": "no_user", "msg": "User not found"}), 404
     return jsonify(user.to_dict()), 200
@@ -118,9 +117,9 @@ def add_user():
     # [!] YOU SHOULD NOT SET A PASSWORD AT THIS STAGE.
     # API ONLY FOR TESTING PURPOSES!
     # THIS WILL SET THE PASSWORD _AND_ REGISTER THE USER
-    if "password" in data:
-        registered = True
-        user.set_password_and_register(data["password"])
+    # if "password" in data:
+    #     registered = True
+    #     user.set_password_and_register(data["password"])
     if "team" in data:
         team_id = data["team"]
         if Team.query.filter_by(id=team_id).first():
@@ -172,9 +171,9 @@ def update_user(user_id):
         return jsonify({"error": "User not found"}), 404
     data = request.get_json()
     print(data)
-    if "name" in data:
+    if "name" in data is not None or "":
         user.name = data["name"]
-    if "email" in data:
+    if "email" in data is not None or "":
         user.email = data["email"]
     if "superuser" in data:
         user.superuser = data["superuser"]
@@ -183,6 +182,26 @@ def update_user(user_id):
     if "team_id" in data:
         team = Team.query.get(data["team_id"])
         user.team = team
+
+    db.session.commit()
+    return jsonify({"message": "User Records Updated"}), 200
+
+@app.route("/api/v1/user", methods=["PATCH"])
+@handle_exceptions
+@user_jwt_required
+def update_local_user():
+    identity = get_jwt_identity()
+    user = User.query.filter_by(email=identity).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    data = request.get_json()
+    print(data)
+    if "name" in data is not None or "":
+        user.name = data["name"]
+    if "email" in data is not None or "":
+        user.email = data["email"]
+    if ("password" in data) is not None or "":
+        user.set_password_and_register(data["password"])
 
     db.session.commit()
     return jsonify({"message": "User Records Updated"}), 200

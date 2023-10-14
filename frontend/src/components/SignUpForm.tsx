@@ -37,8 +37,8 @@ import { API_CLIENT, API_ENDPOINT, API_TYPES } from "@/helpers/api";
 import { useRouter } from "next/navigation";
 
 interface Props {
-  title: string | Element;
-  description: string | Element;
+  title: any;
+  description: any;
   endpoint: string;
   url_params: string;
 }
