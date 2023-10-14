@@ -56,7 +56,7 @@ import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import URLS from "@/helpers/urls";
 import SubsysMenu from "@/components/ViewReportComponents/SubsystemMenu";
-import 'dayjs/locale/en-au'
+import "dayjs/locale/en-au";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(customParseFormat);
@@ -123,7 +123,7 @@ export default function EditReport(props: Props) {
       .catch((error: AxiosError) => {
         console.error("An error occurred " + error.message);
       });
-  }
+  };
 
   const fetchTeam = async () => {
     const response = await API_CLIENT.get<
@@ -140,48 +140,48 @@ export default function EditReport(props: Props) {
       .catch((error: AxiosError) => {
         console.error("An error occurred " + error.message);
       });
-  }
+  };
 
   const fetchRecord = async () => {
     const response = await API_CLIENT.get<
-          any,
-          AxiosResponse<API_TYPES.REPORT.GET.RESPONSE>
-        >(API_ENDPOINT.RECORD + "/" + record_id)
-          .then((response) => {
-            if (response) {
-              const report = response.data;
-              reset({
-                title: report.title,
-                description: report.description,
-                subsystem_name: report.subsystem?.name,
-                team_id: report.team?.id,
-                // @ts-ignore: dayjs object is not a string but we can't use
-                // dayjs objects in yup date
-                time_of_failure: dayjs.utc(
-                  report.time_of_failure,
-                  "YYYY-MM-DD HH:mm:ss"
-                ),
-                impact: report.impact,
-                cause: report.cause,
-                mechanism: report.mechanism,
-                corrective_action_plan: report.corrective_action_plan,
-                car_year: report.car_year,
-                record_valid: report.record_valid,
-                analysis_valid: report.analysis_valid,
-                corrective_valid: report.corrective_valid
-              });
-            } else {
-              console.error("An error occurred");
-            }
-          })
-          .catch((error: AxiosError) => {
-            if (error.response?.status === 404) {
-              router.push("/404");
-            }
-            console.error("An error occurred " + error.message);
+      any,
+      AxiosResponse<API_TYPES.REPORT.GET.RESPONSE>
+    >(API_ENDPOINT.RECORD + "/" + record_id)
+      .then((response) => {
+        if (response) {
+          const report = response.data;
+          reset({
+            title: report.title,
+            description: report.description,
+            subsystem_name: report.subsystem?.name,
+            team_id: report.team?.id,
+            // @ts-ignore: dayjs object is not a string but we can't use
+            // dayjs objects in yup date
+            time_of_failure: dayjs.utc(
+              report.time_of_failure,
+              "YYYY-MM-DD HH:mm:ss"
+            ),
+            impact: report.impact,
+            cause: report.cause,
+            mechanism: report.mechanism,
+            corrective_action_plan: report.corrective_action_plan,
+            car_year: report.car_year,
+            record_valid: report.record_valid,
+            analysis_valid: report.analysis_valid,
+            corrective_valid: report.corrective_valid,
           });
-  }
-  
+        } else {
+          console.error("An error occurred");
+        }
+      })
+      .catch((error: AxiosError) => {
+        if (error.response?.status === 404) {
+          router.push("/404");
+        }
+        console.error("An error occurred " + error.message);
+      });
+  };
+
   useEffect(() => {
     fetchTeam();
     fetchRecord();
@@ -293,7 +293,9 @@ export default function EditReport(props: Props) {
                             value={field.value}
                           >
                             {teams.map((team) => (
-                              <MenuItem key={team.id} value={team.id}>{team.name}</MenuItem>
+                              <MenuItem key={team.id} value={team.id}>
+                                {team.name}
+                              </MenuItem>
                             ))}
                           </Select>
                         </FormControl>
@@ -342,7 +344,8 @@ export default function EditReport(props: Props) {
                           //   enUS.components.MuiLocalizationProvider.defaultProps
                           //     .localeText
                           // }
-                          dateAdapter={AdapterDayjs} adapterLocale="en-au"
+                          dateAdapter={AdapterDayjs}
+                          adapterLocale="en-au"
                         >
                           <DateTimePicker
                             {...field}
@@ -387,12 +390,17 @@ export default function EditReport(props: Props) {
                       defaultValue={false}
                       render={({ field }) => (
                         <FormGroup>
-                      <FormControlLabel
-                        {...field}
-                        control={<Checkbox disabled={!canValidate} checked={field.value}/>}
-                        label="Record Valid?"
-                      />
-                    </FormGroup>
+                          <FormControlLabel
+                            {...field}
+                            control={
+                              <Checkbox
+                                disabled={!canValidate}
+                                checked={field.value}
+                              />
+                            }
+                            label="Record Valid?"
+                          />
+                        </FormGroup>
                       )}
                     />
                   </Grid>
@@ -472,12 +480,17 @@ export default function EditReport(props: Props) {
                       defaultValue={false}
                       render={({ field }) => (
                         <FormGroup>
-                      <FormControlLabel
-                        {...field}
-                        control={<Checkbox disabled={!canValidate} checked={field.value} />}
-                        label="Analysis Valid?"
-                      />
-                    </FormGroup>
+                          <FormControlLabel
+                            {...field}
+                            control={
+                              <Checkbox
+                                disabled={!canValidate}
+                                checked={field.value}
+                              />
+                            }
+                            label="Analysis Valid?"
+                          />
+                        </FormGroup>
                       )}
                     />
                   </Grid>
@@ -510,7 +523,7 @@ export default function EditReport(props: Props) {
                       )}
                     />
                     <Divider sx={{ my: 3 }} />
-                    {true }
+                    {true}
                     <Typography variant="h6" gutterBottom>
                       Validation
                     </Typography>
@@ -520,12 +533,17 @@ export default function EditReport(props: Props) {
                       defaultValue={false}
                       render={({ field }) => (
                         <FormGroup>
-                      <FormControlLabel
-                        {...field}
-                        control={<Checkbox disabled={!canValidate} checked={Boolean(field.value)}/>}
-                        label="Corrective Action Valid?"
-                      />
-                    </FormGroup>
+                          <FormControlLabel
+                            {...field}
+                            control={
+                              <Checkbox
+                                disabled={!canValidate}
+                                checked={Boolean(field.value)}
+                              />
+                            }
+                            label="Corrective Action Valid?"
+                          />
+                        </FormGroup>
                       )}
                     />
                   </Grid>
@@ -544,9 +562,36 @@ export default function EditReport(props: Props) {
               </Button>
               <Box sx={{ flex: "1 1 auto" }} />
               {activeStep === steps.length - 1 ? (
-                <Button type="submit" variant="contained">
-                  Submit
-                </Button>
+                <>
+                  <Button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      window.history.back();
+                    }}
+                    variant="contained"
+                    color="error"
+                    sx={{ margin: "5px" }}
+                  >
+                    Discard
+                  </Button>
+                  <Button
+                    type="submit"
+                    error="warning"
+                    sx={{ margin: "5px" }}
+                    variant="contained"
+                  >
+                    Save and close
+                  </Button>
+                  {/* LMAO they do the same thing */}
+                  <Button
+                    type="submit"
+                    sx={{ margin: "5px" }}
+                    variant="contained"
+                  >
+                    Submit
+                  </Button>
+                </>
               ) : (
                 <Button
                   type="button"

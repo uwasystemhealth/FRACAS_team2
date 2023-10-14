@@ -88,23 +88,16 @@ interface CurrentUser {
 const defaultYear = dayjs(new Date());
 const time_of_failure = dayjs(new Date());
 
-
 const schema = yup.object().shape({
   title: yup.string().required(),
   description: yup.string().min(5).required(),
   subsystem_name: yup.string(),
-  time_of_failure: yup
-    .string()
-    .default(time_of_failure.toString())
-    .required(),
+  time_of_failure: yup.string().default(time_of_failure.toString()).required(),
   impact: yup.string(),
   cause: yup.string(),
   mechanism: yup.string(),
   corrective_action_plan: yup.string(),
-  car_year: yup
-    .string()
-    .default(defaultYear.toString())
-    .required(),
+  car_year: yup.string().default(defaultYear.toString()).required(),
   team_id: yup.number(),
 });
 
@@ -327,10 +320,10 @@ const ReportForm: React.FC = (props: Props) => {
                       render={({ field }) => (
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
                           <DatePicker
-                          {...field}
-                          label="Car Year"
-                          defaultValue={defaultYear}
-                          views={['year']}
+                            {...field}
+                            label="Car Year"
+                            defaultValue={defaultYear}
+                            views={["year"]}
                           />
                         </LocalizationProvider>
                       )}
@@ -484,7 +477,36 @@ const ReportForm: React.FC = (props: Props) => {
               </Button>
               <Box sx={{ flex: "1 1 auto" }} />
               {activeStep === steps.length - 1 ? (
-                <Button type="submit">Submit</Button>
+                <>
+                  <Button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      window.history.back();
+                    }}
+                    variant="contained"
+                    color="error"
+                    sx={{ margin: "5px" }}
+                  >
+                    Discard
+                  </Button>
+                  <Button
+                    type="submit"
+                    error="warning"
+                    sx={{ margin: "5px" }}
+                    variant="contained"
+                  >
+                    Save and close
+                  </Button>
+                  {/* LMAO they do the same thing */}
+                  <Button
+                    type="submit"
+                    sx={{ margin: "5px" }}
+                    variant="contained"
+                  >
+                    Submit
+                  </Button>
+                </>
               ) : (
                 <Button
                   onClick={handleNext}
