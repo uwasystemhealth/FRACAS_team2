@@ -59,7 +59,7 @@ def toggle_bookmark(record_id):
         return jsonify({"error": "Record not found"}), 404
     postToggle = False
     print(user.bookmarked)
-    if (record in user.bookmarked):
+    if record in user.bookmarked:
         user.bookmarked.remove(record)
         postToggle = False
     else:
@@ -68,6 +68,7 @@ def toggle_bookmark(record_id):
     db.session.commit()
     print(postToggle)
     return jsonify(postToggle), 200
+
 
 # Get Bookmarks
 @app.route("/api/v1/bookmark", methods=["GET"])
@@ -81,6 +82,7 @@ def get_bookmarks():
     bookmarks = user.bookmarked.all()
     return jsonify(bookmarks), 201
 
+
 # Get Bookmark
 @app.route("/api/v1/bookmark/<int:record_id>", methods=["GET"])
 @handle_exceptions
@@ -93,7 +95,7 @@ def get_bookmark(record_id):
     record = Record.query.get(record_id)
     if not record:
         return jsonify({"error": "Record not found"}), 404
-    if (record in user.bookmarked):
+    if record in user.bookmarked:
         return jsonify(True), 200
     else:
         return jsonify(False), 200
