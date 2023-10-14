@@ -39,8 +39,9 @@ const LocalizedDate = ({ date_string }: Props) => {
       {dayjs
         .utc(date_string, "YYYY-MM-DD[T]HH:mm")
         .local()
-        .format("YYYY-MM-DDTHH:mm:ss")}
+        .format("YYYY-MM-DD HH:mm:ss")}{" "}
     </Typography>
+    // ISO 8601 rules!
   );
 };
 

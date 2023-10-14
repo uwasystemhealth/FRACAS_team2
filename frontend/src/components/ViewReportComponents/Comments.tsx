@@ -17,7 +17,7 @@ import {
   Table,
   tableCellClasses,
 } from "@mui/material";
-import { green, orange } from "@mui/material/colors";
+import LocalizedDate from "@/components/LocalizedDate";
 import { AxiosResponse, AxiosError } from "axios";
 import { useEffect, useState } from "react";
 
@@ -126,12 +126,14 @@ const Comments = ({ id }: Props) => {
                   <TableCell
                     sx={{ width: "1%", whiteSpace: "nowrap", maxWidth: "5%" }}
                   >
-                    {item.created_at}
+                    <LocalizedDate date_string={item.created_at} />
                   </TableCell>
                   <TableCell
                     sx={{ width: "1%", whiteSpace: "nowrap", maxWidth: "5%" }}
                   >
-                    {item.user.name}
+                    {`${item.user.name} (${
+                      item.user.team ? item.user.team.name : "?"
+                    }):`}
                   </TableCell>
                   <TableCell>{item.text}</TableCell>
                 </TableRow>
