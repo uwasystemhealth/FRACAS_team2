@@ -163,6 +163,27 @@ export namespace API_TYPES {
         }
       }
     }
+    export namespace COMMENTS {
+      export namespace POST {
+        export interface REQUEST {
+          comment: string;
+        }
+        export interface RESPONSE {
+          id: number;
+        }
+      }
+      export namespace GET {
+        export interface RESPONSE {
+          created_at: string;
+          id: number;
+          modified_at: string;
+          record_id: number;
+          text: string;
+          user_id: number;
+          user: API_TYPES.USER.RESPONSE;
+        }
+      }
+    }
   }
   export namespace SUBSYSTEM {
     export namespace POST {
