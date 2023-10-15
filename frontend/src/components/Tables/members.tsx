@@ -47,6 +47,7 @@ const UserTable: React.FC = () => {
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'warning' | 'info'>('success');
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [users, setUsers] = useState<User[]>([]);
+  const [currentUserID, setCurrentUserID] = useState(-1);
   const [loading, setLoading] = useState(true);
   const [openNewUserDialog, setOpenNewUserDialog] = useState<boolean>(false);
   const [openChangeTeamDialog, setOpenChangeTeamDialog] = useState<boolean>(false);
@@ -153,12 +154,27 @@ const UserTable: React.FC = () => {
     }
   };
 
+  const fetchCurrentUser = () => {
+    API_CLIENT.get(API_ENDPOINT.USER + `/current`)
+      .then((response) => {
+        if (response.status == 200) {
+          setCurrentUserID(response.data.id);
+        } else {
+          console.error(response.data.message);
+        }
+      })
+      .catch((error: AxiosError) => {
+        console.error(error.message);
+      });
+  };
+
   // Initial API Call to get list of users
   const fetchData = async () => {
     try {
       await API_CLIENT.get(API_ENDPOINT.USER)
         .then((response) => {
           if (response.status == 200) {
+            console.log(response.data)
             setUsers(response.data);
             setLoading(false);
           } else {
@@ -178,6 +194,7 @@ const UserTable: React.FC = () => {
   
   // Runs fetchData() when page is initally loaded
   useEffect(() => {
+    fetchCurrentUser();
     fetchData();
   }, []);
 
@@ -232,13 +249,19 @@ const UserTable: React.FC = () => {
         })
   };
 
-
-
   const columns: GridColDef[] = [
     { field: 'id', headerName: 'ID', width: 70 },
     { field: 'name', headerName: 'Full Name', width: 200 },
     { field: 'email', headerName: 'Email', width: 200 },
-    { field: 'team_name', headerName: 'Team', width: 200 },
+    { field: 'team_name',
+      headerName: 'Team',
+      width: 200,
+      renderCell: (params) => (
+        <div>
+        {(params.row.is_leading) ? (params.row.team_name + " ★") : (params.row.team_name)}
+        </div>
+      ),
+    },
     {
       field: 'can_validate',
       headerName: 'Can Validate?',
@@ -248,6 +271,7 @@ const UserTable: React.FC = () => {
           type="checkbox"
           checked={params.value}
           onChange={handleValidateChange(params.row.id)}
+          disabled={(params.row.is_leading) || (params.row.id == currentUserID) || (params.row.id == "Admin")}
         />
       ),
     },
@@ -260,6 +284,7 @@ const UserTable: React.FC = () => {
           type="checkbox"
           checked={params.value}
           onChange={handleAdminChange(params.row.id)}
+          disabled={(params.row.id == currentUserID) || (params.row.name == "Admin")}
         />
       ),
     },

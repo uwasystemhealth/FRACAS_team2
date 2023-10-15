@@ -146,9 +146,8 @@ const ReportList: React.FC<Props> = ({ rows, setRows, initialstate, search, widt
       // @ts-ignore
       if (e.name) {
         // @ts-ignore
-        return e.name
-      } else {
-        return ""
+        let name = e.name
+        return name.toString()
       }
     }
     return ""
@@ -328,15 +327,17 @@ const ReportList: React.FC<Props> = ({ rows, setRows, initialstate, search, widt
 
   const filteredRows = rows.filter((row) =>
     Object.entries(row).some((value) =>
-      {if (typeof value[1] === 'object') {
-        return getObjectName(value).toString().toLowerCase().includes(searchTerm.toLowerCase());
-      } else if (value[0] != ("created_at" || "modified_at")) {
-        return value[1]?.toString().toLowerCase().includes(searchTerm.toLowerCase());
-      };}
+      {
+        if ( typeof value[1] === ('object') ){
+          return getObjectName(value[1]).toString().toLowerCase().includes(searchTerm.toLowerCase());
+        }
+        if (value[0] != ("created_at" || "modified_at" || "time_resolved")) {
+          return value[1]?.toString().toLowerCase().includes(searchTerm.toLowerCase());
+        };
+      }
     )
   );
-  //console.log(filteredRows)
-
+  
   // Get user privileges
   useEffect(() => {
     (async () => {

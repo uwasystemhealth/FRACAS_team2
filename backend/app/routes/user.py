@@ -30,6 +30,12 @@ def get_teamname(user):
     team = Team.query.get(user.team_id)
     return team.name
 
+def get_if_leading(user):
+    if user.leading:
+        return True
+    else:
+        return False
+
 
 def user_json(users):
     # User JSON Schema
@@ -42,6 +48,7 @@ def user_json(users):
             "team_id": user.team_id,
             "team_name": get_teamname(user),
             "can_validate": user.can_validate,
+            "is_leading": get_if_leading(user)
         }
         for user in users
     ]
@@ -50,7 +57,7 @@ def user_json(users):
 
 @app.route("/api/v1/user", methods=["GET"])
 @handle_exceptions
-@superuser_jwt_required
+@user_jwt_required
 # Get list of Users
 def list_users():
     users = User.query.filter_by(registered=True).all()

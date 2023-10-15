@@ -28,6 +28,7 @@ import NewTeamDialog from '@/components/Dialogs/NewTeam';
 import ChangeLeaderDialog from '@/components/Dialogs/ChangeLeader';
 import Stack from '@mui/material/Stack';
 import Divider from '@mui/material/Divider';
+import { useRouter } from "next/navigation";
 
 interface Team {
   id: number;
@@ -43,6 +44,7 @@ const columns: GridColDef[] = [
 ];
 
 const TeamTable: React.FC = () => {
+  const router = useRouter();
   const [selectedRowId, setSelectedRowId] = useState<string>('');
   const [ButtonsDisabled, setButtonsDisabled] = useState(true);
   const [teams, setTeams] = useState([]);
@@ -174,9 +176,8 @@ const TeamTable: React.FC = () => {
       .then((response) => {
         if (response.status === 200) {
           handleRefresh();
-          setSnackbarMessage(response.data.message);
-          setSnackbarSeverity('success');
-          handleSnackbarOpen();
+          window.alert("Leader changed");
+          router.refresh();
         } else {
           setSnackbarMessage(response.data.message);
           setSnackbarSeverity('error');
