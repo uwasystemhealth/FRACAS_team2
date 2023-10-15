@@ -48,7 +48,11 @@ import { AxiosError, AxiosResponse } from "axios";
 import { useRouter } from "next/navigation";
 
 import { get_client_tz } from "@/helpers/client_utils";
-import { DatePicker, DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import {
+  DatePicker,
+  DateTimePicker,
+  LocalizationProvider,
+} from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
@@ -56,7 +60,7 @@ import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import URLS from "@/helpers/urls";
 import SubsysMenu from "@/components/ViewReportComponents/SubsystemMenu";
-import 'dayjs/locale/en-au'
+import "dayjs/locale/en-au";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(customParseFormat);
@@ -80,7 +84,7 @@ const schema = yup.object().shape({
   analysis_valid: yup.boolean().nullable(),
   corrective_valid: yup.boolean().nullable(),
   time_resolved: yup.string().nullable(),
-  notes: yup.string().nullable(),
+  // notes: yup.string().nullable(),
 });
 export type UserForm = yup.InferType<typeof schema>;
 
@@ -127,7 +131,7 @@ export default function EditReport(props: Props) {
       .catch((error: AxiosError) => {
         console.error("An error occurred " + error.message);
       });
-  }
+  };
 
   const fetchTeam = async () => {
     const response = await API_CLIENT.get<
@@ -144,7 +148,7 @@ export default function EditReport(props: Props) {
       .catch((error: AxiosError) => {
         console.error("An error occurred " + error.message);
       });
-  }
+  };
 
   const fetchUsers = async () => {
     const response = await API_CLIENT.get<
@@ -161,52 +165,49 @@ export default function EditReport(props: Props) {
       .catch((error: AxiosError) => {
         console.error("An error occurred " + error.message);
       });
-  }
+  };
 
   const fetchRecord = async () => {
     const response = await API_CLIENT.get<
-          any,
-          AxiosResponse<API_TYPES.REPORT.GET.RESPONSE>
-        >(API_ENDPOINT.RECORD + "/" + record_id)
-          .then((response) => {
-            if (response) {
-              const report = response.data;
-              let new_tm = null
-              if (report.time_resolved) {
-                new_tm = dayjs.utc(report.time_resolved).toString()
-              } 
-              reset({
-                title: report.title,
-                description: report.description,
-                subsystem_name: report.subsystem?.name,
-                team_id: report.team?.id,
-                owner_id: report.owner?.id,
-                // @ts-ignore: dayjs object is not a string but we can't use
-                // dayjs objects in yup date
-                time_of_failure: dayjs.utc(report.time_of_failure).toString(),
-                impact: report.impact,
-                cause: report.cause,
-                mechanism: report.mechanism,
-                corrective_action_plan: report.corrective_action_plan,
-                car_year: report.car_year,
-                record_valid: report.record_valid,
-                analysis_valid: report.analysis_valid,
-                corrective_valid: report.corrective_valid,
-                time_resolved: new_tm,
-                notes: report.notes,
-              });
-            } else {
-              console.error("An error occurred");
-            }
-          })
-          .catch((error: AxiosError) => {
-            if (error.response?.status === 404) {
-              router.push("/404");
-            }
-            console.error("An error occurred " + error.message);
+      any,
+      AxiosResponse<API_TYPES.REPORT.GET.RESPONSE>
+    >(API_ENDPOINT.RECORD + "/" + record_id)
+      .then((response) => {
+        if (response) {
+          const report = response.data;
+          reset({
+            title: report.title,
+            description: report.description,
+            subsystem_name: report.subsystem?.name,
+            team_id: report.team?.id,
+            owner_id: report.owner?.id,
+            // @ts-ignore: dayjs object is not a string but we can't use
+            // dayjs objects in yup date
+            time_of_failure: dayjs.utc(
+              report.time_of_failure,
+              "YYYY-MM-DD HH:mm:ss"
+            ),
+            impact: report.impact,
+            cause: report.cause,
+            mechanism: report.mechanism,
+            corrective_action_plan: report.corrective_action_plan,
+            car_year: report.car_year,
+            record_valid: report.record_valid,
+            analysis_valid: report.analysis_valid,
+            corrective_valid: report.corrective_valid,
           });
-  }
-  
+        } else {
+          console.error("An error occurred");
+        }
+      })
+      .catch((error: AxiosError) => {
+        if (error.response?.status === 404) {
+          router.push("/404");
+        }
+        console.error("An error occurred " + error.message);
+      });
+  };
+
   useEffect(() => {
     fetchTeam();
     fetchRecord();
@@ -216,15 +217,15 @@ export default function EditReport(props: Props) {
 
   const TimeResolvedFieldHandler = (input: string | null | undefined) => {
     if (!input) {
-      return null
+      return null;
     } else {
-      return dayjs(input)
+      return dayjs(input);
     }
-  }
+  };
 
   const TimeResolvedDateReset = () => {
-    reset({ time_resolved: null })
-  }
+    reset({ time_resolved: null });
+  };
 
   const handleNext = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
@@ -240,7 +241,7 @@ export default function EditReport(props: Props) {
     if (submitted) return;
     setSubmitted(true);
     console.log("data submitted: ", data);
-    //  Not efficient, but I cannot find out how to override the default date format, 
+    //  Not efficient, but I cannot find out how to override the default date format,
     // since react-hook-form abstracts away the string conversion so we can't use .format().
     data.time_of_failure = dayjs(data.time_of_failure).toISOString();
     if (data.time_resolved) {
@@ -256,12 +257,14 @@ export default function EditReport(props: Props) {
                 " " +
                 response.data.message
             );
-            window.alert("An error occurred " +
-            response.status +
-            " " +
-            response.data.message)
+            window.alert(
+              "An error occurred " +
+                response.status +
+                " " +
+                response.data.message
+            );
           }
-          window.alert("Report successfully updated.")
+          window.alert("Report successfully updated.");
           router.push(URLS.VIEW_REPORT + "/" + record_id);
         })
         .catch((error: AxiosError) => {
@@ -271,10 +274,12 @@ export default function EditReport(props: Props) {
               // @ts-ignore: TODO: Add types for generic error response
               error.response?.data["message"]
           );
-          window.alert("An error occurred " +
-          error.message +
-          // @ts-ignore: TODO: Add types for generic error response
-          error.response?.data["message"])
+          window.alert(
+            "An error occurred " +
+              error.message +
+              // @ts-ignore: TODO: Add types for generic error response
+              error.response?.data["message"]
+          );
         });
       console.log("data submitted: ", data);
     })();
@@ -344,7 +349,9 @@ export default function EditReport(props: Props) {
                             value={field.value}
                           >
                             {users.map((user) => (
-                              <MenuItem key={user.id} value={user.id}>{user.name}</MenuItem>
+                              <MenuItem key={user.id} value={user.id}>
+                                {user.name}
+                              </MenuItem>
                             ))}
                           </Select>
                         </FormControl>
@@ -367,7 +374,9 @@ export default function EditReport(props: Props) {
                             value={field.value}
                           >
                             {teams.map((team) => (
-                              <MenuItem key={team.id} value={team.id}>{team.name}</MenuItem>
+                              <MenuItem key={team.id} value={team.id}>
+                                {team.name}
+                              </MenuItem>
                             ))}
                           </Select>
                         </FormControl>
@@ -417,7 +426,8 @@ export default function EditReport(props: Props) {
                           //   enUS.components.MuiLocalizationProvider.defaultProps
                           //     .localeText
                           // }
-                          dateAdapter={AdapterDayjs} adapterLocale="en-au"
+                          dateAdapter={AdapterDayjs}
+                          adapterLocale="en-au"
                         >
                           <DateTimePicker
                             {...field}
@@ -463,12 +473,17 @@ export default function EditReport(props: Props) {
                       defaultValue={false}
                       render={({ field }) => (
                         <FormGroup>
-                      <FormControlLabel
-                        {...field}
-                        control={<Checkbox disabled={!canValidate} checked={Boolean(field.value)}/>}
-                        label="Record Valid?"
-                      />
-                    </FormGroup>
+                          <FormControlLabel
+                            {...field}
+                            control={
+                              <Checkbox
+                                disabled={!canValidate}
+                                checked={Boolean(field.value)}
+                              />
+                            }
+                            label="Record Valid?"
+                          />
+                        </FormGroup>
                       )}
                     />
                   </Grid>
@@ -548,12 +563,17 @@ export default function EditReport(props: Props) {
                       defaultValue={false}
                       render={({ field }) => (
                         <FormGroup>
-                      <FormControlLabel
-                        {...field}
-                        control={<Checkbox disabled={!canValidate} checked={Boolean(field.value)} />}
-                        label="Analysis Valid?"
-                      />
-                    </FormGroup>
+                          <FormControlLabel
+                            {...field}
+                            control={
+                              <Checkbox
+                                disabled={!canValidate}
+                                checked={Boolean(field.value)}
+                              />
+                            }
+                            label="Analysis Valid?"
+                          />
+                        </FormGroup>
                       )}
                     />
                   </Grid>
@@ -599,7 +619,12 @@ export default function EditReport(props: Props) {
                         <FormGroup>
                           <FormControlLabel
                             {...field}
-                            control={<Checkbox disabled={!canValidate} checked={Boolean(field.value)}/>}
+                            control={
+                              <Checkbox
+                                disabled={!canValidate}
+                                checked={Boolean(field.value)}
+                              />
+                            }
                             label="Corrective Action Valid?"
                           />
                         </FormGroup>
@@ -616,7 +641,8 @@ export default function EditReport(props: Props) {
                           //   enUS.components.MuiLocalizationProvider.defaultProps
                           //     .localeText
                           // }
-                          dateAdapter={AdapterDayjs} adapterLocale="en-au"
+                          dateAdapter={AdapterDayjs}
+                          adapterLocale="en-au"
                         >
                           <DatePicker
                             {...field}
@@ -628,12 +654,11 @@ export default function EditReport(props: Props) {
                             slotProps={{
                               textField: {
                                 helperText: errors.time_resolved
-                                ? errors.time_resolved?.message
-                                : 'Once set, report will be marked as Resolved',
+                                  ? errors.time_resolved?.message
+                                  : "Once set, report will be marked as Resolved",
                                 error: !!errors.time_resolved,
                               },
                             }}
-
                           />
                         </LocalizationProvider>
                       )}
@@ -642,13 +667,13 @@ export default function EditReport(props: Props) {
                       type="button"
                       color="inherit"
                       onClick={TimeResolvedDateReset}
-                      size='small'
+                      size="small"
                     >
                       Reset Date
                     </Button>
                   </Grid>
-                  <Grid xs={12}>
-                  <Controller
+                  {/* <Grid xs={12}>
+                    <Controller
                       name="notes"
                       control={control}
                       render={({ field }) => (
@@ -657,9 +682,7 @@ export default function EditReport(props: Props) {
                           label="Additional Info"
                           variant="outlined"
                           error={!!errors.notes}
-                          helperText={
-                            errors.notes ? errors.notes?.message : ""
-                          }
+                          helperText={errors.notes ? errors.notes?.message : ""}
                           fullWidth
                           multiline
                           minRows={4}
@@ -667,7 +690,7 @@ export default function EditReport(props: Props) {
                         />
                       )}
                     />
-                  </Grid>
+                  </Grid> */}
                 </Grid>
               </Box>
             )}
@@ -683,9 +706,36 @@ export default function EditReport(props: Props) {
               </Button>
               <Box sx={{ flex: "1 1 auto" }} />
               {activeStep === steps.length - 1 ? (
-                <Button type="submit" variant="contained">
-                  Submit
-                </Button>
+                <>
+                  <Button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      window.history.back();
+                    }}
+                    variant="contained"
+                    color="error"
+                    sx={{ margin: "5px" }}
+                  >
+                    Discard
+                  </Button>
+                  <Button
+                    type="submit"
+                    color="warning"
+                    sx={{ margin: "5px" }}
+                    variant="contained"
+                  >
+                    Save and close
+                  </Button>
+                  {/* LMAO they do the same thing */}
+                  <Button
+                    type="submit"
+                    sx={{ margin: "5px" }}
+                    variant="contained"
+                  >
+                    Submit
+                  </Button>
+                </>
               ) : (
                 <Button
                   type="button"

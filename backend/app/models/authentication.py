@@ -26,11 +26,6 @@ from app.models.record import Record
 
 from werkzeug.security import generate_password_hash, check_password_hash
 
-# import app.models.team
-
-# delete a user for testing
-# db.session.delete(User.query.filter_by(email='').first())
-# db.session.commit()
 
 class User(db.Model, SerializerMixin):
     serialize_only = (
@@ -62,6 +57,8 @@ class User(db.Model, SerializerMixin):
         # Future proofing
         "-created_records.creator",
         "-owned_records.owner",
+        # We typically don't need the user's comments
+        "-comments",
     )
 
     MAX_EMAIL_LENGTH = 64
@@ -98,9 +95,10 @@ class User(db.Model, SerializerMixin):
     owned_records = db.relationship(
         "Record", back_populates="owner", foreign_keys="Record.owner_id"
     )
-    bookmarked = db.relationship(
-        "Record", secondary='user_record', backref='users'
+    comments = db.relationship(
+        "Comment", back_populates="user", foreign_keys="Comment.user_id"
     )
+    bookmarked = db.relationship("Record", secondary="user_record", backref="users")
     comments = db.relationship("Comment")
 
     def __repr__(self):
@@ -122,7 +120,7 @@ class User(db.Model, SerializerMixin):
         return self.registered
 
     def is_superuser(self) -> bool:
-        if (self.superuser):
+        if self.superuser:
             return True
         else:
             return False
@@ -131,7 +129,7 @@ class User(db.Model, SerializerMixin):
         self.superuser = superuser
 
     def is_leading_team(self) -> bool:
-        if (self.leading):
+        if self.leading:
             return True
         else:
             return False
@@ -159,10 +157,12 @@ class TokenBlacklist(db.Model):
         nullable=False,
     )
 
-user_record = db.Table("user_record",
-                db.Column("user_id", db.ForeignKey(User.id), primary_key=True),
-                db.Column("record_id", db.ForeignKey(Record.id), primary_key=True),
-                )
+
+user_record = db.Table(
+    "user_record",
+    db.Column("user_id", db.ForeignKey(User.id), primary_key=True),
+    db.Column("record_id", db.ForeignKey(Record.id), primary_key=True),
+)
 
 
 @jwt.user_lookup_loader

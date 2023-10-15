@@ -14,13 +14,15 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import csv
 from datetime import datetime
+from io import StringIO
 from typing import Dict, List, Union
 from flask import jsonify, request, session
 from flask_jwt_extended import get_jwt_identity
-from sqlalchemy import func
+from sqlalchemy import asc, desc, func
 from app import app, db
-from app.models.record import Record, Subsystem
+from app.models.record import Record, Subsystem, Comment
 from app.utils import handle_exceptions
 from app.models.authentication import User
 from app.models.team import Team
@@ -29,6 +31,7 @@ from app.utils import user_jwt_required
 """
 SUBSYSTEM
 """
+
 
 def subystem_json(subsystems):
     subsystem_json = [
@@ -45,41 +48,38 @@ def subystem_json(subsystems):
 @handle_exceptions
 @user_jwt_required
 def create_subsystem():
-    try:
-        name = request.json.get("name", None)
-        if name is None or name == "":
-            return (
-                jsonify(
-                    {
-                        "err": "no_name",
-                        "msg": "subsystem name is required and cannot be empty",
-                    }
-                ),
-                400,
-            )
-        team_id = request.json.get("team_id", None)
-        team = Team.query.get(team_id)
-        if team is None or team == "":
-            return (
-                jsonify(
-                    {
-                        "err": "no_team",
-                        "msg": "subsystem requires a team to be associated with",
-                    }
-                ),
-                400,
-            )
-        subsystem = Subsystem()
-        subsystem.name = name
-        subsystem.team = team
-        db.session.add(subsystem)
-        db.session.commit()
+    name = request.json.get("name", None)
+    if name is None or name == "":
         return (
-            jsonify({"message": "Subsystem created successfully", "id": subsystem.id}),
-            201,
+            jsonify(
+                {
+                    "err": "no_name",
+                    "msg": "subsystem name is required and cannot be empty",
+                }
+            ),
+            400,
         )
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    team_id = request.json.get("team_id", None)
+    team = Team.query.get(team_id)
+    if team is None or team == "":
+        return (
+            jsonify(
+                {
+                    "err": "no_team",
+                    "msg": "subsystem requires a team to be associated with",
+                }
+            ),
+            400,
+        )
+    subsystem = Subsystem()
+    subsystem.name = name
+    subsystem.team = team
+    db.session.add(subsystem)
+    db.session.commit()
+    return (
+        jsonify({"message": "Subsystem created successfully", "id": subsystem.id}),
+        201,
+    )
 
 
 # Serialize all subsystem (Should use pagination but whatever)
@@ -88,22 +88,19 @@ def create_subsystem():
 @user_jwt_required
 def get_subsystem(team_id):
     team = Team.query.get(team_id)
-    try:
-        if team is not None:
-            json_payload = subystem_json(Subsystem.get_by_team(team_id))
-            return json_payload, 200
-        else:
-            return (
-                jsonify(
-                    {
-                        "err": "no_team",
-                        "msg": "subsystem requires a team to be associated with",
-                    }
-                ),
-                400,
-            )
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    if team is not None:
+        json_payload = subystem_json(Subsystem.get_by_team(team_id))
+        return json_payload, 200
+    else:
+        return (
+            jsonify(
+                {
+                    "err": "no_team",
+                    "msg": "subsystem requires a team to be associated with",
+                }
+            ),
+            400,
+        )
 
 
 """
@@ -233,9 +230,8 @@ def serialize_all_record():
     elif filter_bookmarks:
         user = User.query.filter_by(email=identity).first()
         reports: List[Record] = [
-            report for report in user.bookmarked 
-            if not report.marked_for_deletion
-            ]
+            report for report in user.bookmarked if not report.marked_for_deletion
+        ]
     else:
         reports: List[Record] = Record.query.filter_by(marked_for_deletion=False)
 
@@ -244,6 +240,7 @@ def serialize_all_record():
 
 # TODO: USE DATABASE INDICES INSTEAD OF A COUNT(*) GROUP BY TEAM_ID.
 @app.route("/api/v1/record/stats", methods=["GET"])
+@user_jwt_required
 @handle_exceptions
 def record_statistics():
     count_query = (
@@ -274,9 +271,40 @@ def record_statistics():
     )
 
 
+@app.route("/api/v1/record/<int:record_id>/comments", methods=["POST"])
+@handle_exceptions
+@user_jwt_required
+def add_comment(record_id):
+    identity = get_jwt_identity()
+    user: User = User.query.filter_by(email=identity).first()
+    record: Record = Record.query.get(record_id)  # Ensure record exists.
+    comment: str = request.json.get("comment", None)
+
+    new_comment = Comment(text=comment, user=user, record_id=record.id)
+    db.session.add(new_comment)
+    record.comments.append(new_comment)
+    db.session.commit()
+
+    return jsonify({"message": "Comment added successfully", "id": new_comment.id}), 201
+
+
+@app.route("/api/v1/record/<int:record_id>/comments", methods=["GET"])
+@handle_exceptions
+@user_jwt_required
+def get_comments(record_id):
+    comments = (
+        Comment.query.filter(Comment.record_id == record_id)
+        .order_by(desc(Comment.created_at))
+        .all()
+    )
+    comments = [comment.to_dict() for comment in comments]
+    return jsonify(comments), 200
+
+
 #
 # HELPER FUNCTIONS
 #
+
 
 def get_teamname(team_id):
     team = Team.query.get(team_id)
@@ -305,21 +333,21 @@ def get_email(user_id):
         return "N/A"
     return user.email
 
+
 def append_stage_and_return_dict(report: User):
     key = "stage"
-    if (report.record_valid is not True):
+    if report.record_valid is not True:
         val = "record"
-    elif (report.analysis_valid is not True):
+    elif report.analysis_valid is not True:
         val = "analysis"
-    elif (report.corrective_valid is not True):
+    elif report.corrective_valid is not True:
         val = "corrective"
-    elif (report.time_resolved is None):
+    elif report.time_resolved is None:
         val = "monitoring"
     else:
         val = "resolved"
 
     report_dict = report.to_dict()
     report_dict[key] = val
-    
+
     return report_dict
-    

@@ -22,6 +22,7 @@ from app.utils import user_jwt_required
 from app.utils import handle_exceptions
 from flask_jwt_extended import get_jwt_identity
 
+
 # Add/Remove Bookmark
 @app.route("/api/v1/bookmark/<int:record_id>", methods=["POST"])
 @handle_exceptions
@@ -35,7 +36,7 @@ def toggle_bookmark(record_id):
     if not record:
         return jsonify({"error": "Record not found"}), 404
     postToggle = False
-    if (record in user.bookmarked):
+    if record in user.bookmarked:
         user.bookmarked.remove(record)
         postToggle = False
     else:
@@ -43,6 +44,7 @@ def toggle_bookmark(record_id):
         postToggle = True
     db.session.commit()
     return jsonify(postToggle), 200
+
 
 # Get Bookmarks
 @app.route("/api/v1/bookmark", methods=["GET"])
@@ -56,6 +58,7 @@ def get_bookmarks():
     bookmarks = user.bookmarked.all()
     return jsonify(bookmarks), 201
 
+
 # Check if record is Bookmarked
 @app.route("/api/v1/bookmark/<int:record_id>", methods=["GET"])
 @handle_exceptions
@@ -68,7 +71,7 @@ def check_bookmark(record_id):
     record = Record.query.get(record_id)
     if not record:
         return jsonify({"error": "Record not found"}), 404
-    if (record in user.bookmarked):
+    if record in user.bookmarked:
         return jsonify(True), 200
     else:
         return jsonify(False), 200

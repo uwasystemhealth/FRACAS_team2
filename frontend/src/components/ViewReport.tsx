@@ -35,21 +35,37 @@ import GradingIcon from "@mui/icons-material/Grading";
 import TroubleshootIcon from "@mui/icons-material/Troubleshoot";
 import BuildIcon from "@mui/icons-material/Build";
 import Alert from "@mui/material/Alert";
+import { TextField } from "@mui/material/";
 import "@/components/styles/viewreport.css";
 import { API_CLIENT, API_ENDPOINT, API_TYPES } from "@/helpers/api";
 import { AxiosError, AxiosResponse } from "axios";
+import { validateConfig } from "next/dist/server/config-shared";
+import { amber, green, orange, blue } from "@mui/material/colors";
+import { string } from "prop-types";
+import Comments from "./ViewReportComponents/Comments";
 import ReportStatusMessage from "@/components/ReportStatusMessage";
 import { element } from "prop-types";
 
-
 interface ViewReportProps {
   id: number;
+}
+
+function formatCurrentDate(): string {
+  const currentDate = new Date();
+  const day = String(currentDate.getDate()).padStart(2, "0");
+  const month = String(currentDate.getMonth() + 1).padStart(2, "0"); // Months are zero-based
+  const year = currentDate.getFullYear();
+  const hours = String(currentDate.getHours()).padStart(2, "0");
+  const minutes = String(currentDate.getMinutes()).padStart(2, "0");
+
+  return `${day}/${month}/${year}, ${hours}:${minutes}`;
 }
 
 const viewReport: React.FC<ViewReportProps> = ({ id }) => {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [report, setReport] = useState<API_TYPES.REPORT.GET.RESPONSE>();
+  const [currentUser, setCurrentUser] = useState<string>("");
 
   // PRINT HACK
   // PRINT HACK
@@ -94,7 +110,7 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
     }
   };
 
-  const overridePrintDialog = (e: any) => {
+  const overridePrintDialog = (e: Event) => {
     e.preventDefault();
     printHack();
   };
@@ -147,7 +163,7 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
       >(API_ENDPOINT.RECORD + `/${id}`)
         .then((response) => {
           setReport(response.data);
-          console.log(response.data.created_at)
+          console.log(response.data.created_at);
           document.title = response.data?.title || `Untitled report ${id}`;
           setLoading(false);
         })
@@ -161,15 +177,22 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
       await API_CLIENT.get(API_ENDPOINT.BOOKMARK + `/${id}`)
         .then((response) => {
           if (response.data == true) {
-            setIsBookmarked(true)
+            setIsBookmarked(true);
           } else {
-            setIsBookmarked(false)
+            setIsBookmarked(false);
           }
         })
-        .catch((error: AxiosError<API_TYPES.USER.RESPONSE>) => {
-        });
-    } catch (error) {
-    }
+        .catch((error: AxiosError<API_TYPES.USER.RESPONSE>) => {});
+    } catch (error) {}
+    try {
+      await API_CLIENT.get(API_ENDPOINT.USER + `/current`)
+        .then((response) => {
+          if (response.status == 200) {
+            setCurrentUser(response.data.id);
+          }
+        })
+        .catch((error: AxiosError) => {});
+    } catch (error) {}
   };
 
   const toggleBookmark = async () => {
@@ -178,20 +201,18 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
         .then((response) => {
           if (response.status == 200) {
             if (response.data == true) {
-              setIsBookmarked(true)
-              window.alert("Report Bookmarked!")
+              setIsBookmarked(true);
+              window.alert("Report Bookmarked!");
             } else {
-              setIsBookmarked(false)
-              window.alert("Bookmark Removed!")
+              setIsBookmarked(false);
+              window.alert("Bookmark Removed!");
             }
           } else {
-            console.error("Bookmark Failed!")
+            console.error("Bookmark Failed!");
           }
         })
-        .catch((error: AxiosError<API_TYPES.USER.RESPONSE>) => {
-        });
-    } catch (error) {
-    }
+        .catch((error: AxiosError<API_TYPES.USER.RESPONSE>) => {});
+    } catch (error) {}
   };
 
   // Runs fetchData() when page is initally loaded
@@ -251,8 +272,8 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
 
   return (
     <Box sx={{ width: "100%" }}>
-      <ReportStatusMessage status={report?.stage} messageOnly={true}/>
-      <Grid container rowSpacing={2} >
+      <ReportStatusMessage status={report?.stage} messageOnly={true} />
+      <Grid container rowSpacing={2}>
         <Grid xs={12} md={6}>
           <Typography
             variant="h5"
@@ -267,7 +288,7 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
           md={6}
           direction="row"
           container
-          justifyContent={{xs: "normal", md: "flex-end"}}
+          justifyContent={{ xs: "normal", md: "flex-end" }}
           sx={{ displayPrint: "none", gap: 1 }}
         >
           <Button
@@ -308,7 +329,8 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
       <Grid container spacing={2}>
         <Grid xs={6} md={3}>
           <Typography variant="body2">
-            <b>Date Created:</b> {stringToDateTime(report?.created_at) || <i>Pending</i>}
+            <b>Date Created:</b>{" "}
+            {stringToDateTime(report?.created_at) || <i>Pending</i>}
           </Typography>
         </Grid>
         <Grid xs={6} md={3}>
@@ -406,9 +428,9 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
       >
         Additional Info:
       </Typography>
-      <Typography variant="body1" className="sectionText">
+      {/* <Typography variant="body1" className="sectionText">
         {report?.notes || ""}
-      </Typography>
+      </Typography> */}
       <Card className="infoCard">
         <CardContent>
           <Grid container spacing={1}>
@@ -429,7 +451,8 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
             </Grid>
             <Grid xs={6} md={3}>
               <Typography variant="body2">
-                <b>Time of Failure:</b> {stringToDateTime(report?.time_of_failure) || <i>Pending</i>}
+                <b>Time of Failure:</b>{" "}
+                {stringToDateTime(report?.time_of_failure) || <i>Pending</i>}
               </Typography>
             </Grid>
             <Grid xs={6} md={3}>
@@ -449,12 +472,18 @@ const viewReport: React.FC<ViewReportProps> = ({ id }) => {
             </Grid>
             <Grid xs={6} md={3}>
               <Typography variant="body2">
-              <b>Date Resolved:</b> {stringToDate(report?.time_resolved) || <i>Pending</i>}
+                <b>Date Resolved:</b>{" "}
+                {stringToDate(report?.time_resolved) || <i>Pending</i>}
               </Typography>
             </Grid>
           </Grid>
         </CardContent>
       </Card>
+      <Divider
+        variant="fullWidth"
+        style={{ margin: "1rem 0", borderColor: "lightblue" }}
+      />
+      <Comments id={id} />
     </Box>
   );
 };

@@ -55,6 +55,7 @@ def user_json(users):
     return jsonify(user_json)
 
 
+# Get list of Users
 @app.route("/api/v1/user", methods=["GET"])
 @handle_exceptions
 @user_jwt_required
@@ -63,23 +64,24 @@ def list_users():
     users = User.query.filter_by(registered=True).all()
     return user_json(users), 200
 
+
+# Checks user validation permission
 @app.route("/api/v1/user/can_validate", methods=["GET"])
 @handle_exceptions
 @user_jwt_required
-# Checks user validation permission
 def can_validate():
     identity = get_jwt_identity()
     user = User.query.filter_by(email=identity).first()
-    if (user.can_validate or user.leading or user.superuser):
+    if user.can_validate or user.leading or user.superuser:
         return jsonify(True), 200
     else:
         return jsonify(False), 200
 
 
+# Get Current User ID
 @app.route("/api/v1/user/<int:user_id>", methods=["GET"])
 @handle_exceptions
 @user_jwt_required
-# Get Current User ID
 def get_user(user_id):
     user = User.query.get(user_id)
     if user is None:
@@ -87,10 +89,10 @@ def get_user(user_id):
     return user_json(user), 200
 
 
+# Get User via id
 @app.route("/api/v1/user/current", methods=["GET"])
 @handle_exceptions
 @user_jwt_required
-# Get User via id
 def get_current_user():
     identity = get_jwt_identity()
     user = User.query.filter_by(email=identity).first()
@@ -99,9 +101,10 @@ def get_current_user():
     return jsonify(user.to_dict()), 200
 
 
-@app.route("/api/v1/user", methods=["POST"])
 # Add user
+@app.route("/api/v1/user", methods=["POST"])
 @handle_exceptions
+@superuser_jwt_required
 def add_user():
     data = request.get_json()
     print(data)
@@ -152,8 +155,10 @@ def add_user():
     )
 
 
-@app.route("/api/v1/user/<int:user_id>", methods=["DELETE"])
 # Delete Team (Mark Inactive)
+@app.route("/api/v1/user/<int:user_id>", methods=["DELETE"])
+@handle_exceptions
+@superuser_jwt_required
 def delete_user(user_id):
     user = User.query.get(user_id)
     if not user:

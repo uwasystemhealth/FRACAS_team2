@@ -111,7 +111,7 @@ export namespace API_TYPES {
         car_year: string;
         creator_id: number;
         creator: string;
-        notes: string;
+        // notes: string;
         status: string;
       }
       export interface RESPONSE {
@@ -155,7 +155,7 @@ export namespace API_TYPES {
         record_valid?: boolean;
         analysis_valid?: boolean;
         corrective_valid?: boolean;
-        notes?: string;
+        // notes?: string;
         stage?: string;
       }
     }
@@ -165,6 +165,27 @@ export namespace API_TYPES {
           team_id?: number;
           team_name?: string;
           open_reports: number;
+        }
+      }
+    }
+    export namespace COMMENTS {
+      export namespace POST {
+        export interface REQUEST {
+          comment: string;
+        }
+        export interface RESPONSE {
+          id: number;
+        }
+      }
+      export namespace GET {
+        export interface RESPONSE {
+          created_at: string;
+          id: number;
+          modified_at: string;
+          record_id: number;
+          text: string;
+          user_id: number;
+          user: API_TYPES.USER.RESPONSE;
         }
       }
     }

@@ -19,6 +19,7 @@ from sqlalchemy_serializer import SerializerMixin
 from app import db
 from app.models.team import Team
 
+
 class Subsystem(db.Model, SerializerMixin):
     serialize_rules = (
         "-team.subsystems",
@@ -45,16 +46,30 @@ class Subsystem(db.Model, SerializerMixin):
         subsystems = Subsystem.query.filter_by(team_id=team_id).all()
         return subsystems
 
-# Comment section for a given record
+
 class Comment(db.Model, SerializerMixin):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
-    record_id = db.Column(db.Integer, db.ForeignKey("record.id"), nullable=True)
-    content = db.Column(db.String(1000), unique=True, nullable=False)
+    serialize_rules = ("-record",)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    text = db.Column(db.Text, nullable=True)
     created_at = db.Column(
         db.DateTime,
         server_default=func.now(),
         nullable=False,
+    )
+    modified_at = db.Column(
+        db.DateTime,
+        server_default=func.now(),
+        nullable=False,
+    )
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("user.id", ondelete="SET NULL"), nullable=False
+    )
+    user = db.relationship("User", back_populates="comments", foreign_keys=[user_id])
+    record_id = db.Column(
+        db.Integer, db.ForeignKey("record.id", ondelete="SET NULL"), nullable=False
+    )
+    record = db.relationship(
+        "Record", back_populates="comments", foreign_keys=[record_id]
     )
 
 
@@ -73,6 +88,7 @@ class Record(db.Model, SerializerMixin):
         "-team.records",
         "-team.members",
         "-team.subsystems",
+        "-comments",
     )
 
     # Fields that should not change in the record PATCH API
@@ -84,6 +100,7 @@ class Record(db.Model, SerializerMixin):
         "creator_id",
         "creator",
         "deleted",
+        "comments",
     )
 
     # THESE FIELDS NEED ADDITIONAL PARSING AND CANNOT BE DIRECTLY INSERTED AS
@@ -103,7 +120,7 @@ class Record(db.Model, SerializerMixin):
     cause = db.Column(db.Text, nullable=True)
     mechanism = db.Column(db.Text, nullable=True)
     corrective_action_plan = db.Column(db.Text, nullable=True)
-    notes = db.Column(db.Text, nullable=True)
+    # notes = db.Column(db.Text, nullable=True)
     # Auto filled fields:
     # Creation Date (time when pressed submit, may be changed later)
     time_of_failure = db.Column(
@@ -147,4 +164,6 @@ class Record(db.Model, SerializerMixin):
     record_valid = db.Column(db.Boolean, nullable=True)
     analysis_valid = db.Column(db.Boolean, nullable=True)
     corrective_valid = db.Column(db.Boolean, nullable=True)
-    comments = db.relationship("Comment")
+    comments = db.relationship(
+        "Comment", back_populates="record", cascade="all, delete-orphan"
+    )

@@ -37,10 +37,10 @@ import * as yup from "yup";
 import { API_CLIENT, API_DATE_FORMAT, API_ENDPOINT } from "@/helpers/api";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Accordion from '@mui/material/Accordion';
-import AccordionSummary from '@mui/material/AccordionSummary';
-import AccordionDetails from '@mui/material/AccordionDetails';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import Accordion from "@mui/material/Accordion";
+import AccordionSummary from "@mui/material/AccordionSummary";
+import AccordionDetails from "@mui/material/AccordionDetails";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Typography from "@mui/material/Typography";
 import Grid from "@mui/material/Unstable_Grid2";
 import { LocalizationProvider } from "@mui/x-date-pickers";
@@ -92,18 +92,12 @@ const schema = yup.object().shape({
   title: yup.string().required(),
   description: yup.string().min(5).required(),
   subsystem_name: yup.string(),
-  time_of_failure: yup
-    .string()
-    .default(time_of_failure.toString())
-    .required(),
+  time_of_failure: yup.string().default(time_of_failure.toString()).required(),
   impact: yup.string(),
   cause: yup.string(),
   mechanism: yup.string(),
   corrective_action_plan: yup.string(),
-  car_year: yup
-    .string()
-    .default(defaultYear.toString())
-    .required(),
+  car_year: yup.string().default(defaultYear.toString()).required(),
   team_id: yup.number(),
 });
 
@@ -130,7 +124,9 @@ const ReportForm: React.FC = (props: Props) => {
 
   const [teams, setTeams] = useState<Team[]>([]);
   const [currentUser, setCurrentUser] = useState<CurrentUser[]>([]);
-  const [selectedTeamId, setSelectedTeamId] = useState<string | number | undefined>(); // State to keep track of selected team ID
+  const [selectedTeamId, setSelectedTeamId] = useState<
+    string | number | undefined
+  >(); // State to keep track of selected team ID
 
   const handleSnackbarOpen = () => {
     setOpenSnackbar(true);
@@ -174,7 +170,7 @@ const ReportForm: React.FC = (props: Props) => {
                 response.data.message
             );
           }
-          window.alert("Report Created")
+          window.alert("Report Created");
           router.push(URLS.RECORD_LIST);
         })
         .catch((error: AxiosError) => {
@@ -184,7 +180,7 @@ const ReportForm: React.FC = (props: Props) => {
               // @ts-ignore: TODO: Add types for generic error response
               error.response?.data["message"]
           );
-          window.alert("Sorry, something went wrong.")
+          window.alert("Sorry, something went wrong.");
         });
       console.log("data submitted: ", data);
     })();
@@ -239,215 +235,240 @@ const ReportForm: React.FC = (props: Props) => {
   return (
     <Box sx={{ width: "100%" }}>
       <React.Fragment>
-          <form onSubmit={handleSubmit(onValid)}>
+        <form onSubmit={handleSubmit(onValid)}>
           <Box sx={{ flexGrow: 1, py: 1 }}>
-                <Grid container spacing={2}>
-                  <Grid xs={10}>
-                    <Controller
-                      name="title"
-                      control={control}
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          sx={{ py: 4 }}
-                          label="Title"
-                          variant="standard"
-                          error={!!errors.title}
-                          helperText={errors.title ? errors.title?.message : ""}
-                          fullWidth
-                        />
-                      )}
+            <Grid container spacing={2}>
+              <Grid xs={10}>
+                <Controller
+                  name="title"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      sx={{ py: 4 }}
+                      label="Title"
+                      variant="standard"
+                      error={!!errors.title}
+                      helperText={errors.title ? errors.title?.message : ""}
+                      fullWidth
                     />
-                  </Grid>
-                  <Grid xs={12} md={3}>
-                    <TeamMenu<UserForm>
-                      control={control}
-                      teams={teams}
-                      label="Team"
-                      name="team_id"
-                      id="team"
+                  )}
+                />
+              </Grid>
+              <Grid xs={12} md={3}>
+                <TeamMenu<UserForm>
+                  control={control}
+                  teams={teams}
+                  label="Team"
+                  name="team_id"
+                  id="team"
+                />
+              </Grid>
+              <Grid xs={12} md={3}>
+                <Controller
+                  name="subsystem_name"
+                  defaultValue={""}
+                  control={control}
+                  render={({ field }) => (
+                    <SubsysMenu<UserForm>
+                      //@ts-ignore
+                      team_id={watch("team_id")}
+                      field={field}
+                      label="Subsystem"
                     />
-                  </Grid>
-                  <Grid xs={12} md={3}>
-                    <Controller
-                      name="subsystem_name"
-                      defaultValue={""}
-                      control={control}
-                      render={({ field }) => (
-                        <SubsysMenu<UserForm>
-                          //@ts-ignore
-                          team_id={watch("team_id")}
-                          field={field}
-                          label="Subsystem"
-                        />
-                      )}
-                    />
-                  </Grid>
-                  <Grid xs={4} md={2}>
-                    <Controller
-                      name="car_year"
-                      control={control}
-                      render={({ field }) => (
-                        <LocalizationProvider dateAdapter={AdapterDayjs}>
-                          <DatePicker
-                          {...field}
-                          label="Car Year"
-                          defaultValue={defaultYear}
-                          views={['year']}
-                          />
-                        </LocalizationProvider>
-                      )}
-                    />
-                  </Grid>
-                  <Grid xs={8} md={3}>
-                    <Controller
-                      name="time_of_failure"
-                      control={control}
-                      render={({ field }) => (
-                        <LocalizationProvider
-                          // localeText={
-                          //   enUS.components.MuiLocalizationProvider.defaultProps
-                          //     .localeText
-                          // }
-                          dateAdapter={AdapterDayjs}
-                        >
-                          <DateTimePicker
-                            //format="YYYY-MM-DD[T]HH:mm"
-                            {...field}
-                            defaultValue={time_of_failure}
-                            label="Time of Failure"
-                            // error={!!errors.title}
-                            timezone={process.env.TZ}
-                            disableFuture={true} // time travellers beware...
-                          />
-                        </LocalizationProvider>
-                      )}
-                    />
-                  </Grid>
-                  <Grid xs={12}>
-                    <Controller
-                      name="description"
-                      control={control}
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          label="Description"
-                          variant="outlined"
-                          error={!!errors.description}
-                          helperText={
-                            errors.description
-                              ? errors.description?.message
-                              : ""
-                          }
-                          fullWidth
-                          multiline
-                          minRows={4}
-                        />
-                      )}
-                    />
-                  </Grid>
-                  <Grid xs={12}>
-                  <Accordion>
-                    <AccordionSummary
-                      expandIcon={<ExpandMoreIcon />}
-                      aria-controls="panel1a-content"
-                      id="panel1a-header"
+                  )}
+                />
+              </Grid>
+              <Grid xs={4} md={2}>
+                <Controller
+                  name="car_year"
+                  control={control}
+                  render={({ field }) => (
+                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                      <DatePicker
+                        {...field}
+                        label="Car Year"
+                        defaultValue={defaultYear}
+                        views={["year"]}
+                      />
+                    </LocalizationProvider>
+                  )}
+                />
+              </Grid>
+              <Grid xs={8} md={3}>
+                <Controller
+                  name="time_of_failure"
+                  control={control}
+                  render={({ field }) => (
+                    <LocalizationProvider
+                      // localeText={
+                      //   enUS.components.MuiLocalizationProvider.defaultProps
+                      //     .localeText
+                      // }
+                      dateAdapter={AdapterDayjs}
                     >
-                      <Typography>Analysis & Corrective</Typography>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                      <Grid container spacing={2}>
-                        <Grid xs={12}>
-                          <Controller
-                            name="impact"
-                            control={control}
-                            render={({ field }) => (
-                              <TextField
-                                {...field}
-                                label="Impact"
-                                variant="outlined"
-                                error={!!errors.impact}
-                                helperText={
-                                  errors.impact ? errors.impact?.message : ""
-                                }
-                                fullWidth
-                                multiline
-                                minRows={4}
-                              />
-                            )}
-                          />
-                        </Grid>
-                        <Grid xs={12}>
-                          <Controller
-                            name="cause"
-                            control={control}
-                            render={({ field }) => (
-                              <TextField
-                                {...field}
-                                label="Cause"
-                                variant="outlined"
-                                error={!!errors.cause}
-                                helperText={errors.cause ? errors.cause?.message : ""}
-                                fullWidth
-                                multiline
-                                minRows={4}
-                              />
-                            )}
-                          />
-                        </Grid>
-                        <Grid xs={12}>
-                          <Controller
-                            name="mechanism"
-                            control={control}
-                            render={({ field }) => (
-                              <TextField
-                                {...field}
-                                label="Mechanism"
-                                variant="outlined"
-                                error={!!errors.mechanism}
-                                helperText={
-                                  errors.mechanism ? errors.mechanism?.message : ""
-                                }
-                                fullWidth
-                                multiline
-                                minRows={4}
-                              />
-                            )}
-                          />
-                        </Grid>
-                        <Grid xs={12}>
-                          <Controller
-                            name="corrective_action_plan"
-                            control={control}
-                            render={({ field }) => (
-                              <TextField
-                                {...field}
-                                label="Corrective Action Plan"
-                                variant="outlined"
-                                error={!!errors.corrective_action_plan}
-                                helperText={
-                                  errors.corrective_action_plan
-                                    ? errors.corrective_action_plan?.message
-                                    : ""
-                                }
-                                fullWidth
-                                multiline
-                                minRows={4}
-                              />
-                            )}
-                          />
-                        </Grid>
+                      <DateTimePicker
+                        //format="YYYY-MM-DD[T]HH:mm"
+                        {...field}
+                        defaultValue={time_of_failure}
+                        label="Time of Failure"
+                        // error={!!errors.title}
+                        timezone={process.env.TZ}
+                        disableFuture={true} // time travellers beware...
+                      />
+                    </LocalizationProvider>
+                  )}
+                />
+              </Grid>
+              <Grid xs={12}>
+                <Controller
+                  name="description"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Description"
+                      variant="outlined"
+                      error={!!errors.description}
+                      helperText={
+                        errors.description ? errors.description?.message : ""
+                      }
+                      fullWidth
+                      multiline
+                      minRows={4}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid xs={12}>
+                <Accordion>
+                  <AccordionSummary
+                    expandIcon={<ExpandMoreIcon />}
+                    aria-controls="panel1a-content"
+                    id="panel1a-header"
+                  >
+                    <Typography>Analysis & Corrective</Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Grid container spacing={2}>
+                      <Grid xs={12}>
+                        <Controller
+                          name="impact"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              label="Impact"
+                              variant="outlined"
+                              error={!!errors.impact}
+                              helperText={
+                                errors.impact ? errors.impact?.message : ""
+                              }
+                              fullWidth
+                              multiline
+                              minRows={4}
+                            />
+                          )}
+                        />
                       </Grid>
-                    </AccordionDetails>
-                  </Accordion>
-                </Grid>
-                </Grid>
-              </Box>
-            <Box sx={{ display: "flex", justifyContent: "right", pt: 2 }}>
-              <Button variant="contained" type="submit">Submit</Button>
-            </Box>
-          </form>
-        </React.Fragment>
+                      <Grid xs={12}>
+                        <Controller
+                          name="cause"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              label="Cause"
+                              variant="outlined"
+                              error={!!errors.cause}
+                              helperText={
+                                errors.cause ? errors.cause?.message : ""
+                              }
+                              fullWidth
+                              multiline
+                              minRows={4}
+                            />
+                          )}
+                        />
+                      </Grid>
+                      <Grid xs={12}>
+                        <Controller
+                          name="mechanism"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              label="Mechanism"
+                              variant="outlined"
+                              error={!!errors.mechanism}
+                              helperText={
+                                errors.mechanism
+                                  ? errors.mechanism?.message
+                                  : ""
+                              }
+                              fullWidth
+                              multiline
+                              minRows={4}
+                            />
+                          )}
+                        />
+                      </Grid>
+                      <Grid xs={12}>
+                        <Controller
+                          name="corrective_action_plan"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              label="Corrective Action Plan"
+                              variant="outlined"
+                              error={!!errors.corrective_action_plan}
+                              helperText={
+                                errors.corrective_action_plan
+                                  ? errors.corrective_action_plan?.message
+                                  : ""
+                              }
+                              fullWidth
+                              multiline
+                              minRows={4}
+                            />
+                          )}
+                        />
+                      </Grid>
+                    </Grid>
+                  </AccordionDetails>
+                </Accordion>
+              </Grid>
+            </Grid>
+          </Box>
+          <Box sx={{ display: "flex", justifyContent: "right", pt: 2 }}>
+            <Button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                window.history.back();
+              }}
+              variant="contained"
+              color="error"
+              sx={{ margin: "5px" }}
+            >
+              Discard
+            </Button>
+            <Button
+              type="submit"
+              color="warning"
+              sx={{ margin: "5px" }}
+              variant="contained"
+            >
+              Save and close
+            </Button>
+            {/* LMAO they do the same thing */}
+            <Button type="submit" sx={{ margin: "5px" }} variant="contained">
+              Submit
+            </Button>
+          </Box>
+        </form>
+      </React.Fragment>
     </Box>
   );
 };
