@@ -147,7 +147,7 @@ export default function RootLayout({children}: {children: React.ReactNode;})
     if (refresh_token) {
       await axios
         .delete(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}${API_ENDPOINT.AUTHENTICATION.LOGOUT}`,
+          `${API_ENDPOINT.AUTHENTICATION.LOGOUT}`,
           {
             headers: {
               Authorization: `Bearer ${refresh_token}`,

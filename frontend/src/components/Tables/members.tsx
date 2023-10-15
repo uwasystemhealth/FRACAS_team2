@@ -174,7 +174,6 @@ const UserTable: React.FC = () => {
       await API_CLIENT.get(API_ENDPOINT.USER)
         .then((response) => {
           if (response.status == 200) {
-            console.log(response.data)
             setUsers(response.data);
             setLoading(false);
           } else {
