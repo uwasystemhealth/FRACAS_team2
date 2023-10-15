@@ -121,7 +121,7 @@ const Comments = ({ id }: Props) => {
             }}
           >
             <TableBody>
-              {comments.reverse().map((item) => (
+              {comments.map((item) => (
                 <TableRow>
                   <TableCell
                     sx={{ width: "1%", whiteSpace: "nowrap", maxWidth: "5%" }}
