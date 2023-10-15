@@ -145,23 +145,22 @@ export default function RootLayout({children}: {children: React.ReactNode;})
     // delete refresh_token
     const refresh_token = localStorage.getItem(TOKEN.REFRESH);
     if (refresh_token) {
-      await axios
-        .delete(
-          `${API_ENDPOINT.AUTHENTICATION.LOGOUT}`,
-          {
-            headers: {
-              Authorization: `Bearer ${refresh_token}`,
-            },
-          }
-        )
-        .then(() => {
-          localStorage.removeItem(TOKEN.REFRESH);
-        })
-        .catch((error: AxiosError) => {
-          if (error.response?.status !== 401) {
-            throw error;
-          }
-        });
+      await API_CLIENT.delete(
+        `${API_ENDPOINT.AUTHENTICATION.LOGOUT}`,
+        {
+          headers: {
+            Authorization: `Bearer ${refresh_token}`,
+          },
+        }
+      )
+      .then(() => {
+        localStorage.removeItem(TOKEN.REFRESH);
+      })
+      .catch((error: AxiosError) => {
+        if (error.response?.status !== 401) {
+          throw error;
+        }
+      });
     }
 
     // delete access_token
@@ -179,9 +178,8 @@ export default function RootLayout({children}: {children: React.ReactNode;})
             throw error;
           }
         });
-    } else {
-      router.push("/login");
     }
+    router.push("/login");
   };
 
   const theme = useTheme();

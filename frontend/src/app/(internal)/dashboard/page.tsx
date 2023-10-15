@@ -198,13 +198,14 @@ const Dashboard = () => {
                 display: "flex",
                 flexDirection: "column",
                 border: "1px solid lightblue",
+                alignItems: "center",
                 width: '100%'
               }}
             >
               <Typography
                 variant="h6"
                 gutterBottom
-                sx={{ fontSize: 16 }}
+                sx={{ fontSize: 16, textAlign: "left" }}
                 color={"white"}
               >
                 Open Reports By Team
@@ -238,7 +239,7 @@ const Dashboard = () => {
               sx={{
                 p: 2,
                 display: "flex",
-                flexDirection: {xs: "column", sm: "row"},
+                flexDirection: "column",
                 boxShadow: 5,
                 border: "1px solid lightblue",
               }}
@@ -248,7 +249,7 @@ const Dashboard = () => {
                 <span style={{ color: "red" }}>{bookmarkedReports.length}</span>{" "}
                 bookmarked tasks
               </Typography>
-                <ReportList rows={bookmarkedReports} setRows={setBookmarkedReports} 
+              <ReportList rows={bookmarkedReports} setRows={setBookmarkedReports} 
                 initialstate={BookmarkDataGridState} search={false}/>
             </Paper>
           </Grid>
@@ -261,7 +262,7 @@ const Dashboard = () => {
                 marginTop: 3,
                 boxShadow: 5,
                 display: "flex",
-                flexDirection: {xs: "column", sm: "row"},
+                flexDirection: "column",
                 border: "1px solid lightblue",
               }}
             >
