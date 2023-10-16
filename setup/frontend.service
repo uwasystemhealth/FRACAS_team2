@@ -1,0 +1,18 @@
+# Frontend systemd service file for simplified app management
+# Handle via systemctl <restart|stop|start|enable> frontend.service
+[Unit]
+Description=Next.js Frontend App
+After=network.target
+
+[Service]
+WorkingDirectory=<FRACAS_DIRECTORY>/frontend
+ExecStart=/usr/bin/yarn start
+StandardOutput=syslog
+StandardError=syslog
+Restart=always
+Environment=NODE_ENV=production
+User=<YOUR_USERNAME>
+Group=<YOUR_GROUP>
+
+[Install]
+WantedBy=multi-user.target
