@@ -23,6 +23,7 @@ Currently, `mysql-connector-python` and `mysqlclient` are failing due to a bug f
 When migrating READ THE ERRORS (I should take my own advice) before deleting. Revert the migration and try again if it goes wrong.
 
 ```bash
+flask db stamp head
 flask db migrate -m "description of changes"
 flask db upgrade # applies changes
 ```

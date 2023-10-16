@@ -35,7 +35,7 @@ def create_superuser_():
     while password == "":
         password = pwinput(prompt="Enter superuser password: ")
 
-    su: User = User(email=email, registered=True, superuser=True)
+    su: User = User(email=email, name="Admin", registered=True, superuser=True)
     su.set_password_and_register(password)
     db.session.add(su)
     db.session.commit()
@@ -58,7 +58,7 @@ def quickstart():
         print("Resetting admin password")
         user = User.query.filter_by(email=email).first()
         if user is None:
-            user = User(email=email, registered=True, superuser=True)
+            user = User(email=email, name="Admin", registered=True, superuser=True)
         user.set_password_and_register(password)
         db.session.add(user)
         db.session.commit()

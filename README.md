@@ -1,17 +1,34 @@
 # FRACAS_team2 - Peter Tanner, Haoyuan Wang, Harsha Mane, Igor Pavkov, Insan Basrewan, Nicolas Baxter
 
-## Docker instructions
+## How To Deploy
+`setup.sh` will get you fully running on a production machine. 
+including background running, start on boot and self managing SSL certificates.
 
-1. Make sure your current working directory is the project root.
-2. Run `docker-compose build` once after downloading the repository, or whenever you modify the `Dockerfile`s.
-3. Run `docker-compose up` every time you want to start the frontend and backend in development mode.
-4. Access the frontend at `localhost:3000` and backend at `localhost:5000`.
-5. Frontend and backend should automatically reload whenever you make a change to the files locally, or inside the docker container.
-6. `Ctrl+C` terminates the frontend and backend.
+Deployment script have only been tested on Ubuntu. 
+(Might not work on other platforms or require modification)
 
-Alternatively, you may wish to run the application locally (without docker).
+1. Log in or SSH into your Ubuntu machine
+2. git clone this repository 
+```bash
+git clone https://github.com/uwasystemhealth/fracas_team2.git
+```
+3. cd into the fracas_team2 
+```bash
+cd fracas_team2
+```
+4. Give setup.sh permissions 
+```bash
+sudo chmod+x ./setup.sh
+```
+5. Run the script and follow any given instructions
+```bash
+sudo ./setup.sh
+```
+6. Go to your provided domain with admin@admin.com and the password you provided during setup
 
-## How to Run locally
+Alternatively, you may wish to run the application manually.
+
+## How to Run Manually
 
 Download a copy of the repository, onto your local machine.
 
@@ -19,7 +36,7 @@ Download a copy of the repository, onto your local machine.
 
 You must have Python installed on your system.
 
-1. 'cd' into the api folder in this repository, in your local machine
+1. 'cd' into 'backend' folder in this repository, in your local machine
 2. Setup a Python virtual environment (venv)
 
 ```bash
@@ -39,34 +56,31 @@ pip install -r requirements.txt
 4. If app.db is not present, you'll have to initialise a database
 
 ```bash
-flask db init
-flask db migrate
-flask db upgrade
+export ADMIN_PASSWORD="Your-password-for-admin-access"
+flask quickstart
 ```
 
-5. Launch the api
+5. Launch the backend
 
 ```bash
-flask run
+flask run --debug
 ```
-
-6. Access via http://127.0.0.1:5000
 
 ### React
 
 1. Install dependencies from `yarn.lock` lockfile.
 
 ```bash
-yarn install --frozen-lockfile
+yarn install
 ```
 
 2. Start the frontend server.
 
 ```bash
-yarn start
+yarn dev
 ```
 
-3. Access via http://127.0.0.1:3000
+3. Access via http://localhost:3000 with "admin@admin.com" and the password you created earlier
 
 ## Description
 

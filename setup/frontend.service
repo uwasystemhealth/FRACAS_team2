@@ -1,3 +1,5 @@
+# Frontend systemd service file for simplified app management
+# Handle via systemctl <restart|stop|start|enable> frontend.service
 [Unit]
 Description=Next.js Frontend App
 After=network.target

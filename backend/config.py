@@ -57,3 +57,4 @@ class Config(object):
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD", default="")
     MAIL_USE_TLS = os.getenv("MAIL_USE_TLS", default=None) or False
     MAIL_USE_SSL = os.getenv("MAIL_USE_SSL", default=None) or True
+    MAIL_DEFAULT_SENDER = MAIL_USERNAME

@@ -1,0 +1,10 @@
+# Change the values below to your own values,
+# Tokens, Security keys and password salt will be added when app is launched
+# KEEP .env SECURE
+
+# MAIL PROVIDER for sending forget password and sign up requests
+# gmail example
+MAIL_USERNAME="your_email_here@gmail.com""
+MAIL_PASSWORD="your-password-here"
+MAIL_SERVER="smtp.gmail.com"
+MAIL_PORT=465

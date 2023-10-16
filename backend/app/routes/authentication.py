@@ -84,7 +84,7 @@ def logout():
 
 def send_signup_request_email(
     email: str,
-    ip_address: str,
+    ip_address: str = "0.0.0.0",
     pwd_recovery: Literal["REGISTRATION_MAIL", "RECOVERY_MAIL"] = "REGISTRATION_MAIL",
 ) -> bool:
     start_time = time.time()
