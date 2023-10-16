@@ -42,8 +42,6 @@ def add_test_records(commit=True):
                 mechanism = "Dielectric breakdown",
                 corrective_action_plan = "Replace broken inductor with a new lower-resistance inductor and validate reduced operating temperature with bench testing under expected load.",
                 time_of_failure = datetime.datetime(2023,8,9,14,30,0),
-                created_at = datetime.datetime(2023,8,9,21,31,0),
-                modified_at = datetime.datetime(2023,8,9,21,31,0),
                 car_year = 2022,
                 creator_id = 2
 
@@ -58,8 +56,6 @@ def add_test_records(commit=True):
                 mechanism = "Cell degradation and internal resistance increase.",
                 corrective_action_plan = "Perform thorough inspection of the HV battery pack to identify the faulty cell, replace the  cell and conduct extensive bench testing to ensure the stability of the battery pack under load.",
                 time_of_failure = datetime.datetime(2023,8,9,16,45,0),
-                created_at = datetime.datetime(2023,8,10,9,30,0),
-                modified_at = datetime.datetime(2023,8,10,9,30,0),
                 car_year = 2022,
                 creator_id = 2
             ),
@@ -73,8 +69,6 @@ def add_test_records(commit=True):
                 mechanism = "Fatigue crack initiation and propagation.",
                 corrective_action_plan = "Conduct a detailed analysis of the failed gear tooth and identify any potential design or manufacturing defects. Replace any damaged gearbox parts. Perform rigorous bench testing and simulation to validate the gearbox's improved reliability.",
                 time_of_failure = datetime.datetime(2023,8,15,10,15,0),
-                created_at = datetime.datetime(2023,8,15,13,45,0),
-                modified_at = datetime.datetime(2023,8,15,13,45,0),
                 car_year = 2022,
                 creator_id = 6
 
@@ -90,8 +84,6 @@ def add_test_records(commit=True):
                 mechanism = "Layers of the front wing separated due to stress and vibration.",
                 corrective_action_plan = "Assess the damaged front wing, repair any salvageable sections, and replace the delaminated portions. Reinforce the front wing structure to withstand higher aerodynamic loads and conduct wind tunnel testing to validate its performance before the next race.",
                 time_of_failure = datetime.datetime(2023,8,22,13,0,0),
-                created_at = datetime.datetime(2023,8,22,16,0,0),
-                modified_at = datetime.datetime(2023,8,22,16,0,0),
                 car_year = 2022,
                 creator_id = 7
             
@@ -106,8 +98,6 @@ def add_test_records(commit=True):
                 mechanism = "Progressive deformation and eventual rupture of the suspension bushing.",
                 corrective_action_plan = "Replace damaged bushings and inspect  suspension system for any signs of wear or fatigue. Enhance suspension geometry and implement a revised setup to improve handling and reduce stress on the bushings.",
                 time_of_failure = datetime.datetime(2023,8,30,11,45,0),
-                created_at = datetime.datetime(2023,8,30,13,30,0),
-                modified_at = datetime.datetime(2023,8,30,13,30,0),
                 car_year = 2022,
                 creator_id = 8
             

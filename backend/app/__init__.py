@@ -57,8 +57,10 @@ convention = {
 metadata = MetaData(naming_convention=convention)
 
 jwt = JWTManager(app)
+
 db = SQLAlchemy(app, metadata=metadata)
 migrate = Migrate(app, db)
+
 mail = Mail(app)
 
 from app import commands  # noqa

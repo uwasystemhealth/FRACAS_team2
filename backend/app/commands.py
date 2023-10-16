@@ -27,7 +27,6 @@ def create_db_():
     db.create_all()
     print("created db!")
 
-
 def create_superuser_():
     email = ""
     password = ""
@@ -36,23 +35,37 @@ def create_superuser_():
     while password == "":
         password = pwinput(prompt="Enter superuser password: ")
 
-    su: User = User(email=email, registered=False, superuser=True)
+    su: User = User(email=email, registered=True, superuser=True)
     su.set_password_and_register(password)
     db.session.add(su)
     db.session.commit()
     print("Superuser created.")
 
-
 @app.cli.command("quickstart")
 def quickstart():
-    create_db_()
-    create_superuser_()
-
+    path = './db/app.db'
+    if not os.path.isfile(path):
+        create_db_()
+        print("Creating database..")
+    else: 
+        print("app.db present, skipping DB creation")
+    password = os.getenv("ADMIN_PASSWORD", default=None)
+    email = "admin@admin.com"
+    if (password) is None:
+        print("No password provied in admin, resetting")
+        return
+    else:
+        print("Resetting admin password")
+        user = User.query.filter_by(email=email).first()
+        if user is None:
+            user = User(email=email, registered=True, superuser=True)
+        user.set_password_and_register(password)
+        db.session.add(user)
+        db.session.commit()
 
 @app.cli.command("create-db")
 def create_db():
     create_db_()
-
 
 @app.cli.command("recreate-db")
 def recreate_db():
