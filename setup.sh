@@ -89,8 +89,6 @@ echo
 echo "Building Next.js frontend. This could take a while.."
 echo
 sleep 2
-cd ./frontend
-yarn build
 
 echo "########################################"
 echo "Setting up Web server & SSL Certificates"
@@ -98,6 +96,9 @@ echo "########################################"
 cd $PARENT_DIRECTORY
 # Setup nginx
 rm /etc/nginx/sites-enabled/default
+if test -f /etc/nginx/sites-enabled/default; then
+    rm /etc/nginx/sites-enabled/default
+fi
 sed -e "s@<DOMAIN>@$DOMAIN@g" ./setup/fracas-nginx.conf > /etc/nginx/sites-enabled/fracas-nginx.conf
 systemctl start nginx.service
 systemctl enable nginx.service
@@ -117,11 +118,12 @@ systemctl enable backend.service
 systemctl start frontend.service
 systemctl enable frontend.service
 echo
-echo "###################"
-echo "$DOMAIN IS NOW LIVE"
-echo "###################"
+echo "#################"
+echo "Install Completed"
+echo "#################"
 echo 
 echo "Install completed. App will automatically run on reboot"
-echo "Visit $DOMAIN with admin@admin.com, to see if everything is working"
+echo "Please wait for a minute or two for the first start, afterwards"
+echo "visit $DOMAIN with admin@admin.com, to see if everything is working"
 echo
 echo "Exiting setup.."
