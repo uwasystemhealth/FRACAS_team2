@@ -1,0 +1,1 @@
+git log --abbrev-commit --pretty=fuller --name-status --graph > git-log.txt
