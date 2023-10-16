@@ -1,13 +1,13 @@
 import os, sqlite3
 
-# Set default database to tests/test.db
+# Set default database to test.db
 basedir = os.path.abspath(os.path.dirname(__file__))
 os.environ["DATABASE_URL"] = "sqlite:///" + os.path.join(basedir, "test.db")
 
 
 # Ensure the database is clear initially (teardown may not occur if program crashes)
 
-db = sqlite3.connect("tests/test.db")
+db = sqlite3.connect("test.db")
 
 # Note: The table deletion order is important (token_blacklist, user_record, record, subsystem, team, user)
 # Deleting in the wrong order violates foreign key constraints
