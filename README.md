@@ -18,7 +18,7 @@ cd fracas_team2
 ```
 4. Give setup.sh permissions 
 ```bash
-sudo chmod+x ./setup.sh
+sudo chmod +x ./setup.sh
 ```
 5. Run the script and follow any given instructions
 ```bash
