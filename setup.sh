@@ -12,7 +12,11 @@ Help()
    echo "options:"
    echo "-h    Print this Help."
 }
-
+# Used for yarn builds on low memory
+# uncomment to use
+# export NODE_OPTIONS=--max_old_space_size=256
+# export GENERATE_SOURCEMAP=false
+#
 # Update & install packages needed for setup
 set -e
 PARENT_DIRECTORY=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
@@ -58,7 +62,7 @@ echo "##################"
 cd $PARENT_DIRECTORY
 sleep 2
 if ! test -f ./backend/.env; then
-    cp ./setup/.backend-env.txt ./backend/.env
+    cp ./setup/backend-env.txt ./backend/.env
 fi
 
 cd $PARENT_DIRECTORY
@@ -68,7 +72,7 @@ source venv/bin/activate
 echo "Installing flask dependencies"
 pip3 install -r requirements.txt
 export ADMIN_PASSWORD
-flask app quickcreate
+flask quickstart
 unset ADMIN_PASSWORD
 deactivate
 
@@ -78,13 +82,14 @@ echo "Setting up Frontend"
 echo "###################"
 sleep 2
 cd $PARENT_DIRECTORY
+sed -e "s@<DOMAIN>@$DOMAIN@g" ./setup/.env.production > ./frontend/.env.production
 cd ./frontend
 yarn install
-sed -e "s@<DOMAIN>@$DOMAIN@g" ./setup/.env.production > ./frontend/.env.production
 echo
 echo "Building Next.js frontend. This could take a while.."
 echo
 sleep 2
+cd ./frontend
 yarn build
 
 echo "########################################"
