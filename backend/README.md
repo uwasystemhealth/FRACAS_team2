@@ -2,11 +2,11 @@
 
 ## Getting started
 
-```
+<!-- ```
 ./quickstart.sh
 
 # Optionally run `flask db init` and make an initial migration after this if migrations are not present.
-```
+``` -->
 
 ## Adding new packages
 
