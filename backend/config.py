@@ -52,9 +52,8 @@ class Config(object):
         env_file.write("JWT_SECRET_KEY='"+str(JWT_SECRET_KEY)+"'\n")
         env_file.close()
     MAIL_SERVER = os.getenv("MAIL_SERVER", default="")
-    MAIL_PORT = os.getenv("MAIL_PORT", default=465)
+    MAIL_PORT = os.getenv("MAIL_PORT", default=587)
     MAIL_USERNAME = os.getenv("MAIL_USERNAME", default="")
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD", default="")
-    MAIL_USE_TLS = os.getenv("MAIL_USE_TLS", default=None) or False
-    MAIL_USE_SSL = os.getenv("MAIL_USE_SSL", default=None) or True
+    MAIL_USE_TLS = True
     MAIL_DEFAULT_SENDER = MAIL_USERNAME

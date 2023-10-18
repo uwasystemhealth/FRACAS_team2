@@ -39,7 +39,6 @@ import { TextField } from "@mui/material/";
 import "@/components/styles/viewreport.css";
 import { API_CLIENT, API_ENDPOINT, API_TYPES } from "@/helpers/api";
 import { AxiosError, AxiosResponse } from "axios";
-import { validateConfig } from "next/dist/server/config-shared";
 import { amber, green, orange, blue } from "@mui/material/colors";
 import { string } from "prop-types";
 import Comments from "./ViewReportComponents/Comments";

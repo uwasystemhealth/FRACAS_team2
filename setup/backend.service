@@ -7,11 +7,7 @@ After=network.target
 [Service]
 WorkingDirectory=<FRACAS_DIRECTORY>/backend
 ExecStart=<FRACAS_DIRECTORY>/backend/venv/bin/gunicorn
-StandardOutput=syslog
-StandardError=syslog
 Restart=always
-User=<YOUR_USERNAME>
-Group=<YOUR_GROUP>
 
 [Install]
 WantedBy=multi-user.target

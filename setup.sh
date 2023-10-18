@@ -29,12 +29,16 @@ echo "      Only requires to be run once and then managed via systemctl."
 echo "      restart.sh & stop.sh scripts are also provided."
 echo
 echo
-echo "This app requires a email sending provider for sign ups and forget password requests."
-echo "You can add your credentials in setup/backend-env.txt"
-read -p "Press ctrl+c to exit the setup and add your credentials, or press enter to continue install"
 echo
 echo "Ensure your domain is already forwarding to the public IP address of this machine"
 read -p "Enter the domain name for the app: " DOMAIN
+echo
+echo "This system requires an email account to send email for signup and password requests"
+read -p "Enter the SMTP server name (e.g. smtp.gmail.com if using gmail): " EMAIL_SERVER
+echo
+read -p "Enter the email account : " EMAIL_ACCOUNT
+echo
+read -p "Enter the email password : " EMAIL_PASSWORD
 echo
 echo An initial admin user "admin@admin.com" will be setup for access
 read -s -p "Enter the password for this account: " ADMIN_PASSWORD
@@ -60,12 +64,7 @@ echo "##################"
 echo "Setting up Backend"
 echo "##################"
 cd $PARENT_DIRECTORY
-sleep 2
-if ! test -f ./backend/.env; then
-    cp ./setup/backend-env.txt ./backend/.env
-fi
-
-cd $PARENT_DIRECTORY
+sed -e "s@<DOMAIN>@$DOMAIN@g" -e "s@<EMAIL_SERVER>@$EMAIL_SERVER@g" -e "s@<EMAIL_ACCOUNT>@$EMAIL_ACCOUNT@g" -e "s@<EMAIL_PASSWORD>@$EMAIL_PASSWORD@g" ./setup/backend-env.txtn > ./backend/.env
 cd ./backend
 python3 -m venv venv
 source venv/bin/activate
@@ -80,13 +79,10 @@ deactivate
 echo "###################"
 echo "Setting up Frontend"
 echo "###################"
-sleep 2
 cd $PARENT_DIRECTORY
 sed -e "s@<DOMAIN>@$DOMAIN@g" ./setup/.env.production > ./frontend/.env.production
 cd ./frontend
 yarn install
-echo
-echo "Building Next.js frontend. This could take a while.."
 echo
 sleep 2
 
@@ -123,7 +119,7 @@ echo "Install Completed"
 echo "#################"
 echo 
 echo "Install completed. App will automatically run on reboot"
-echo "Please wait for a minute or two for the first start, afterwards"
+echo "Please wait for a minute or two whilst the front-end is compiling, on initial run"
 echo "visit $DOMAIN with admin@admin.com, to see if everything is working"
 echo
 echo "Exiting setup.."
