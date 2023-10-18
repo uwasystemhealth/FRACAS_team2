@@ -1,5 +1,8 @@
 # FRACAS_team2 - Peter Tanner, Haoyuan Wang, Harsha Mane, Igor Pavkov, Insan Basrewan, Nicolas Baxter
 
+## Documentation
+Visit frontend/FRACAS Pages & Functionality.md
+
 ## How To Deploy
 `setup.sh` will get you fully running on a production machine. 
 including background running, start on boot and self managing SSL certificates.
